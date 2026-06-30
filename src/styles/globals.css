@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 223 61% 14%; /* ink */
+    --card: 0 0% 100%;
+    --card-foreground: 223 61% 14%;
+    --primary: 19 89% 54%; /* orange */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 70% 21%; /* navy */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 218 33% 97%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 24 100% 96%; /* orange-50 */
+    --accent-foreground: 220 70% 21%;
+    --destructive: 358 75% 59%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 222 30% 92%;
+    --input: 222 30% 92%;
+    --ring: 19 89% 54%;
+    --radius: 0.9rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-surface text-ink font-sans antialiased;
+    line-height: 1.45;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-display;
+    letter-spacing: -0.01em;
+  }
+
+  :focus-visible {
+    outline: 2px solid theme('colors.orange.DEFAULT');
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+}
+
+@layer components {
+  /* Signature flame-tinted background for the reconciliation panel (DESIGN_SYSTEM §6). */
+  .bg-flame {
+    background:
+      radial-gradient(120% 90% at 100% 0%, rgba(242, 101, 34, 0.1), transparent 55%),
+      linear-gradient(180deg, #fff, #fcfdff);
+  }
+
+  /* Navy sidebar gradient. */
+  .bg-sidebar {
+    background: linear-gradient(180deg, #10295c 0%, #0a1a3f 100%);
+  }
+}
+
+@layer utilities {
+  /* tabular figures so money/quantity columns align (DESIGN_SYSTEM §3) */
+  .num {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
+  }
+}
