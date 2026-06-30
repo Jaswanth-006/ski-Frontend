@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dashboard · Sree Kamala Indane</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --orange:#F26522; --orange-600:#D9551A; --orange-50:#FFF1E9;
+    --navy:#10295C; --navy-700:#1C3D78; --navy-900:#0A1A3F;
+    --ink:#0E1B3A; --muted:#64748B;
+    --surface:#F5F7FB; --card:#FFFFFF; --border:#E7EBF3;
+    --green:#1E9E62; --green-50:#E7F6EE;
+    --red:#E5484D; --red-50:#FDECEC;
+    --amber:#E8920C; --amber-50:#FDF3E2;
+    --radius:16px; --shadow:0 1px 2px rgba(16,41,92,.06), 0 8px 24px rgba(16,41,92,.06);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:"Inter",-apple-system,"Segoe UI",Roboto,system-ui,sans-serif;
+    background:var(--surface); color:var(--ink);
+    -webkit-font-smoothing:antialiased; line-height:1.45;
+  }
+  .num{font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1}
+  h1,h2,h3{font-family:"Archivo",sans-serif; margin:0; letter-spacing:-.01em}
+  a{color:inherit;text-decoration:none}
+  :focus-visible{outline:2px solid var(--orange); outline-offset:2px; border-radius:6px}
+
+  /* ---------- Shell ---------- */
+  .app{display:grid; grid-template-columns:248px 1fr; min-height:100vh}
+
+  .side{
+    background:linear-gradient(180deg,var(--navy) 0%, var(--navy-900) 100%);
+    color:#C9D4EA; display:flex; flex-direction:column; position:sticky; top:0; height:100vh;
+  }
+  .brand{display:flex; gap:12px; align-items:center; padding:22px 20px 18px}
+  .mark{width:38px;height:38px;flex:none}
+  .brand-txt b{font-family:"Archivo";font-weight:800;color:#fff;font-size:15px;letter-spacing:-.01em;display:block;line-height:1.1}
+  .brand-txt span{font-size:11px;color:#8EA2C6;letter-spacing:.08em;text-transform:uppercase}
+  .nav{padding:8px 12px; display:flex; flex-direction:column; gap:2px; margin-top:6px}
+  .nav-label{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#6F84AC;padding:14px 12px 6px}
+  .nav a{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:10px;font-size:13.5px;font-weight:500;color:#C2CFE6;transition:background .15s,color .15s}
+  .nav a svg{width:18px;height:18px;flex:none;opacity:.9}
+  .nav a:hover{background:rgba(255,255,255,.06);color:#fff}
+  .nav a.active{background:var(--orange);color:#fff;box-shadow:0 6px 16px rgba(242,101,34,.35)}
+  .nav a.active svg{opacity:1}
+  .side-foot{margin-top:auto;padding:14px;border-top:1px solid rgba(255,255,255,.08)}
+  .user{display:flex;align-items:center;gap:10px;padding:8px;border-radius:12px}
+  .user .av{width:34px;height:34px;border-radius:50%;background:var(--orange);color:#fff;display:grid;place-items:center;font-weight:700;font-family:"Archivo";font-size:13px;flex:none}
+  .user b{color:#fff;font-size:13px;display:block;line-height:1.2}
+  .user span{font-size:11px;color:#8EA2C6}
+
+  /* ---------- Topbar ---------- */
+  .main{display:flex;flex-direction:column;min-width:0}
+  .top{
+    display:flex;align-items:center;justify-content:space-between;gap:16px;
+    padding:18px 28px;background:rgba(255,255,255,.8);backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--border);position:sticky;top:0;z-index:5;
+  }
+  .top h1{font-size:20px;font-weight:700}
+  .top .sub{font-size:12.5px;color:var(--muted);margin-top:2px}
+  .top-right{display:flex;align-items:center;gap:12px}
+  .pill{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;padding:6px 11px;border-radius:999px}
+  .pill-open{background:var(--green-50);color:var(--green)}
+  .pill-open .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(30,158,98,.18)}
+  .btn{display:inline-flex;align-items:center;gap:8px;font-family:"Inter";font-weight:600;font-size:13px;border:0;cursor:pointer;border-radius:10px;padding:9px 15px;transition:transform .08s, box-shadow .15s, background .15s}
+  .btn:active{transform:scale(.97)}
+  .btn-primary{background:var(--orange);color:#fff;box-shadow:0 6px 16px rgba(242,101,34,.3)}
+  .btn-primary:hover{background:var(--orange-600)}
+  .btn-ghost{background:#fff;color:var(--navy);border:1px solid var(--border)}
+  .btn-ghost:hover{border-color:#cdd6e8;background:#fbfcfe}
+  .iconbtn{width:38px;height:38px;border-radius:10px;border:1px solid var(--border);background:#fff;display:grid;place-items:center;cursor:pointer;color:var(--navy);position:relative}
+  .iconbtn .badge{position:absolute;top:-4px;right:-4px;background:var(--orange);color:#fff;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:grid;place-items:center;padding:0 3px}
+
+  /* ---------- Content ---------- */
+  .content{padding:24px 28px 40px;display:flex;flex-direction:column;gap:20px}
+  .reveal{opacity:0;transform:translateY(10px);animation:rise .5s cubic-bezier(.2,.7,.2,1) forwards}
+  @keyframes rise{to{opacity:1;transform:none}}
+
+  /* KPI row */
+  .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+  .kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 16px 14px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .kpi .k-top{display:flex;align-items:center;justify-content:space-between}
+  .kpi .k-ico{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:var(--orange-50);color:var(--orange-600)}
+  .kpi .k-lbl{font-size:11.5px;color:var(--muted);font-weight:600;letter-spacing:.02em;margin-top:12px}
+  .kpi .k-val{font-family:"Archivo";font-weight:800;font-size:25px;letter-spacing:-.02em;margin-top:3px;color:var(--ink)}
+  .kpi .k-sub{font-size:11.5px;color:var(--muted);margin-top:5px;display:flex;align-items:center;gap:6px}
+  .delta{font-weight:700;display:inline-flex;align-items:center;gap:3px}
+  .delta.up{color:var(--green)} .delta.down{color:var(--red)}
+  .lockchip{font-size:10px;font-weight:700;color:var(--navy);background:#EEF2FB;border-radius:6px;padding:2px 6px;display:inline-flex;align-items:center;gap:4px}
+  .kbar{height:6px;border-radius:6px;background:#EDF1F8;margin-top:11px;overflow:hidden}
+  .kbar>i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--orange),#FFA15C);width:0;transition:width 1s cubic-bezier(.2,.7,.2,1)}
+
+  /* main grid */
+  .grid{display:grid;grid-template-columns:1.65fr 1fr;gap:20px;align-items:start}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .card-h{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 4px}
+  .card-h h2{font-size:15px;font-weight:700;color:var(--ink)}
+  .card-h .hint{font-size:11.5px;color:var(--muted)}
+  .legend{display:flex;gap:14px;font-size:11.5px;color:var(--muted)}
+  .legend i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:middle}
+
+  /* chart */
+  .chart-wrap{padding:6px 12px 14px}
+  .chart{width:100%;height:200px;display:block}
+  .chart .area{opacity:0;animation:fade .8s .2s forwards}
+  @keyframes fade{to{opacity:1}}
+  .chart .line{fill:none;stroke:var(--orange);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round;
+    stroke-dasharray:1600;stroke-dashoffset:1600;animation:draw 1.1s .15s cubic-bezier(.4,0,.2,1) forwards}
+  @keyframes draw{to{stroke-dashoffset:0}}
+  .chart .dot{fill:#fff;stroke:var(--orange);stroke-width:2.5;opacity:0;animation:pop .3s forwards}
+  .chart .gl{stroke:#EEF2F8;stroke-width:1}
+  .chart .xl{fill:#94A3B8;font-size:11px;font-family:"Inter"}
+
+  /* cylinder gauges */
+  .gauges{padding:6px 18px 18px;display:flex;flex-direction:column;gap:15px}
+  .gauge .g-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px}
+  .gauge .g-name{font-size:13px;font-weight:600;color:var(--ink)}
+  .gauge .g-name small{color:var(--muted);font-weight:500;margin-left:6px;font-size:11px}
+  .gauge .g-fig{font-size:12.5px;color:var(--muted)}
+  .gauge .g-fig b{color:var(--ink);font-family:"Archivo";font-weight:700}
+  .track{height:9px;border-radius:6px;background:#EDF1F8;overflow:hidden}
+  .track>i{display:block;height:100%;border-radius:6px;width:0;transition:width 1.1s cubic-bezier(.2,.7,.2,1)}
+  .fill-a{background:linear-gradient(90deg,#10295C,#3C63A8)}
+  .fill-b{background:linear-gradient(90deg,var(--orange),#FF9550)}
+
+  /* reconciliation signature card */
+  .recon{background:
+      radial-gradient(120% 90% at 100% 0%, rgba(242,101,34,.10), transparent 55%),
+      linear-gradient(180deg,#fff,#FCFDFF);
+    border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;overflow:hidden;position:relative}
+  .recon h2{font-size:15px;font-weight:700}
+  .recon .status{display:flex;align-items:center;gap:12px;margin:14px 0 4px}
+  .recon .check{width:46px;height:46px;border-radius:50%;background:var(--green-50);color:var(--green);display:grid;place-items:center;flex:none}
+  .recon .status b{font-family:"Archivo";font-size:18px;color:var(--green);display:block;line-height:1.1}
+  .recon .status span{font-size:12px;color:var(--muted)}
+  .recon-rows{margin-top:14px;border-top:1px dashed #E3E9F4;padding-top:12px;display:flex;flex-direction:column;gap:9px}
+  .rrow{display:flex;justify-content:space-between;align-items:center;font-size:13px}
+  .rrow .l{color:var(--muted)}
+  .rrow .v{font-family:"Archivo";font-weight:700;color:var(--ink)}
+  .rrow .v.g{color:var(--green)}
+
+  /* delivery list */
+  .dlist{padding:4px 8px 10px}
+  .drow{display:flex;align-items:center;gap:12px;padding:10px 10px;border-radius:12px;transition:background .15s}
+  .drow:hover{background:#F7F9FD}
+  .drow .av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-family:"Archivo";font-size:13px;color:#fff;flex:none}
+  .drow .nm{flex:1;min-width:0}
+  .drow .nm b{font-size:13.5px;color:var(--ink);display:block}
+  .drow .nm span{font-size:11.5px;color:var(--muted)}
+  .drow .amt{font-family:"Archivo";font-weight:700;font-size:14px;color:var(--ink);text-align:right}
+  .tag{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap}
+  .tag-ok{background:var(--green-50);color:var(--green)}
+  .tag-wait{background:var(--amber-50);color:var(--amber)}
+
+  /* day sheet preview */
+  .table-card{overflow:hidden}
+  table{width:100%;border-collapse:collapse}
+  th,td{text-align:right;padding:12px 18px;font-size:13px}
+  th:first-child,td:first-child{text-align:left}
+  thead th{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600;background:#FAFBFE;border-bottom:1px solid var(--border)}
+  tbody td{border-bottom:1px solid #F0F3F9}
+  tbody tr:last-child td{border-bottom:0}
+  tbody td.num{font-family:"Archivo";font-weight:600}
+  tbody tr:hover{background:#FBFCFE}
+  .tfoot td{font-family:"Archivo";font-weight:800;color:var(--ink);background:#FAFBFE;border-top:1px solid var(--border)}
+
+  .stat-mini{display:flex;gap:20px;flex-wrap:wrap}
+  .stat-mini div{font-size:12px;color:var(--muted)}
+  .stat-mini b{display:block;font-family:"Archivo";font-weight:700;font-size:15px;color:var(--ink);margin-top:2px}
+
+  @media (max-width:1100px){
+    .kpis{grid-template-columns:repeat(2,1fr)}
+    .grid{grid-template-columns:1fr}
+  }
+  @media (max-width:760px){
+    .app{grid-template-columns:1fr}
+    .side{display:none}
+    .kpis{grid-template-columns:1fr 1fr}
+    .content{padding:18px}
+    .top{padding:14px 18px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important}
+    .kbar>i,.track>i{width:var(--w,0)!important}
+    .chart .line{stroke-dashoffset:0!important}
+    .chart .area,.chart .dot{opacity:1!important}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="side">
+    <div class="brand">
+      <svg class="mark" viewBox="0 0 48 48" aria-hidden="true">
+        <circle cx="24" cy="24" r="22" fill="#fff"/>
+        <circle cx="24" cy="24" r="22" fill="none" stroke="#10295C" stroke-width="3"/>
+        <circle cx="24" cy="24" r="15" fill="#F26522"/>
+        <path d="M24 13c4 4 6 7 6 11a6 6 0 1 1-12 0c0-2 1-3.5 2.5-5 .3 2 1.2 3 2.5 3 0-3 .3-6 1-9z" fill="#fff"/>
+      </svg>
+      <div class="brand-txt">
+        <b>Sree Kamala</b>
+        <span>Indane Agency</span>
+      </div>
+    </div>
+
+    <nav class="nav" aria-label="Primary">
+      <a class="active" href="#" aria-current="page">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        Dashboard
+      </a>
+      <div class="nav-label">Daily operations</div>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg> Stock Intake</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Daily Pricing</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/><circle cx="7" cy="15" r="1.4" fill="currentColor" stroke="none"/></svg> Sales Entry</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2.5"/><path d="M3 9h18M9 3v18"/></svg> Day Sheet</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h10"/><circle cx="19" cy="17" r="2.4"/></svg> Expenses</a>
+      <div class="nav-label">Manage</div>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 7.5 12 3 3 7.5 12 12l9-4.5z"/><path d="M3 7.5v9L12 21l9-4.5v-9"/></svg> Master Catalog</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Audit Log</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 4.5a3 3 0 0 1 0 7M21 20a5.6 5.6 0 0 0-4-5.3"/></svg> Users</a>
+    </nav>
+
+    <div class="side-foot">
+      <div class="user">
+        <div class="av">RK</div>
+        <div><b>R. Kamala</b><span>Owner · Super Admin</span></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <div class="main">
+    <header class="top">
+      <div>
+        <h1>Dashboard</h1>
+        <div class="sub">Monday, 30 June 2026 · End-of-day overview</div>
+      </div>
+      <div class="top-right">
+        <span class="pill pill-open"><span class="dot"></span> Day open</span>
+        <button class="iconbtn" aria-label="Notifications"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span class="badge">3</span></button>
+        <button class="btn btn-ghost"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg> Export</button>
+        <button class="btn btn-primary"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg> Close day</button>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- KPI ROW -->
+      <section class="kpis reveal" style="animation-delay:.02s">
+        <div class="kpi">
+          <div class="k-top">
+            <div class="k-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2h6l1 4c1.5 1.2 2 3 2 5v9a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-9c0-2 .5-3.8 2-5l1-4z"/></svg></div>
+          </div>
+          <div class="k-lbl">Cylinders sold</div>
+          <div class="k-val num" data-count="347">0</div>
+          <div class="k-sub">of <b style="color:var(--ink)">455</b>&nbsp;loaded today</div>
+          <div class="kbar"><i data-w="76%"></i></div>
+        </div>
+
+        <div class="kpi">
+          <div class="k-top"><div class="k-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="13" rx="2.5"/><circle cx="12" cy="12.5" r="2.6"/></svg></div></div>
+          <div class="k-lbl">Gross collection</div>
+          <div class="k-val num" data-count="342180" data-prefix="₹">₹0</div>
+          <div class="k-sub"><span class="delta up"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M7 14l5-5 5 5"/></svg>12%</span> vs yesterday</div>
+        </div>
+
+        <div class="kpi">
+          <div class="k-top"><div class="k-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18v10H3z"/><path d="M3 11h18"/></svg></div></div>
+          <div class="k-lbl">Cash in hand</div>
+          <div class="k-val num" data-count="258400" data-prefix="₹">₹0</div>
+          <div class="k-sub"><span class="tag tag-ok" style="padding:2px 8px">Denominations verified</span></div>
+        </div>
+
+        <div class="kpi">
+          <div class="k-top"><div class="k-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/></svg></div></div>
+          <div class="k-lbl">UPI / digital</div>
+          <div class="k-val num" data-count="83780" data-prefix="₹">₹0</div>
+          <div class="k-sub"><b style="color:var(--ink)">24%</b>&nbsp;of collection</div>
+        </div>
+
+        <div class="kpi">
+          <div class="k-top">
+            <div class="k-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-8"/><path d="M21 7v5h-5"/></svg></div>
+            <span class="lockchip"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Owner</span>
+          </div>
+          <div class="k-lbl">Net profit (today)</div>
+          <div class="k-val num" data-count="335940" data-prefix="₹">₹0</div>
+          <div class="k-sub">after <b style="color:var(--ink)">₹6,240</b>&nbsp;expenses</div>
+        </div>
+      </section>
+
+      <!-- MAIN GRID -->
+      <section class="grid">
+
+        <!-- LEFT COLUMN -->
+        <div style="display:flex;flex-direction:column;gap:20px;min-width:0">
+
+          <!-- collections chart -->
+          <div class="card reveal" style="animation-delay:.08s">
+            <div class="card-h">
+              <div><h2>Collections</h2><div class="hint">Daily total · last 7 days</div></div>
+              <div class="legend"><span><i style="background:var(--orange)"></i>Total collection</span></div>
+            </div>
+            <div class="chart-wrap">
+              <svg class="chart" viewBox="0 0 700 200" preserveAspectRatio="none" role="img" aria-label="Collections over the last 7 days, trending up to ₹3.42 lakh today">
+                <defs>
+                  <linearGradient id="ga" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="#F26522" stop-opacity="0.20"/>
+                    <stop offset="1" stop-color="#F26522" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+                <line class="gl" x1="0" y1="40"  x2="700" y2="40"/>
+                <line class="gl" x1="0" y1="90"  x2="700" y2="90"/>
+                <line class="gl" x1="0" y1="140" x2="700" y2="140"/>
+                <path class="area" fill="url(#ga)" d="M40,122 L145,91 L250,107 L355,99 L460,70 L565,39 L660,57 L660,165 L40,165 Z"/>
+                <path class="line" d="M40,122 L145,91 L250,107 L355,99 L460,70 L565,39 L660,57"/>
+                <circle class="dot" cx="40"  cy="122" r="4" style="animation-delay:.5s"/>
+                <circle class="dot" cx="145" cy="91"  r="4" style="animation-delay:.6s"/>
+                <circle class="dot" cx="250" cy="107" r="4" style="animation-delay:.7s"/>
+                <circle class="dot" cx="355" cy="99"  r="4" style="animation-delay:.8s"/>
+                <circle class="dot" cx="460" cy="70"  r="4" style="animation-delay:.9s"/>
+                <circle class="dot" cx="565" cy="39"  r="4" style="animation-delay:1s"/>
+                <circle class="dot" cx="660" cy="57"  r="5" fill="#F26522" stroke="#fff" style="animation-delay:1.05s"/>
+                <text class="xl" x="40"  y="190" text-anchor="middle">Tue</text>
+                <text class="xl" x="145" y="190" text-anchor="middle">Wed</text>
+                <text class="xl" x="250" y="190" text-anchor="middle">Thu</text>
+                <text class="xl" x="355" y="190" text-anchor="middle">Fri</text>
+                <text class="xl" x="460" y="190" text-anchor="middle">Sat</text>
+                <text class="xl" x="565" y="190" text-anchor="middle">Sun</text>
+                <text class="xl" x="660" y="190" text-anchor="middle" style="fill:var(--orange-600);font-weight:600">Today</text>
+              </svg>
+            </div>
+          </div>
+
+          <!-- cylinder movement -->
+          <div class="card reveal" style="animation-delay:.12s">
+            <div class="card-h">
+              <div><h2>Cylinder movement</h2><div class="hint">Sold against morning load</div></div>
+              <div class="hint">Remaining in stock</div>
+            </div>
+            <div class="gauges">
+              <div class="gauge">
+                <div class="g-top"><div class="g-name">14.2 kg <small>Domestic</small></div><div class="g-fig"><b>268</b> sold · 52 left</div></div>
+                <div class="track"><i class="fill-b" data-w="84%"></i></div>
+              </div>
+              <div class="gauge">
+                <div class="g-top"><div class="g-name">19 kg <small>Commercial</small></div><div class="g-fig"><b>52</b> sold · 28 left</div></div>
+                <div class="track"><i class="fill-b" data-w="65%"></i></div>
+              </div>
+              <div class="gauge">
+                <div class="g-top"><div class="g-name">5 kg <small>Domestic</small></div><div class="g-fig"><b>18</b> sold · 22 left</div></div>
+                <div class="track"><i class="fill-b" data-w="45%"></i></div>
+              </div>
+              <div class="gauge">
+                <div class="g-top"><div class="g-name">47.5 kg <small>Commercial</small></div><div class="g-fig"><b>9</b> sold · 6 left</div></div>
+                <div class="track"><i class="fill-b" data-w="60%"></i></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div style="display:flex;flex-direction:column;gap:20px;min-width:0">
+
+          <!-- SIGNATURE: reconciliation -->
+          <div class="recon reveal" style="animation-delay:.1s">
+            <h2>Today's reconciliation</h2>
+            <div class="status">
+              <div class="check"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12.5l4.5 4.5L19 7"/></svg></div>
+              <div><b>Cash tallied</b><span>Counted matches expected to the rupee</span></div>
+            </div>
+            <div class="recon-rows">
+              <div class="rrow"><span class="l">Expected (sales − UPI)</span><span class="v num">₹2,58,400</span></div>
+              <div class="rrow"><span class="l">Counted (denominations)</span><span class="v num">₹2,58,400</span></div>
+              <div class="rrow"><span class="l">Variance</span><span class="v g num">₹0</span></div>
+              <div class="rrow"><span class="l">Open mismatches</span><span class="v g">None</span></div>
+            </div>
+          </div>
+
+          <!-- delivery boys today -->
+          <div class="card reveal" style="animation-delay:.14s">
+            <div class="card-h"><div><h2>Delivery staff · today</h2><div class="hint">4 active</div></div></div>
+            <div class="dlist">
+              <div class="drow">
+                <div class="av" style="background:#10295C">MR</div>
+                <div class="nm"><b>Murugan R.</b><span>96 cylinders</span></div>
+                <div class="amt num">₹84,200</div>
+                <span class="tag tag-ok">Settled</span>
+              </div>
+              <div class="drow">
+                <div class="av" style="background:#2E6F4E">SK</div>
+                <div class="nm"><b>Senthil K.</b><span>89 cylinders</span></div>
+                <div class="amt num">₹79,600</div>
+                <span class="tag tag-ok">Settled</span>
+              </div>
+              <div class="drow">
+                <div class="av" style="background:#7A4FB0">RP</div>
+                <div class="nm"><b>Ravi P.</b><span>74 cylinders</span></div>
+                <div class="amt num">₹66,100</div>
+                <span class="tag tag-wait">Counting</span>
+              </div>
+              <div class="drow">
+                <div class="av" style="background:#C0552A">KS</div>
+                <div class="nm"><b>Karthik S.</b><span>88 cylinders</span></div>
+                <div class="amt num">₹78,500</div>
+                <span class="tag tag-ok">Settled</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- DAY SHEET PREVIEW -->
+      <section class="card table-card reveal" style="animation-delay:.16s">
+        <div class="card-h" style="padding-bottom:14px">
+          <div><h2>Day sheet preview</h2><div class="hint">Today's consolidated register</div></div>
+          <button class="btn btn-ghost">View full day sheet
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+        <table>
+          <thead>
+            <tr><th>Delivery staff</th><th>Cylinders</th><th>Cash ₹</th><th>UPI ₹</th><th>Total ₹</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Murugan R.</td><td class="num">96</td><td class="num">64,200</td><td class="num">20,000</td><td class="num">84,200</td></tr>
+            <tr><td>Senthil K.</td><td class="num">89</td><td class="num">61,600</td><td class="num">18,000</td><td class="num">79,600</td></tr>
+            <tr><td>Ravi P.</td><td class="num">74</td><td class="num">52,400</td><td class="num">13,700</td><td class="num">66,100</td></tr>
+            <tr><td>Karthik S.</td><td class="num">88</td><td class="num">60,400</td><td class="num">18,100</td><td class="num">78,500</td></tr>
+          </tbody>
+          <tfoot class="tfoot">
+            <tr><td>Total</td><td class="num">347</td><td class="num">2,38,600</td><td class="num">69,800</td><td class="num">3,08,400</td></tr>
+          </tfoot>
+        </table>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Indian-format integer
+  function inr(n){
+    n = Math.round(n).toString();
+    let last3 = n.slice(-3), rest = n.slice(0,-3);
+    if(rest) { rest = rest.replace(/\B(?=(\d{2})+(?!\d))/g, ","); last3 = ',' + last3; }
+    return rest + last3;
+  }
+
+  function run(){
+    // count-up
+    document.querySelectorAll('[data-count]').forEach(el=>{
+      const target = +el.dataset.count, pre = el.dataset.prefix || '';
+      if(reduce){ el.textContent = pre + inr(target); return; }
+      const dur = 950, t0 = performance.now();
+      function step(t){
+        const p = Math.min(1, (t - t0)/dur);
+        const e = 1 - Math.pow(1 - p, 3);           // ease-out cubic
+        el.textContent = pre + inr(target * e);
+        if(p < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    });
+    // bar + gauge fills
+    requestAnimationFrame(()=>{
+      document.querySelectorAll('[data-w]').forEach(el=> el.style.width = el.dataset.w);
+    });
+  }
+  if(document.readyState !== 'loading') run();
+  else document.addEventListener('DOMContentLoaded', run);
+</script>
+</body>
+</html>
