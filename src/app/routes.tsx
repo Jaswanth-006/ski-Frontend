@@ -3,6 +3,7 @@ import { RoleGuard } from '@/auth/RoleGuard'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { LoginPage } from '@/features/auth/LoginPage'
 import { PlaceholderPage } from '@/features/placeholder/PlaceholderPage'
+import { UsersPage } from '@/features/users/UsersPage'
 
 const OFFICE_AND_OWNER = ['super_admin', 'office_admin']
 const OWNER_ONLY = ['super_admin']
@@ -32,7 +33,14 @@ export function AppRoutes() {
       <Route path="/pricing" element={guard(OWNER_ONLY, 'Daily Pricing', 'Phase 1-E')} />
       <Route path="/catalog" element={guard(OWNER_ONLY, 'Master Catalog', 'Phase 1-C/D')} />
       <Route path="/audit" element={guard(OWNER_ONLY, 'Audit Log', 'Phase 3')} />
-      <Route path="/users" element={guard(OWNER_ONLY, 'Users', 'Phase 1-B')} />
+      <Route
+        path="/users"
+        element={
+          <RoleGuard allow={OWNER_ONLY}>
+            <UsersPage />
+          </RoleGuard>
+        }
+      />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
