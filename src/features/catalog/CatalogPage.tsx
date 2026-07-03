@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Modal } from '@/components/ui/modal'
+import { ExpenseItemsSection } from './ExpenseItemsSection'
 
 const ALL_PARAMS = { active: 'all' as const }
 
@@ -106,6 +107,8 @@ export function CatalogPage() {
           <DataTable columns={columns} data={types} getRowKey={(t) => t.id} />
         )}
       </Card>
+
+      <ExpenseItemsSection />
 
       <Modal open={addOpen} onClose={() => setAddOpen(false)} title="Add cylinder variety">
         <AddVarietyForm
