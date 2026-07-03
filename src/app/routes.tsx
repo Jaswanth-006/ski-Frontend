@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { RoleGuard } from '@/auth/RoleGuard'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
+import { CatalogPage } from '@/features/catalog/CatalogPage'
 import { LoginPage } from '@/features/auth/LoginPage'
 import { PlaceholderPage } from '@/features/placeholder/PlaceholderPage'
 import { UsersPage } from '@/features/users/UsersPage'
@@ -31,7 +32,14 @@ export function AppRoutes() {
 
       {/* Owner-only */}
       <Route path="/pricing" element={guard(OWNER_ONLY, 'Daily Pricing', 'Phase 1-E')} />
-      <Route path="/catalog" element={guard(OWNER_ONLY, 'Master Catalog', 'Phase 1-C/D')} />
+      <Route
+        path="/catalog"
+        element={
+          <RoleGuard allow={OWNER_ONLY}>
+            <CatalogPage />
+          </RoleGuard>
+        }
+      />
       <Route path="/audit" element={guard(OWNER_ONLY, 'Audit Log', 'Phase 3')} />
       <Route
         path="/users"
