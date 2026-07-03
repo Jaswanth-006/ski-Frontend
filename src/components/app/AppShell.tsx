@@ -1,13 +1,10 @@
 import type { ReactNode } from 'react'
-import { Sidebar, type Role } from './Sidebar'
+import { Sidebar } from './Sidebar'
 import { Topbar } from './Topbar'
 
 interface AppShellProps {
   title: string
   subtitle?: string
-  role?: Role
-  /** Nav item label to highlight as active. */
-  activeNav?: string
   topbarActions?: ReactNode
   notificationCount?: number
   children: ReactNode
@@ -17,15 +14,13 @@ interface AppShellProps {
 export function AppShell({
   title,
   subtitle,
-  role = 'super_admin',
-  activeNav,
   topbarActions,
   notificationCount,
   children,
 }: AppShellProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-[248px_1fr] min-h-screen">
-      <Sidebar role={role} active={activeNav ?? title} />
+      <Sidebar />
       <div className="flex flex-col min-w-0">
         <Topbar
           title={title}

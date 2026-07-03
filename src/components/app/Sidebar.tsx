@@ -4,22 +4,24 @@ import {
   IndianRupee,
   Layers,
   LayoutDashboard,
+  LogOut,
   Receipt,
   ScrollText,
   Users,
   Wallet,
   type LucideIcon,
 } from 'lucide-react'
+import { NavLink, useNavigate } from 'react-router-dom'
+import { useAuth } from '@/auth/useAuth'
 import { cn } from '@/lib/cn'
 import { BrandMark } from './BrandMark'
-
-export type Role = 'super_admin' | 'office_admin'
 
 interface NavItem {
   label: string
   icon: LucideIcon
-  href: string
-  roles: Role[]
+  to: string
+  end?: boolean
+  roles: string[]
 }
 
 interface NavGroup {
@@ -27,42 +29,52 @@ interface NavGroup {
   items: NavItem[]
 }
 
-const ALL: Role[] = ['super_admin', 'office_admin']
-const OWNER: Role[] = ['super_admin']
+const ALL = ['super_admin', 'office_admin']
+const OWNER = ['super_admin']
 
 const NAV: NavGroup[] = [
-  { items: [{ label: 'Dashboard', icon: LayoutDashboard, href: '#', roles: ALL }] },
+  { items: [{ label: 'Dashboard', icon: LayoutDashboard, to: '/', end: true, roles: ALL }] },
   {
     label: 'Daily operations',
     items: [
-      { label: 'Stock Intake', icon: Boxes, href: '#', roles: ALL },
-      { label: 'Daily Pricing', icon: IndianRupee, href: '#', roles: OWNER },
-      { label: 'Sales Entry', icon: Receipt, href: '#', roles: ALL },
-      { label: 'Day Sheet', icon: ClipboardList, href: '#', roles: ALL },
-      { label: 'Expenses', icon: Wallet, href: '#', roles: ALL },
+      { label: 'Stock Intake', icon: Boxes, to: '/stock', roles: ALL },
+      { label: 'Daily Pricing', icon: IndianRupee, to: '/pricing', roles: OWNER },
+      { label: 'Sales Entry', icon: Receipt, to: '/sales/new', roles: ALL },
+      { label: 'Day Sheet', icon: ClipboardList, to: '/day-sheet', roles: ALL },
+      { label: 'Expenses', icon: Wallet, to: '/expenses', roles: ALL },
     ],
   },
   {
     label: 'Manage',
     items: [
-      { label: 'Master Catalog', icon: Layers, href: '#', roles: OWNER },
-      { label: 'Audit Log', icon: ScrollText, href: '#', roles: OWNER },
-      { label: 'Users', icon: Users, href: '#', roles: OWNER },
+      { label: 'Master Catalog', icon: Layers, to: '/catalog', roles: OWNER },
+      { label: 'Audit Log', icon: ScrollText, to: '/audit', roles: OWNER },
+      { label: 'Users', icon: Users, to: '/users', roles: OWNER },
     ],
   },
 ]
 
-interface SidebarProps {
-  role?: Role
-  active?: string
-  user?: { initials: string; name: string; subtitle: string }
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/)
+  return ((parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? '')).toUpperCase() || 'U'
 }
 
-export function Sidebar({
-  role = 'super_admin',
-  active = 'Dashboard',
-  user = { initials: 'RK', name: 'R. Kamala', subtitle: 'Owner · Super Admin' },
-}: SidebarProps) {
+const ROLE_LABEL: Record<string, string> = {
+  super_admin: 'Owner · Super Admin',
+  office_admin: 'Office Admin',
+  delivery: 'Delivery',
+}
+
+export function Sidebar() {
+  const navigate = useNavigate()
+  const { user, role, logout } = useAuth()
+  const currentRole = role ?? 'office_admin'
+
+  const onLogout = () => {
+    logout()
+    navigate('/login', { replace: true })
+  }
+
   return (
     <aside className="bg-sidebar text-[#C9D4EA] hidden md:flex flex-col sticky top-0 h-screen">
       <div className="flex gap-3 items-center px-5 pt-[22px] pb-[18px]">
@@ -77,7 +89,7 @@ export function Sidebar({
 
       <nav className="px-3 pt-2 flex flex-col gap-0.5 mt-1.5" aria-label="Primary">
         {NAV.map((group, gi) => {
-          const items = group.items.filter((item) => item.roles.includes(role))
+          const items = group.items.filter((item) => item.roles.includes(currentRole))
           if (items.length === 0) return null
           return (
             <div key={group.label ?? gi} className="flex flex-col gap-0.5">
@@ -87,23 +99,24 @@ export function Sidebar({
                 </div>
               ) : null}
               {items.map((item) => {
-                const isActive = item.label === active
                 const Icon = item.icon
                 return (
-                  <a
+                  <NavLink
                     key={item.label}
-                    href={item.href}
-                    aria-current={isActive ? 'page' : undefined}
-                    className={cn(
-                      'flex items-center gap-[11px] px-3 py-[9px] rounded-[10px] text-[13.5px] font-medium transition-colors',
-                      isActive
-                        ? 'bg-orange text-white shadow-nav'
-                        : 'text-[#C2CFE6] hover:bg-white/[.06] hover:text-white',
-                    )}
+                    to={item.to}
+                    end={item.end}
+                    className={({ isActive }) =>
+                      cn(
+                        'flex items-center gap-[11px] px-3 py-[9px] rounded-[10px] text-[13.5px] font-medium transition-colors',
+                        isActive
+                          ? 'bg-orange text-white shadow-nav'
+                          : 'text-[#C2CFE6] hover:bg-white/[.06] hover:text-white',
+                      )
+                    }
                   >
                     <Icon size={18} className="shrink-0" />
                     {item.label}
-                  </a>
+                  </NavLink>
                 )
               })}
             </div>
@@ -114,12 +127,21 @@ export function Sidebar({
       <div className="mt-auto p-3.5 border-t border-white/[.08]">
         <div className="flex items-center gap-2.5 p-2 rounded-xl">
           <div className="h-[34px] w-[34px] rounded-full bg-orange text-white grid place-items-center font-display font-bold text-[13px] shrink-0">
-            {user.initials}
+            {initials(user?.name ?? 'User')}
           </div>
-          <div>
-            <b className="text-white text-[13px] block leading-tight">{user.name}</b>
-            <span className="text-[11px] text-[#8EA2C6]">{user.subtitle}</span>
+          <div className="min-w-0 flex-1">
+            <b className="text-white text-[13px] block leading-tight truncate">
+              {user?.name ?? '—'}
+            </b>
+            <span className="text-[11px] text-[#8EA2C6]">{ROLE_LABEL[currentRole] ?? currentRole}</span>
           </div>
+          <button
+            onClick={onLogout}
+            aria-label="Log out"
+            className="h-8 w-8 grid place-items-center rounded-lg text-[#8EA2C6] hover:text-white hover:bg-white/[.06] transition-colors"
+          >
+            <LogOut size={16} />
+          </button>
         </div>
       </div>
     </aside>

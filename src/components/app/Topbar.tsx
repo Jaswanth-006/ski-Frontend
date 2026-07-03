@@ -1,12 +1,11 @@
-import { ArrowRight, Bell, Download } from 'lucide-react'
+import { Bell } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
-import { StatusPill } from './StatusPill'
 
 interface TopbarProps {
   title: string
   subtitle?: string
-  /** Override the default action buttons (Export + Close day). */
+  /** Page-specific action buttons rendered on the right (before the bell). */
   actions?: ReactNode
   notificationCount?: number
 }
@@ -20,10 +19,7 @@ export function Topbar({ title, subtitle, actions, notificationCount = 0 }: Topb
       </div>
 
       <div className="flex items-center gap-3">
-        <StatusPill variant="open" dot>
-          Day open
-        </StatusPill>
-
+        {actions}
         <Button variant="ghost" size="icon" className="relative" aria-label="Notifications">
           <Bell size={18} />
           {notificationCount > 0 ? (
@@ -32,19 +28,6 @@ export function Topbar({ title, subtitle, actions, notificationCount = 0 }: Topb
             </span>
           ) : null}
         </Button>
-
-        {actions ?? (
-          <>
-            <Button variant="ghost">
-              <Download size={16} />
-              Export
-            </Button>
-            <Button variant="primary">
-              <ArrowRight size={16} />
-              Close day
-            </Button>
-          </>
-        )}
       </div>
     </header>
   )

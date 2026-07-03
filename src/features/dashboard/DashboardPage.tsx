@@ -3,6 +3,7 @@ import {
   ArrowUp,
   Banknote,
   CreditCard,
+  Download,
   Flame,
   Smartphone,
   TrendingUp,
@@ -68,8 +69,22 @@ export function DashboardPage() {
     <AppShell
       title="Dashboard"
       subtitle="Monday, 30 June 2026 · End-of-day overview"
-      activeNav="Dashboard"
       notificationCount={3}
+      topbarActions={
+        <>
+          <StatusPill variant="open" dot>
+            Day open
+          </StatusPill>
+          <Button variant="ghost">
+            <Download size={16} />
+            Export
+          </Button>
+          <Button variant="primary">
+            <ArrowRight size={16} />
+            Close day
+          </Button>
+        </>
+      }
     >
       {/* KPI ROW */}
       <Reveal delay={0.02}>
