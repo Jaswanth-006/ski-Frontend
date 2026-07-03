@@ -1,6 +1,13 @@
-import { DashboardPage } from '@/features/dashboard/DashboardPage'
+import { BrowserRouter } from 'react-router-dom'
+import { AppRoutes } from '@/app/routes'
+import { Providers } from '@/app/providers'
 
-// Phase 0 foundations: a single composed page. Routing + role guards land in Phase 1.
 export function App() {
-  return <DashboardPage />
+  return (
+    <Providers>
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
+    </Providers>
+  )
 }

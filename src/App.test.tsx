@@ -1,14 +1,13 @@
 import { render, screen } from '@testing-library/react'
 import { App } from './App'
+import { useAuthStore } from '@/state/auth'
 
 describe('App', () => {
-  it('renders the dashboard shell', () => {
-    render(<App />)
-    expect(screen.getByRole('heading', { name: 'Dashboard', level: 1 })).toBeInTheDocument()
-  })
+  beforeEach(() => useAuthStore.getState().clear())
 
-  it('shows the signature reconciliation panel', () => {
+  it('shows the login screen when not authenticated', async () => {
     render(<App />)
-    expect(screen.getByText('Cash tallied')).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: /sign in/i })).toBeInTheDocument()
+    expect(screen.getByLabelText(/phone/i)).toBeInTheDocument()
   })
 })
