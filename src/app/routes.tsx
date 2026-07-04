@@ -4,6 +4,7 @@ import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { CatalogPage } from '@/features/catalog/CatalogPage'
 import { LoginPage } from '@/features/auth/LoginPage'
 import { PlaceholderPage } from '@/features/placeholder/PlaceholderPage'
+import { PricingPage } from '@/features/pricing/PricingPage'
 import { UsersPage } from '@/features/users/UsersPage'
 
 const OFFICE_AND_OWNER = ['super_admin', 'office_admin']
@@ -31,7 +32,14 @@ export function AppRoutes() {
       <Route path="/expenses" element={guard(OFFICE_AND_OWNER, 'Expenses', 'Phase 4')} />
 
       {/* Owner-only */}
-      <Route path="/pricing" element={guard(OWNER_ONLY, 'Daily Pricing', 'Phase 1-E')} />
+      <Route
+        path="/pricing"
+        element={
+          <RoleGuard allow={OWNER_ONLY}>
+            <PricingPage />
+          </RoleGuard>
+        }
+      />
       <Route
         path="/catalog"
         element={
