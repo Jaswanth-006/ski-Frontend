@@ -28,8 +28,12 @@ import type {
   CylinderTypeCreate,
   CylinderTypeOut,
   CylinderTypeUpdate,
+  ExpenseItemCreate,
+  ExpenseItemOut,
+  ExpenseItemUpdate,
   HTTPValidationError,
-  ListCylinderTypesV1CylinderTypesGetParams
+  ListCylinderTypesV1CylinderTypesGetParams,
+  ListExpenseItemsV1ExpenseItemsGetParams
 } from '.././model';
 
 import { customFetch } from '../../fetcher';
@@ -342,6 +346,312 @@ export const useUpdateCylinderTypeV1CylinderTypesTypeIdPatch = <TError = HTTPVal
       > => {
 
       const mutationOptions = getUpdateCylinderTypeV1CylinderTypesTypeIdPatchMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
+ * @summary List Expense Items
+ */
+export type listExpenseItemsV1ExpenseItemsGetResponse200 = {
+  data: ExpenseItemOut[]
+  status: 200
+}
+
+export type listExpenseItemsV1ExpenseItemsGetResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+    
+export type listExpenseItemsV1ExpenseItemsGetResponseSuccess = (listExpenseItemsV1ExpenseItemsGetResponse200) & {
+  headers: Headers;
+};
+export type listExpenseItemsV1ExpenseItemsGetResponseError = (listExpenseItemsV1ExpenseItemsGetResponse422) & {
+  headers: Headers;
+};
+
+export type listExpenseItemsV1ExpenseItemsGetResponse = (listExpenseItemsV1ExpenseItemsGetResponseSuccess | listExpenseItemsV1ExpenseItemsGetResponseError)
+
+export const getListExpenseItemsV1ExpenseItemsGetUrl = (params?: ListExpenseItemsV1ExpenseItemsGetParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/v1/expense-items?${stringifiedParams}` : `/v1/expense-items`
+}
+
+export const listExpenseItemsV1ExpenseItemsGet = async (params?: ListExpenseItemsV1ExpenseItemsGetParams, options?: RequestInit): Promise<listExpenseItemsV1ExpenseItemsGetResponse> => {
+  
+  return customFetch<listExpenseItemsV1ExpenseItemsGetResponse>(getListExpenseItemsV1ExpenseItemsGetUrl(params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getListExpenseItemsV1ExpenseItemsGetQueryKey = (params?: ListExpenseItemsV1ExpenseItemsGetParams,) => {
+    return [
+    `/v1/expense-items`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getListExpenseItemsV1ExpenseItemsGetQueryOptions = <TData = Awaited<ReturnType<typeof listExpenseItemsV1ExpenseItemsGet>>, TError = HTTPValidationError>(params?: ListExpenseItemsV1ExpenseItemsGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listExpenseItemsV1ExpenseItemsGet>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListExpenseItemsV1ExpenseItemsGetQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listExpenseItemsV1ExpenseItemsGet>>> = ({ signal }) => listExpenseItemsV1ExpenseItemsGet(params, { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listExpenseItemsV1ExpenseItemsGet>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListExpenseItemsV1ExpenseItemsGetQueryResult = NonNullable<Awaited<ReturnType<typeof listExpenseItemsV1ExpenseItemsGet>>>
+export type ListExpenseItemsV1ExpenseItemsGetQueryError = HTTPValidationError
+
+
+export function useListExpenseItemsV1ExpenseItemsGet<TData = Awaited<ReturnType<typeof listExpenseItemsV1ExpenseItemsGet>>, TError = HTTPValidationError>(
+ params: undefined |  ListExpenseItemsV1ExpenseItemsGetParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listExpenseItemsV1ExpenseItemsGet>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listExpenseItemsV1ExpenseItemsGet>>,
+          TError,
+          Awaited<ReturnType<typeof listExpenseItemsV1ExpenseItemsGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListExpenseItemsV1ExpenseItemsGet<TData = Awaited<ReturnType<typeof listExpenseItemsV1ExpenseItemsGet>>, TError = HTTPValidationError>(
+ params?: ListExpenseItemsV1ExpenseItemsGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listExpenseItemsV1ExpenseItemsGet>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listExpenseItemsV1ExpenseItemsGet>>,
+          TError,
+          Awaited<ReturnType<typeof listExpenseItemsV1ExpenseItemsGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListExpenseItemsV1ExpenseItemsGet<TData = Awaited<ReturnType<typeof listExpenseItemsV1ExpenseItemsGet>>, TError = HTTPValidationError>(
+ params?: ListExpenseItemsV1ExpenseItemsGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listExpenseItemsV1ExpenseItemsGet>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List Expense Items
+ */
+
+export function useListExpenseItemsV1ExpenseItemsGet<TData = Awaited<ReturnType<typeof listExpenseItemsV1ExpenseItemsGet>>, TError = HTTPValidationError>(
+ params?: ListExpenseItemsV1ExpenseItemsGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listExpenseItemsV1ExpenseItemsGet>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListExpenseItemsV1ExpenseItemsGetQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+/**
+ * @summary Create Expense Item
+ */
+export type createExpenseItemV1ExpenseItemsPostResponse201 = {
+  data: ExpenseItemOut
+  status: 201
+}
+
+export type createExpenseItemV1ExpenseItemsPostResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+    
+export type createExpenseItemV1ExpenseItemsPostResponseSuccess = (createExpenseItemV1ExpenseItemsPostResponse201) & {
+  headers: Headers;
+};
+export type createExpenseItemV1ExpenseItemsPostResponseError = (createExpenseItemV1ExpenseItemsPostResponse422) & {
+  headers: Headers;
+};
+
+export type createExpenseItemV1ExpenseItemsPostResponse = (createExpenseItemV1ExpenseItemsPostResponseSuccess | createExpenseItemV1ExpenseItemsPostResponseError)
+
+export const getCreateExpenseItemV1ExpenseItemsPostUrl = () => {
+
+
+  
+
+  return `/v1/expense-items`
+}
+
+export const createExpenseItemV1ExpenseItemsPost = async (expenseItemCreate: ExpenseItemCreate, options?: RequestInit): Promise<createExpenseItemV1ExpenseItemsPostResponse> => {
+  
+  return customFetch<createExpenseItemV1ExpenseItemsPostResponse>(getCreateExpenseItemV1ExpenseItemsPostUrl(),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      expenseItemCreate,)
+  }
+);}
+
+
+
+
+export const getCreateExpenseItemV1ExpenseItemsPostMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createExpenseItemV1ExpenseItemsPost>>, TError,{data: ExpenseItemCreate}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createExpenseItemV1ExpenseItemsPost>>, TError,{data: ExpenseItemCreate}, TContext> => {
+
+const mutationKey = ['createExpenseItemV1ExpenseItemsPost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createExpenseItemV1ExpenseItemsPost>>, {data: ExpenseItemCreate}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createExpenseItemV1ExpenseItemsPost(data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateExpenseItemV1ExpenseItemsPostMutationResult = NonNullable<Awaited<ReturnType<typeof createExpenseItemV1ExpenseItemsPost>>>
+    export type CreateExpenseItemV1ExpenseItemsPostMutationBody = ExpenseItemCreate
+    export type CreateExpenseItemV1ExpenseItemsPostMutationError = HTTPValidationError
+
+    /**
+ * @summary Create Expense Item
+ */
+export const useCreateExpenseItemV1ExpenseItemsPost = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createExpenseItemV1ExpenseItemsPost>>, TError,{data: ExpenseItemCreate}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createExpenseItemV1ExpenseItemsPost>>,
+        TError,
+        {data: ExpenseItemCreate},
+        TContext
+      > => {
+
+      const mutationOptions = getCreateExpenseItemV1ExpenseItemsPostMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
+ * @summary Update Expense Item
+ */
+export type updateExpenseItemV1ExpenseItemsItemIdPatchResponse200 = {
+  data: ExpenseItemOut
+  status: 200
+}
+
+export type updateExpenseItemV1ExpenseItemsItemIdPatchResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+    
+export type updateExpenseItemV1ExpenseItemsItemIdPatchResponseSuccess = (updateExpenseItemV1ExpenseItemsItemIdPatchResponse200) & {
+  headers: Headers;
+};
+export type updateExpenseItemV1ExpenseItemsItemIdPatchResponseError = (updateExpenseItemV1ExpenseItemsItemIdPatchResponse422) & {
+  headers: Headers;
+};
+
+export type updateExpenseItemV1ExpenseItemsItemIdPatchResponse = (updateExpenseItemV1ExpenseItemsItemIdPatchResponseSuccess | updateExpenseItemV1ExpenseItemsItemIdPatchResponseError)
+
+export const getUpdateExpenseItemV1ExpenseItemsItemIdPatchUrl = (itemId: string,) => {
+
+
+  
+
+  return `/v1/expense-items/${itemId}`
+}
+
+export const updateExpenseItemV1ExpenseItemsItemIdPatch = async (itemId: string,
+    expenseItemUpdate: ExpenseItemUpdate, options?: RequestInit): Promise<updateExpenseItemV1ExpenseItemsItemIdPatchResponse> => {
+  
+  return customFetch<updateExpenseItemV1ExpenseItemsItemIdPatchResponse>(getUpdateExpenseItemV1ExpenseItemsItemIdPatchUrl(itemId),
+  {      
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      expenseItemUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateExpenseItemV1ExpenseItemsItemIdPatchMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateExpenseItemV1ExpenseItemsItemIdPatch>>, TError,{itemId: string;data: ExpenseItemUpdate}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateExpenseItemV1ExpenseItemsItemIdPatch>>, TError,{itemId: string;data: ExpenseItemUpdate}, TContext> => {
+
+const mutationKey = ['updateExpenseItemV1ExpenseItemsItemIdPatch'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateExpenseItemV1ExpenseItemsItemIdPatch>>, {itemId: string;data: ExpenseItemUpdate}> = (props) => {
+          const {itemId,data} = props ?? {};
+
+          return  updateExpenseItemV1ExpenseItemsItemIdPatch(itemId,data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateExpenseItemV1ExpenseItemsItemIdPatchMutationResult = NonNullable<Awaited<ReturnType<typeof updateExpenseItemV1ExpenseItemsItemIdPatch>>>
+    export type UpdateExpenseItemV1ExpenseItemsItemIdPatchMutationBody = ExpenseItemUpdate
+    export type UpdateExpenseItemV1ExpenseItemsItemIdPatchMutationError = HTTPValidationError
+
+    /**
+ * @summary Update Expense Item
+ */
+export const useUpdateExpenseItemV1ExpenseItemsItemIdPatch = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateExpenseItemV1ExpenseItemsItemIdPatch>>, TError,{itemId: string;data: ExpenseItemUpdate}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateExpenseItemV1ExpenseItemsItemIdPatch>>,
+        TError,
+        {itemId: string;data: ExpenseItemUpdate},
+        TContext
+      > => {
+
+      const mutationOptions = getUpdateExpenseItemV1ExpenseItemsItemIdPatchMutationOptions(options);
 
       return useMutation(mutationOptions, queryClient);
     }
