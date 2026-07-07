@@ -3,6 +3,7 @@ import { RoleGuard } from '@/auth/RoleGuard'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { AuditPage } from '@/features/audit/AuditPage'
 import { CatalogPage } from '@/features/catalog/CatalogPage'
+import { DaySheetPage } from '@/features/day-sheet/DaySheetPage'
 import { LoginPage } from '@/features/auth/LoginPage'
 import { PlaceholderPage } from '@/features/placeholder/PlaceholderPage'
 import { PricingPage } from '@/features/pricing/PricingPage'
@@ -45,7 +46,14 @@ export function AppRoutes() {
           </RoleGuard>
         }
       />
-      <Route path="/day-sheet" element={guard(OFFICE_AND_OWNER, 'Day Sheet', 'Phase 4')} />
+      <Route
+        path="/day-sheet"
+        element={
+          <RoleGuard allow={OFFICE_AND_OWNER}>
+            <DaySheetPage />
+          </RoleGuard>
+        }
+      />
       <Route path="/expenses" element={guard(OFFICE_AND_OWNER, 'Expenses', 'Phase 4')} />
 
       {/* Owner-only */}
