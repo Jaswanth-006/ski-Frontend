@@ -6,6 +6,7 @@ import { CatalogPage } from '@/features/catalog/CatalogPage'
 import { DaySheetPage } from '@/features/day-sheet/DaySheetPage'
 import { ExpensesPage } from '@/features/expenses/ExpensesPage'
 import { LoginPage } from '@/features/auth/LoginPage'
+import { MonthSheetPage } from '@/features/month-sheet/MonthSheetPage'
 import { SalesEntryPage } from '@/features/sales/SalesEntryPage'
 import { StockPage } from '@/features/stock/StockPage'
 import { UsersPage } from '@/features/users/UsersPage'
@@ -50,6 +51,14 @@ export function AppRoutes() {
         element={
           <RoleGuard allow={OFFICE_AND_OWNER}>
             <DaySheetPage />
+          </RoleGuard>
+        }
+      />
+      <Route
+        path="/month-sheet"
+        element={
+          <RoleGuard allow={OFFICE_AND_OWNER}>
+            <MonthSheetPage />
           </RoleGuard>
         }
       />
