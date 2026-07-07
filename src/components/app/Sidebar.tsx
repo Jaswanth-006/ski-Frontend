@@ -1,7 +1,6 @@
 import {
   Boxes,
   ClipboardList,
-  IndianRupee,
   Layers,
   LayoutDashboard,
   LogOut,
@@ -38,7 +37,6 @@ const NAV: NavGroup[] = [
     label: 'Daily operations',
     items: [
       { label: 'Stock Intake', icon: Boxes, to: '/stock', roles: ALL },
-      { label: 'Daily Pricing', icon: IndianRupee, to: '/pricing', roles: OWNER },
       { label: 'Sales Entry', icon: Receipt, to: '/sales/new', roles: ALL },
       { label: 'Day Sheet', icon: ClipboardList, to: '/day-sheet', roles: ALL },
       { label: 'Expenses', icon: Wallet, to: '/expenses', roles: ALL },

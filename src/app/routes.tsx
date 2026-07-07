@@ -6,7 +6,6 @@ import { CatalogPage } from '@/features/catalog/CatalogPage'
 import { DaySheetPage } from '@/features/day-sheet/DaySheetPage'
 import { ExpensesPage } from '@/features/expenses/ExpensesPage'
 import { LoginPage } from '@/features/auth/LoginPage'
-import { PricingPage } from '@/features/pricing/PricingPage'
 import { SalesEntryPage } from '@/features/sales/SalesEntryPage'
 import { StockPage } from '@/features/stock/StockPage'
 import { UsersPage } from '@/features/users/UsersPage'
@@ -64,14 +63,6 @@ export function AppRoutes() {
       />
 
       {/* Owner-only */}
-      <Route
-        path="/pricing"
-        element={
-          <RoleGuard allow={OWNER_ONLY}>
-            <PricingPage />
-          </RoleGuard>
-        }
-      />
       <Route
         path="/catalog"
         element={

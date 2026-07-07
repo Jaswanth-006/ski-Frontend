@@ -132,7 +132,7 @@ export function SalesEntryPage() {
             </div>
           ) : priced.length === 0 ? (
             <div className="py-10 text-center text-[13px] text-muted">
-              No prices set for this date. Set them under Daily Pricing first.
+              No prices set for this date. Set them under Master Catalog → Pricing first.
             </div>
           ) : (
             <div className="px-[18px] pb-4 pt-1 flex flex-col">
