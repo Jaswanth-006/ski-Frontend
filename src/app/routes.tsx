@@ -5,6 +5,7 @@ import { CatalogPage } from '@/features/catalog/CatalogPage'
 import { LoginPage } from '@/features/auth/LoginPage'
 import { PlaceholderPage } from '@/features/placeholder/PlaceholderPage'
 import { PricingPage } from '@/features/pricing/PricingPage'
+import { SalesEntryPage } from '@/features/sales/SalesEntryPage'
 import { StockPage } from '@/features/stock/StockPage'
 import { UsersPage } from '@/features/users/UsersPage'
 
@@ -35,7 +36,14 @@ export function AppRoutes() {
           </RoleGuard>
         }
       />
-      <Route path="/sales/new" element={guard(OFFICE_AND_OWNER, 'Sales Entry', 'Phase 3')} />
+      <Route
+        path="/sales/new"
+        element={
+          <RoleGuard allow={OFFICE_AND_OWNER}>
+            <SalesEntryPage />
+          </RoleGuard>
+        }
+      />
       <Route path="/day-sheet" element={guard(OFFICE_AND_OWNER, 'Day Sheet', 'Phase 4')} />
       <Route path="/expenses" element={guard(OFFICE_AND_OWNER, 'Expenses', 'Phase 4')} />
 
