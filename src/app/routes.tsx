@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { RoleGuard } from '@/auth/RoleGuard'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
+import { AuditPage } from '@/features/audit/AuditPage'
 import { CatalogPage } from '@/features/catalog/CatalogPage'
 import { LoginPage } from '@/features/auth/LoginPage'
 import { PlaceholderPage } from '@/features/placeholder/PlaceholderPage'
@@ -64,7 +65,14 @@ export function AppRoutes() {
           </RoleGuard>
         }
       />
-      <Route path="/audit" element={guard(OWNER_ONLY, 'Audit Log', 'Phase 3')} />
+      <Route
+        path="/audit"
+        element={
+          <RoleGuard allow={OWNER_ONLY}>
+            <AuditPage />
+          </RoleGuard>
+        }
+      />
       <Route
         path="/users"
         element={
