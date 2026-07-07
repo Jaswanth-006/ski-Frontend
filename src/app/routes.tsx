@@ -4,8 +4,8 @@ import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { AuditPage } from '@/features/audit/AuditPage'
 import { CatalogPage } from '@/features/catalog/CatalogPage'
 import { DaySheetPage } from '@/features/day-sheet/DaySheetPage'
+import { ExpensesPage } from '@/features/expenses/ExpensesPage'
 import { LoginPage } from '@/features/auth/LoginPage'
-import { PlaceholderPage } from '@/features/placeholder/PlaceholderPage'
 import { PricingPage } from '@/features/pricing/PricingPage'
 import { SalesEntryPage } from '@/features/sales/SalesEntryPage'
 import { StockPage } from '@/features/stock/StockPage'
@@ -54,7 +54,14 @@ export function AppRoutes() {
           </RoleGuard>
         }
       />
-      <Route path="/expenses" element={guard(OFFICE_AND_OWNER, 'Expenses', 'Phase 4')} />
+      <Route
+        path="/expenses"
+        element={
+          <RoleGuard allow={OFFICE_AND_OWNER}>
+            <ExpensesPage />
+          </RoleGuard>
+        }
+      />
 
       {/* Owner-only */}
       <Route
@@ -92,13 +99,5 @@ export function AppRoutes() {
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
-  )
-}
-
-function guard(allow: string[], title: string, phase: string) {
-  return (
-    <RoleGuard allow={allow}>
-      <PlaceholderPage title={title} phase={phase} />
-    </RoleGuard>
   )
 }
