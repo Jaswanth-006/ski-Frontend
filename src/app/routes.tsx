@@ -5,6 +5,7 @@ import { CatalogPage } from '@/features/catalog/CatalogPage'
 import { LoginPage } from '@/features/auth/LoginPage'
 import { PlaceholderPage } from '@/features/placeholder/PlaceholderPage'
 import { PricingPage } from '@/features/pricing/PricingPage'
+import { StockPage } from '@/features/stock/StockPage'
 import { UsersPage } from '@/features/users/UsersPage'
 
 const OFFICE_AND_OWNER = ['super_admin', 'office_admin']
@@ -26,7 +27,14 @@ export function AppRoutes() {
       />
 
       {/* Daily operations — owner + office */}
-      <Route path="/stock" element={guard(OFFICE_AND_OWNER, 'Stock Intake', 'Phase 2')} />
+      <Route
+        path="/stock"
+        element={
+          <RoleGuard allow={OFFICE_AND_OWNER}>
+            <StockPage />
+          </RoleGuard>
+        }
+      />
       <Route path="/sales/new" element={guard(OFFICE_AND_OWNER, 'Sales Entry', 'Phase 3')} />
       <Route path="/day-sheet" element={guard(OFFICE_AND_OWNER, 'Day Sheet', 'Phase 4')} />
       <Route path="/expenses" element={guard(OFFICE_AND_OWNER, 'Expenses', 'Phase 4')} />
