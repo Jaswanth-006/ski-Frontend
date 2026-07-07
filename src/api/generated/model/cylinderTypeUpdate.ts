@@ -5,10 +5,12 @@
  * System of record for an LPG distributorship. See 01-BACKEND-PRD.
  * OpenAPI spec version: 0.1.0
  */
+import type { CylinderTypeUpdateCode } from './cylinderTypeUpdateCode';
 import type { CylinderTypeUpdateLabel } from './cylinderTypeUpdateLabel';
 import type { CylinderTypeUpdateIsActive } from './cylinderTypeUpdateIsActive';
 
 export interface CylinderTypeUpdate {
+  code?: CylinderTypeUpdateCode;
   label?: CylinderTypeUpdateLabel;
   is_active?: CylinderTypeUpdateIsActive;
 }

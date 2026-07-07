@@ -17,6 +17,7 @@ export * from './auditOutOldValueAnyOf';
 export * from './cylinderTypeCreate';
 export * from './cylinderTypeOut';
 export * from './cylinderTypeUpdate';
+export * from './cylinderTypeUpdateCode';
 export * from './cylinderTypeUpdateIsActive';
 export * from './cylinderTypeUpdateLabel';
 export * from './daySheetOut';

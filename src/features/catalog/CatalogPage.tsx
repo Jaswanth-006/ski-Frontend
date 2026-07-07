@@ -19,6 +19,7 @@ import { Card, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Modal } from '@/components/ui/modal'
 import { ExpenseItemsSection } from './ExpenseItemsSection'
+import { PricingSection } from './PricingSection'
 
 const ALL_PARAMS = { active: 'all' as const }
 
@@ -66,7 +67,7 @@ export function CatalogPage() {
       render: (t) => (
         <div className="flex justify-end gap-2">
           <Button variant="ghost" className="h-8 px-3 text-[12px]" onClick={() => setRenameTarget(t)}>
-            Rename
+            Edit
           </Button>
           <Button
             variant="ghost"
@@ -82,7 +83,7 @@ export function CatalogPage() {
   ]
 
   return (
-    <AppShell title="Master Catalog" subtitle="Cylinder varieties">
+    <AppShell title="Master Catalog" subtitle="Cylinder varieties, pricing & expense items">
       <Card>
         <CardHeader
           title="Cylinder varieties"
@@ -108,6 +109,8 @@ export function CatalogPage() {
         )}
       </Card>
 
+      <PricingSection />
+
       <ExpenseItemsSection />
 
       <Modal open={addOpen} onClose={() => setAddOpen(false)} title="Add cylinder variety">
@@ -122,10 +125,10 @@ export function CatalogPage() {
       <Modal
         open={renameTarget !== null}
         onClose={() => setRenameTarget(null)}
-        title="Rename variety"
+        title="Edit variety"
       >
         {renameTarget ? (
-          <RenameForm
+          <EditForm
             target={renameTarget}
             onDone={async () => {
               await invalidate()
@@ -190,34 +193,57 @@ function AddVarietyForm({ onDone }: { onDone: () => void }) {
   )
 }
 
-const renameSchema = z.object({ label: z.string().min(1, 'Enter a label') })
-type RenameFormValues = z.infer<typeof renameSchema>
+const editSchema = z.object({
+  code: z.string().min(1, 'Enter a code (e.g. 14.2kg)'),
+  label: z.string().min(1, 'Enter a label'),
+})
+type EditFormValues = z.infer<typeof editSchema>
 
-function RenameForm({ target, onDone }: { target: CylinderTypeOut; onDone: () => void }) {
+function EditForm({ target, onDone }: { target: CylinderTypeOut; onDone: () => void }) {
   const patchMutation = useUpdateCylinderTypeV1CylinderTypesTypeIdPatch()
+  const [formError, setFormError] = useState<string | null>(null)
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<RenameFormValues>({
-    resolver: zodResolver(renameSchema),
-    defaultValues: { label: target.label },
+  } = useForm<EditFormValues>({
+    resolver: zodResolver(editSchema),
+    defaultValues: { code: target.code, label: target.label },
   })
 
-  const onSubmit = async (values: RenameFormValues) => {
-    await patchMutation.mutateAsync({ typeId: target.id, data: { label: values.label } })
-    onDone()
+  const onSubmit = async (values: EditFormValues) => {
+    setFormError(null)
+    try {
+      const res = await patchMutation.mutateAsync({
+        typeId: target.id,
+        data: { code: values.code, label: values.label },
+      })
+      const status = res.status as number
+      if (status === 200) onDone()
+      else if (status === 409) setFormError('A variety with this code already exists.')
+      else setFormError('Please check the fields and try again.')
+    } catch {
+      setFormError('Could not reach the server.')
+    }
   }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4">
       <div>
-        <label className="block text-[13px] font-medium text-ink mb-1.5">
-          Label for <span className="num">{target.code}</span>
-        </label>
-        <Input {...register('label')} />
+        <label className="block text-[13px] font-medium text-ink mb-1.5">Code</label>
+        <Input placeholder="14.2kg" {...register('code')} />
+        {errors.code ? <p className="text-[12px] text-bad mt-1">{errors.code.message}</p> : null}
+      </div>
+      <div>
+        <label className="block text-[13px] font-medium text-ink mb-1.5">Label</label>
+        <Input placeholder="14.2 kg Domestic" {...register('label')} />
         {errors.label ? <p className="text-[12px] text-bad mt-1">{errors.label.message}</p> : null}
       </div>
+      {formError ? (
+        <div className="text-[12.5px] text-bad bg-badbg rounded-lg px-3 py-2" role="alert">
+          {formError}
+        </div>
+      ) : null}
       <Button type="submit" className="w-full" disabled={isSubmitting}>
         {isSubmitting ? 'Saving…' : 'Save'}
       </Button>
