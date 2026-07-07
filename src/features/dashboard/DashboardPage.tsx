@@ -1,6 +1,5 @@
 import {
   ArrowRight,
-  ArrowUp,
   Banknote,
   CreditCard,
   Download,
@@ -8,6 +7,8 @@ import {
   Smartphone,
   TrendingUp,
 } from 'lucide-react'
+import { useEodV1AnalyticsEodGet } from '@/api/generated/analytics/analytics'
+import { useAuth } from '@/auth/useAuth'
 import { AppShell } from '@/components/app/AppShell'
 import { Card, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -65,6 +66,13 @@ const columns: Column<DeliveryRow>[] = [
 ]
 
 export function DashboardPage() {
+  const { role } = useAuth()
+  const eodQuery = useEodV1AnalyticsEodGet()
+  const eod = eodQuery.data?.status === 200 ? eodQuery.data.data : null
+  const grossCash = Number(eod?.gross_cash ?? 0)
+  const upi = Number(eod?.upi_total ?? 0)
+  const netProfit = eod?.net_profit != null ? Number(eod.net_profit) : null
+
   return (
     <AppShell
       title="Dashboard"
@@ -92,60 +100,44 @@ export function DashboardPage() {
           <KpiCard
             icon={<Flame size={17} />}
             label="Cylinders sold"
-            value={347}
-            sub={
-              <span>
-                of <b className="text-ink">455</b>&nbsp;loaded today
-              </span>
-            }
-            progress={76}
+            value={eod?.cylinders_sold ?? 0}
+            sub={<span>today</span>}
           />
           <KpiCard
             icon={<CreditCard size={17} />}
             label="Gross collection"
-            value={342180}
+            value={grossCash + upi}
             prefix="₹"
-            sub={
-              <span className="flex items-center gap-1.5">
-                <span className="text-ok font-bold inline-flex items-center gap-0.5">
-                  <ArrowUp size={12} strokeWidth={3} />
-                  12%
-                </span>
-                vs yesterday
-              </span>
-            }
+            sub={<span>cash + UPI</span>}
           />
           <KpiCard
             icon={<Banknote size={17} />}
             label="Cash in hand"
-            value={258400}
+            value={grossCash}
             prefix="₹"
             sub={
               <StatusPill variant="ok" size="sm">
-                Denominations verified
+                Cash sales
               </StatusPill>
             }
           />
           <KpiCard
             icon={<Smartphone size={17} />}
             label="UPI / digital"
-            value={83780}
+            value={upi}
             prefix="₹"
-            sub={
-              <span>
-                <b className="text-ink">24%</b>&nbsp;of collection
-              </span>
-            }
+            sub={<span>digital collection</span>}
           />
           <KpiCard
             icon={<TrendingUp size={17} />}
             label="Net profit (today)"
-            value={335940}
+            value={netProfit ?? 0}
             prefix="₹"
             owner
+            canViewValue={role === 'super_admin'}
             sub={
               <span>
-                after <b className="text-ink">₹6,240</b>&nbsp;expenses
+                after&nbsp;<Money value={Number(eod?.expenses_total ?? 0)} />&nbsp;expenses
               </span>
             }
           />
