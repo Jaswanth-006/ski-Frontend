@@ -5,6 +5,7 @@
  * System of record for an LPG distributorship. See 01-BACKEND-PRD.
  * OpenAPI spec version: 0.1.0
  */
+import type { Denomination } from './denomination';
 
 export interface DaySheetRow {
   delivery_id: string;
@@ -16,4 +17,5 @@ export interface DaySheetRow {
   upi: string;
   /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   total: string;
+  denominations: Denomination[];
 }
