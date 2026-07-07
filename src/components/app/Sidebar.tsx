@@ -1,5 +1,6 @@
 import {
   Boxes,
+  CalendarRange,
   ClipboardList,
   Layers,
   LayoutDashboard,
@@ -39,6 +40,7 @@ const NAV: NavGroup[] = [
       { label: 'Stock Intake', icon: Boxes, to: '/stock', roles: ALL },
       { label: 'Sales Entry', icon: Receipt, to: '/sales/new', roles: ALL },
       { label: 'Day Sheet', icon: ClipboardList, to: '/day-sheet', roles: ALL },
+      { label: 'Month Sheet', icon: CalendarRange, to: '/month-sheet', roles: ALL },
       { label: 'Expenses', icon: Wallet, to: '/expenses', roles: ALL },
     ],
   },
