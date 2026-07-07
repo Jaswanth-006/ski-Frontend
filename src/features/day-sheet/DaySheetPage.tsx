@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { Check, Download, Loader2, Lock } from 'lucide-react'
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import {
   getGetDaySheetV1DaySheetOnDateGetQueryKey,
   useCloseDayV1DaySheetOnDateClosePost,
@@ -21,7 +22,9 @@ const today = () => new Date().toISOString().slice(0, 10)
 
 export function DaySheetPage() {
   const queryClient = useQueryClient()
-  const [date, setDate] = useState(today())
+  const [searchParams, setSearchParams] = useSearchParams()
+  const date = searchParams.get('date') ?? today()
+  const setDate = (next: string) => setSearchParams(next === today() ? {} : { date: next })
   const [jobId, setJobId] = useState<string | null>(null)
 
   const sheetQuery = useGetDaySheetV1DaySheetOnDateGet(date)
@@ -58,9 +61,22 @@ export function DaySheetPage() {
 
   const job = jobQuery.data?.status === 200 ? jobQuery.data.data : null
 
+  // Note values that appear anywhere today (high → low) become inline columns.
+  const noteValues = (sheet?.denomination_totals ?? []).map((d) => d.note_value)
+  const noteCount = (r: DaySheetRow, value: number) =>
+    r.denominations.find((x) => x.note_value === value)?.note_count ?? 0
+
   const columns: Column<DaySheetRow>[] = [
     { key: 'name', header: 'Delivery staff', render: (r) => r.delivery_name },
     { key: 'cyl', header: 'Cylinders', numeric: true, render: (r) => r.cylinders },
+    ...noteValues.map(
+      (v): Column<DaySheetRow> => ({
+        key: `n${v}`,
+        header: `₹${v}`,
+        numeric: true,
+        render: (r) => noteCount(r, v) || <span className="text-muted">—</span>,
+      }),
+    ),
     { key: 'cash', header: 'Cash ₹', numeric: true, render: (r) => <Money value={Number(r.cash)} bare /> },
     { key: 'upi', header: 'UPI ₹', numeric: true, render: (r) => <Money value={Number(r.upi)} bare /> },
     { key: 'total', header: 'Total ₹', numeric: true, render: (r) => <Money value={Number(r.total)} bare /> },
@@ -111,6 +127,7 @@ export function DaySheetPage() {
                 ? [
                     'Total',
                     sheet.totals.cylinders,
+                    ...sheet.denomination_totals.map((d) => d.note_count),
                     <Money key="c" value={Number(sheet.totals.cash)} bare />,
                     <Money key="u" value={Number(sheet.totals.upi)} bare />,
                     <Money key="t" value={Number(sheet.totals.total)} bare />,
@@ -119,6 +136,27 @@ export function DaySheetPage() {
             }
           />
         )}
+
+        {sheet ? (
+          <div className="px-[18px] py-3 border-t border-line flex flex-wrap items-center justify-end gap-x-8 gap-y-2 text-[13px]">
+            <div className="flex items-center gap-2">
+              <span className="text-muted">Total cash</span>
+              <Money value={Number(sheet.totals.cash)} className="font-medium text-ink" />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-muted">Total UPI</span>
+              <Money value={Number(sheet.totals.upi)} className="font-medium text-ink" />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-muted">Expenses</span>
+              <Money value={-Number(sheet.expenses_total)} className="font-medium text-bad" />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-ink font-semibold">Net</span>
+              <Money value={Number(sheet.net)} className="font-display font-bold text-ink" />
+            </div>
+          </div>
+        ) : null}
 
         {/* Export progress / link */}
         {jobId ? (

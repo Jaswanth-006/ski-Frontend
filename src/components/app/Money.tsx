@@ -10,10 +10,12 @@ interface MoneyProps {
 
 /** Renders an amount with Indian grouping and tabular figures (DESIGN_SYSTEM §3, §6). */
 export function Money({ value, bare = false, className }: MoneyProps) {
+  const sign = value < 0 ? '-' : ''
   return (
     <span className={cn('num', className)}>
+      {sign}
       {bare ? '' : '₹'}
-      {inr(value)}
+      {inr(Math.abs(value))}
     </span>
   )
 }

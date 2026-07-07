@@ -8,6 +8,7 @@
 import type { DaySheetOutClosedAt } from './daySheetOutClosedAt';
 import type { DaySheetRow } from './daySheetRow';
 import type { DaySheetTotals } from './daySheetTotals';
+import type { Denomination } from './denomination';
 
 export interface DaySheetOut {
   business_date: string;
@@ -15,4 +16,9 @@ export interface DaySheetOut {
   closed_at: DaySheetOutClosedAt;
   rows: DaySheetRow[];
   totals: DaySheetTotals;
+  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
+  expenses_total: string;
+  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
+  net: string;
+  denomination_totals: Denomination[];
 }

@@ -24,6 +24,7 @@ export * from './daySheetOut';
 export * from './daySheetOutClosedAt';
 export * from './daySheetRow';
 export * from './daySheetTotals';
+export * from './denomination';
 export * from './denominationIn';
 export * from './eodOut';
 export * from './eodOutNetProfit';
