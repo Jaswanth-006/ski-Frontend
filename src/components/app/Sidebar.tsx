@@ -5,6 +5,7 @@ import {
   ClipboardList,
   Landmark,
   Layers,
+  BarChart3,
   LayoutDashboard,
   LogOut,
   Receipt,
@@ -52,6 +53,7 @@ const NAV: NavGroup[] = [
   {
     label: 'Manage',
     items: [
+      { label: 'Reports', icon: BarChart3, to: '/reports', roles: ALL },
       { label: 'Master Catalog', icon: Layers, to: '/catalog', roles: OWNER },
       { label: 'Banking', icon: Landmark, to: '/banking', roles: OWNER },
       { label: 'Audit Log', icon: ScrollText, to: '/audit', roles: OWNER },
