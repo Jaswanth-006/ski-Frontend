@@ -8,6 +8,7 @@ import {
   LogOut,
   Receipt,
   ScrollText,
+  Send,
   Users,
   Wallet,
   type LucideIcon,
@@ -43,6 +44,7 @@ const NAV: NavGroup[] = [
       { label: 'Day Sheet', icon: ClipboardList, to: '/day-sheet', roles: ALL },
       { label: 'Month Sheet', icon: CalendarRange, to: '/month-sheet', roles: ALL },
       { label: 'Expenses', icon: Wallet, to: '/expenses', roles: ALL },
+      { label: 'Deposits', icon: Send, to: '/deposits', roles: ALL },
     ],
   },
   {
