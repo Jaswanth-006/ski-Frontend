@@ -1,4 +1,5 @@
 import {
+  Banknote,
   Boxes,
   CalendarRange,
   ClipboardList,
@@ -45,6 +46,7 @@ const NAV: NavGroup[] = [
       { label: 'Month Sheet', icon: CalendarRange, to: '/month-sheet', roles: ALL },
       { label: 'Expenses', icon: Wallet, to: '/expenses', roles: ALL },
       { label: 'Deposits', icon: Send, to: '/deposits', roles: ALL },
+      { label: 'Cashier Box', icon: Banknote, to: '/cashier-box', roles: ALL },
     ],
   },
   {

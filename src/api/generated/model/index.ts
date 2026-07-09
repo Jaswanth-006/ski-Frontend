@@ -27,6 +27,7 @@ export * from './bankOut';
 export * from './bankUpdate';
 export * from './bankUpdateIsActive';
 export * from './bankUpdateName';
+export * from './cashierBoxOut';
 export * from './cylinderTypeCreate';
 export * from './cylinderTypeOut';
 export * from './cylinderTypeUpdate';

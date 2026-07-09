@@ -140,6 +140,10 @@ export function DaySheetPage() {
         {sheet ? (
           <div className="px-[18px] py-3 border-t border-line flex flex-wrap items-center justify-end gap-x-8 gap-y-2 text-[13px]">
             <div className="flex items-center gap-2">
+              <span className="text-muted">Opening cash</span>
+              <Money value={Number(sheet.cashier_opening)} className="font-medium text-ink" />
+            </div>
+            <div className="flex items-center gap-2">
               <span className="text-muted">Total cash</span>
               <Money value={Number(sheet.totals.cash)} className="font-medium text-ink" />
             </div>
@@ -154,6 +158,10 @@ export function DaySheetPage() {
             <div className="flex items-center gap-2">
               <span className="text-ink font-semibold">Net</span>
               <Money value={Number(sheet.net)} className="font-display font-bold text-ink" />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-ink font-semibold">Closing cash</span>
+              <Money value={Number(sheet.cashier_closing)} className="font-display font-bold text-ink" />
             </div>
           </div>
         ) : null}

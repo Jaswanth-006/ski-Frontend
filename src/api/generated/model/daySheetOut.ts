@@ -21,4 +21,8 @@ export interface DaySheetOut {
   /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   net: string;
   denomination_totals: Denomination[];
+  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
+  cashier_opening: string;
+  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
+  cashier_closing: string;
 }

@@ -3,6 +3,7 @@ import { RoleGuard } from '@/auth/RoleGuard'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { AuditPage } from '@/features/audit/AuditPage'
 import { BankingPage } from '@/features/banking/BankingPage'
+import { CashierBoxPage } from '@/features/cashier-box/CashierBoxPage'
 import { CatalogPage } from '@/features/catalog/CatalogPage'
 import { DaySheetPage } from '@/features/day-sheet/DaySheetPage'
 import { DepositsPage } from '@/features/deposits/DepositsPage'
@@ -77,6 +78,14 @@ export function AppRoutes() {
         element={
           <RoleGuard allow={OFFICE_AND_OWNER}>
             <DepositsPage />
+          </RoleGuard>
+        }
+      />
+      <Route
+        path="/cashier-box"
+        element={
+          <RoleGuard allow={OFFICE_AND_OWNER}>
+            <CashierBoxPage />
           </RoleGuard>
         }
       />
