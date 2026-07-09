@@ -68,7 +68,9 @@ export function DaySheetPage() {
 
   const columns: Column<DaySheetRow>[] = [
     { key: 'name', header: 'Delivery staff', render: (r) => r.delivery_name },
-    { key: 'cyl', header: 'Cylinders', numeric: true, render: (r) => r.cylinders },
+    { key: 'loaded', header: 'Loaded', numeric: true, render: (r) => r.loaded || <span className="text-muted">—</span> },
+    { key: 'cyl', header: 'Sold', numeric: true, render: (r) => r.cylinders },
+    { key: 'returned', header: 'Returned', numeric: true, render: (r) => r.returned || <span className="text-muted">—</span> },
     ...noteValues.map(
       (v): Column<DaySheetRow> => ({
         key: `n${v}`,
@@ -126,7 +128,9 @@ export function DaySheetPage() {
               sheet
                 ? [
                     'Total',
+                    sheet.stock.loaded,
                     sheet.totals.cylinders,
+                    sheet.stock.returned,
                     ...sheet.denomination_totals.map((d) => d.note_count),
                     <Money key="c" value={Number(sheet.totals.cash)} bare />,
                     <Money key="u" value={Number(sheet.totals.upi)} bare />,
@@ -136,6 +140,28 @@ export function DaySheetPage() {
             }
           />
         )}
+
+        {sheet ? (
+          <div className="px-[18px] py-3 border-t border-line flex flex-wrap items-center justify-end gap-x-8 gap-y-2 text-[13px]">
+            <span className="text-muted">Warehouse stock</span>
+            <div className="flex items-center gap-2">
+              <span className="text-muted">Opening</span>
+              <span className="num font-medium text-ink">{sheet.stock.opening}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-muted">Loaded</span>
+              <span className="num font-medium text-ink">{sheet.stock.loaded}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-muted">Returned</span>
+              <span className="num font-medium text-ink">{sheet.stock.returned}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-ink font-semibold">Closing</span>
+              <span className="num font-display font-bold text-ink">{sheet.stock.closing}</span>
+            </div>
+          </div>
+        ) : null}
 
         {sheet ? (
           <div className="px-[18px] py-3 border-t border-line flex flex-wrap items-center justify-end gap-x-8 gap-y-2 text-[13px]">

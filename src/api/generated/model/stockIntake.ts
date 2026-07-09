@@ -6,8 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { StockIntakeLine } from './stockIntakeLine';
+import type { StockIntakeBusinessDate } from './stockIntakeBusinessDate';
 
 export interface StockIntake {
   /** @minItems 1 */
   lines: StockIntakeLine[];
+  business_date?: StockIntakeBusinessDate;
 }

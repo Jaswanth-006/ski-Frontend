@@ -11,6 +11,8 @@ export interface DaySheetRow {
   delivery_id: string;
   delivery_name: string;
   cylinders: number;
+  loaded: number;
+  returned: number;
   /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   cash: string;
   /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
