@@ -61,7 +61,8 @@ function BanksSection() {
   const [error, setError] = useState<string | null>(null)
 
   const banks: BankOut[] = listQuery.data?.status === 200 ? listQuery.data.data : []
-  const invalidate = () => qc.invalidateQueries({ queryKey: getListBanksV1BanksGetQueryKey(ALL) })
+  // No params → prefix-matches every banks query (active:'all' list + active:'true' dropdown).
+  const invalidate = () => qc.invalidateQueries({ queryKey: getListBanksV1BanksGetQueryKey() })
 
   const submit = async () => {
     setError(null)
@@ -151,7 +152,7 @@ function BankAccountsSection() {
 
   const accounts: BankAccountOut[] = listQuery.data?.status === 200 ? listQuery.data.data : []
   const banks: BankOut[] = banksQuery.data?.status === 200 ? banksQuery.data.data : []
-  const invalidate = () => qc.invalidateQueries({ queryKey: getListBankAccountsV1BankAccountsGetQueryKey(ALL) })
+  const invalidate = () => qc.invalidateQueries({ queryKey: getListBankAccountsV1BankAccountsGetQueryKey() })
 
   const startAdd = () => { setEditing(null); setBankId(''); setAccountType(''); setLabel(''); setError(null); setOpen(true) }
   const startEdit = (a: BankAccountOut) => { setEditing(a); setBankId(a.bank_id); setAccountType(a.account_type); setLabel(a.label ?? ''); setError(null); setOpen(true) }
@@ -244,7 +245,7 @@ function VendorsSection() {
   const [error, setError] = useState<string | null>(null)
 
   const vendors: VendorOut[] = listQuery.data?.status === 200 ? listQuery.data.data : []
-  const invalidate = () => qc.invalidateQueries({ queryKey: getListVendorsV1VendorsGetQueryKey(ALL) })
+  const invalidate = () => qc.invalidateQueries({ queryKey: getListVendorsV1VendorsGetQueryKey() })
 
   const submit = async () => {
     setError(null)
