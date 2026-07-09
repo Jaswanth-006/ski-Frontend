@@ -14,4 +14,6 @@ export interface BankAccountOut {
   account_type: string;
   label: BankAccountOutLabel;
   is_active: boolean;
+  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
+  balance: string;
 }
