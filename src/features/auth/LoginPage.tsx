@@ -38,6 +38,8 @@ export function LoginPage() {
       if (res.status === 200) {
         setTokens(res.data.access_token, res.data.refresh_token)
         navigate('/', { replace: true })
+      } else if ((res.status as number) === 429) {
+        setAuthError('Too many attempts — please wait a few minutes and try again.')
       } else {
         setAuthError('Invalid phone or password.')
       }
