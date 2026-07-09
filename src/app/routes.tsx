@@ -10,6 +10,7 @@ import { DepositsPage } from '@/features/deposits/DepositsPage'
 import { ExpensesPage } from '@/features/expenses/ExpensesPage'
 import { LoginPage } from '@/features/auth/LoginPage'
 import { MonthSheetPage } from '@/features/month-sheet/MonthSheetPage'
+import { ReportsPage } from '@/features/reports/ReportsPage'
 import { SalesEntryPage } from '@/features/sales/SalesEntryPage'
 import { StockPage } from '@/features/stock/StockPage'
 import { UsersPage } from '@/features/users/UsersPage'
@@ -104,6 +105,14 @@ export function AppRoutes() {
         element={
           <RoleGuard allow={OWNER_ONLY}>
             <BankingPage />
+          </RoleGuard>
+        }
+      />
+      <Route
+        path="/reports"
+        element={
+          <RoleGuard allow={OFFICE_AND_OWNER}>
+            <ReportsPage />
           </RoleGuard>
         }
       />
