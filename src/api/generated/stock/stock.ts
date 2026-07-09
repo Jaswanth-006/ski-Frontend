@@ -28,7 +28,10 @@ import type {
   HTTPValidationError,
   InventoryAdjust,
   InventoryOut,
-  StockIntake
+  ListStockLoadsV1StockLoadsGetParams,
+  StockIntake,
+  StockLoadOut,
+  StockLoadUpsert
 } from '.././model';
 
 import { customFetch } from '../../fetcher';
@@ -240,6 +243,222 @@ export const useStockIntakeV1StockIntakePost = <TError = HTTPValidationError,
       return useMutation(mutationOptions, queryClient);
     }
     /**
+ * Record how many cylinders a driver loaded out (and returned) for a date.
+ * @summary Upsert Stock Load
+ */
+export type upsertStockLoadV1StockLoadsPostResponse201 = {
+  data: StockLoadOut
+  status: 201
+}
+
+export type upsertStockLoadV1StockLoadsPostResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+    
+export type upsertStockLoadV1StockLoadsPostResponseSuccess = (upsertStockLoadV1StockLoadsPostResponse201) & {
+  headers: Headers;
+};
+export type upsertStockLoadV1StockLoadsPostResponseError = (upsertStockLoadV1StockLoadsPostResponse422) & {
+  headers: Headers;
+};
+
+export type upsertStockLoadV1StockLoadsPostResponse = (upsertStockLoadV1StockLoadsPostResponseSuccess | upsertStockLoadV1StockLoadsPostResponseError)
+
+export const getUpsertStockLoadV1StockLoadsPostUrl = () => {
+
+
+  
+
+  return `/v1/stock/loads`
+}
+
+export const upsertStockLoadV1StockLoadsPost = async (stockLoadUpsert: StockLoadUpsert, options?: RequestInit): Promise<upsertStockLoadV1StockLoadsPostResponse> => {
+  
+  return customFetch<upsertStockLoadV1StockLoadsPostResponse>(getUpsertStockLoadV1StockLoadsPostUrl(),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      stockLoadUpsert,)
+  }
+);}
+
+
+
+
+export const getUpsertStockLoadV1StockLoadsPostMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof upsertStockLoadV1StockLoadsPost>>, TError,{data: StockLoadUpsert}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof upsertStockLoadV1StockLoadsPost>>, TError,{data: StockLoadUpsert}, TContext> => {
+
+const mutationKey = ['upsertStockLoadV1StockLoadsPost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof upsertStockLoadV1StockLoadsPost>>, {data: StockLoadUpsert}> = (props) => {
+          const {data} = props ?? {};
+
+          return  upsertStockLoadV1StockLoadsPost(data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpsertStockLoadV1StockLoadsPostMutationResult = NonNullable<Awaited<ReturnType<typeof upsertStockLoadV1StockLoadsPost>>>
+    export type UpsertStockLoadV1StockLoadsPostMutationBody = StockLoadUpsert
+    export type UpsertStockLoadV1StockLoadsPostMutationError = HTTPValidationError
+
+    /**
+ * @summary Upsert Stock Load
+ */
+export const useUpsertStockLoadV1StockLoadsPost = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof upsertStockLoadV1StockLoadsPost>>, TError,{data: StockLoadUpsert}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof upsertStockLoadV1StockLoadsPost>>,
+        TError,
+        {data: StockLoadUpsert},
+        TContext
+      > => {
+
+      const mutationOptions = getUpsertStockLoadV1StockLoadsPostMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
+ * @summary List Stock Loads
+ */
+export type listStockLoadsV1StockLoadsGetResponse200 = {
+  data: StockLoadOut[]
+  status: 200
+}
+
+export type listStockLoadsV1StockLoadsGetResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+    
+export type listStockLoadsV1StockLoadsGetResponseSuccess = (listStockLoadsV1StockLoadsGetResponse200) & {
+  headers: Headers;
+};
+export type listStockLoadsV1StockLoadsGetResponseError = (listStockLoadsV1StockLoadsGetResponse422) & {
+  headers: Headers;
+};
+
+export type listStockLoadsV1StockLoadsGetResponse = (listStockLoadsV1StockLoadsGetResponseSuccess | listStockLoadsV1StockLoadsGetResponseError)
+
+export const getListStockLoadsV1StockLoadsGetUrl = (params: ListStockLoadsV1StockLoadsGetParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/v1/stock/loads?${stringifiedParams}` : `/v1/stock/loads`
+}
+
+export const listStockLoadsV1StockLoadsGet = async (params: ListStockLoadsV1StockLoadsGetParams, options?: RequestInit): Promise<listStockLoadsV1StockLoadsGetResponse> => {
+  
+  return customFetch<listStockLoadsV1StockLoadsGetResponse>(getListStockLoadsV1StockLoadsGetUrl(params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getListStockLoadsV1StockLoadsGetQueryKey = (params?: ListStockLoadsV1StockLoadsGetParams,) => {
+    return [
+    `/v1/stock/loads`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getListStockLoadsV1StockLoadsGetQueryOptions = <TData = Awaited<ReturnType<typeof listStockLoadsV1StockLoadsGet>>, TError = HTTPValidationError>(params: ListStockLoadsV1StockLoadsGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStockLoadsV1StockLoadsGet>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListStockLoadsV1StockLoadsGetQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listStockLoadsV1StockLoadsGet>>> = ({ signal }) => listStockLoadsV1StockLoadsGet(params, { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listStockLoadsV1StockLoadsGet>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListStockLoadsV1StockLoadsGetQueryResult = NonNullable<Awaited<ReturnType<typeof listStockLoadsV1StockLoadsGet>>>
+export type ListStockLoadsV1StockLoadsGetQueryError = HTTPValidationError
+
+
+export function useListStockLoadsV1StockLoadsGet<TData = Awaited<ReturnType<typeof listStockLoadsV1StockLoadsGet>>, TError = HTTPValidationError>(
+ params: ListStockLoadsV1StockLoadsGetParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStockLoadsV1StockLoadsGet>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listStockLoadsV1StockLoadsGet>>,
+          TError,
+          Awaited<ReturnType<typeof listStockLoadsV1StockLoadsGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListStockLoadsV1StockLoadsGet<TData = Awaited<ReturnType<typeof listStockLoadsV1StockLoadsGet>>, TError = HTTPValidationError>(
+ params: ListStockLoadsV1StockLoadsGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStockLoadsV1StockLoadsGet>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listStockLoadsV1StockLoadsGet>>,
+          TError,
+          Awaited<ReturnType<typeof listStockLoadsV1StockLoadsGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListStockLoadsV1StockLoadsGet<TData = Awaited<ReturnType<typeof listStockLoadsV1StockLoadsGet>>, TError = HTTPValidationError>(
+ params: ListStockLoadsV1StockLoadsGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStockLoadsV1StockLoadsGet>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List Stock Loads
+ */
+
+export function useListStockLoadsV1StockLoadsGet<TData = Awaited<ReturnType<typeof listStockLoadsV1StockLoadsGet>>, TError = HTTPValidationError>(
+ params: ListStockLoadsV1StockLoadsGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStockLoadsV1StockLoadsGet>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListStockLoadsV1StockLoadsGetQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+/**
  * Correct a count. Send If-Match: <version>; a stale version is rejected with 409.
  * @summary Adjust Inventory
  */

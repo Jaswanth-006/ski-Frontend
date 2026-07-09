@@ -1,21 +1,25 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Check, Loader2, PackagePlus } from 'lucide-react'
+import { Check, Loader2, PackagePlus, Truck } from 'lucide-react'
 import { useState } from 'react'
 import {
   adjustInventoryV1InventoryCylinderTypeIdPatch,
   getGetInventoryV1InventoryGetQueryKey,
   useGetInventoryV1InventoryGet,
   useStockIntakeV1StockIntakePost,
+  useUpsertStockLoadV1StockLoadsPost,
 } from '@/api/generated/stock/stock'
-import type { InventoryOut } from '@/api/generated/model'
+import { useListUsersV1UsersGet } from '@/api/generated/users/users'
+import type { InventoryOut, UserOut } from '@/api/generated/model'
 import { AppShell } from '@/components/app/AppShell'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Modal } from '@/components/ui/modal'
+import { Select } from '@/components/ui/select'
 import { cn } from '@/lib/cn'
 
 const LOW_STOCK_THRESHOLD = 10
+const today = () => new Date().toISOString().slice(0, 10)
 
 function StockBadge({ quantity }: { quantity: number }) {
   if (quantity === 0)
@@ -108,6 +112,8 @@ export function StockPage() {
         </div>
       </Card>
 
+      <DriverLoadsSection types={rows} />
+
       {/* Live inventory */}
       <Card>
         <CardHeader title="Live inventory" hint="Current counts · low varieties are flagged" />
@@ -151,6 +157,109 @@ export function StockPage() {
         ) : null}
       </Modal>
     </AppShell>
+  )
+}
+
+function DriverLoadsSection({ types }: { types: InventoryOut[] }) {
+  const [date, setDate] = useState(today())
+  const [driverId, setDriverId] = useState('')
+  const [loads, setLoads] = useState<Record<string, { loaded: string; returned: string }>>({})
+  const [done, setDone] = useState(false)
+  const driversQuery = useListUsersV1UsersGet({ role: 'delivery', active: true })
+  const upsert = useUpsertStockLoadV1StockLoadsPost()
+
+  const drivers: UserOut[] = driversQuery.data?.status === 200 ? driversQuery.data.data : []
+  const set = (id: string, field: 'loaded' | 'returned', value: string) =>
+    setLoads((p) => ({ ...p, [id]: { ...(p[id] ?? { loaded: '', returned: '' }), [field]: value } }))
+
+  const save = async () => {
+    setDone(false)
+    if (!driverId) return
+    for (const t of types) {
+      const v = loads[t.cylinder_type_id]
+      const loaded = Number(v?.loaded) || 0
+      const returned = Number(v?.returned) || 0
+      if (loaded > 0 || returned > 0) {
+        await upsert.mutateAsync({
+          data: {
+            business_date: date,
+            delivery_id: driverId,
+            cylinder_type_id: t.cylinder_type_id,
+            loaded_qty: loaded,
+            returned_qty: returned,
+          },
+        })
+      }
+    }
+    setLoads({})
+    setDone(true)
+  }
+
+  return (
+    <Card>
+      <CardHeader
+        title="Driver loads"
+        hint="How many cylinders each driver loaded out and brought back"
+        right={
+          <div className="flex items-center gap-3">
+            {done ? (
+              <span className="inline-flex items-center gap-1.5 text-[12.5px] text-ok">
+                <Check size={15} /> Saved
+              </span>
+            ) : null}
+            <Button variant="primary" className="h-9" onClick={save} disabled={upsert.isPending || !driverId}>
+              <Truck size={16} /> Save loads
+            </Button>
+          </div>
+        }
+      />
+      <div className="px-[18px] pb-5 pt-1 flex flex-col gap-3">
+        <div className="flex flex-wrap items-end gap-3">
+          <div>
+            <label className="block text-[12.5px] text-muted mb-1">Date</label>
+            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-9 w-[150px]" />
+          </div>
+          <div className="min-w-[200px]">
+            <label className="block text-[12.5px] text-muted mb-1">Delivery person</label>
+            <Select value={driverId} onChange={(e) => setDriverId(e.target.value)} className="h-9">
+              <option value="">Select…</option>
+              {drivers.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+            </Select>
+          </div>
+        </div>
+        {driverId ? (
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-3 text-[11px] uppercase tracking-[.05em] text-muted font-semibold">
+              <span className="flex-1">Variety</span>
+              <span className="w-[100px] text-right">Loaded</span>
+              <span className="w-[100px] text-right">Returned</span>
+            </div>
+            {types.map((t) => (
+              <div key={t.cylinder_type_id} className="flex items-center gap-3 py-1.5 border-b border-line last:border-0">
+                <div className="flex-1 min-w-0">
+                  <div className="text-[13.5px] font-medium text-ink">{t.label}</div>
+                  <div className="text-[11.5px] text-muted num">{t.code}</div>
+                </div>
+                <Input
+                  type="number" min={0} placeholder="0"
+                  className="h-9 w-[100px] num text-right"
+                  value={loads[t.cylinder_type_id]?.loaded ?? ''}
+                  onChange={(e) => set(t.cylinder_type_id, 'loaded', e.target.value)}
+                />
+                <Input
+                  type="number" min={0} placeholder="0"
+                  className="h-9 w-[100px] num text-right"
+                  value={loads[t.cylinder_type_id]?.returned ?? ''}
+                  onChange={(e) => set(t.cylinder_type_id, 'returned', e.target.value)}
+                />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-[12.5px] text-muted">Pick a delivery person to record loads.</p>
+        )}
+      </div>
+    </Card>
   )
 }
 

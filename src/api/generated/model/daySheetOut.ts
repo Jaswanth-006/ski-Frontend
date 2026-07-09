@@ -9,6 +9,7 @@ import type { DaySheetOutClosedAt } from './daySheetOutClosedAt';
 import type { DaySheetRow } from './daySheetRow';
 import type { DaySheetTotals } from './daySheetTotals';
 import type { Denomination } from './denomination';
+import type { StockSummary } from './stockSummary';
 
 export interface DaySheetOut {
   business_date: string;
@@ -25,4 +26,5 @@ export interface DaySheetOut {
   cashier_opening: string;
   /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   cashier_closing: string;
+  stock: StockSummary;
 }

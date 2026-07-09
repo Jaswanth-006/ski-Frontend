@@ -23,3 +23,11 @@ npm run typecheck   # tsc --noEmit
 npm test            # vitest
 npm run build       # tsc -b && vite build
 ```
+
+## Feature areas (Phase 8 — Cash, Banking & Reporting)
+New pages under `src/features/`: `banking/` (banks · accounts · vendors, owner-only),
+`deposits/` (money out of cashier box / between accounts), `cashier-box/` (persistent
+cash-in-hand), `month-sheet/`. The Day Sheet gained denomination + stock (opening/loaded/
+sold/returned/closing) columns and an opening/closing-cash strip; Pricing lives inside
+Master Catalog. Reports (8-E) are upcoming. Regenerate the client after backend contract
+changes: `npm run gen:api` (reads the vendored `openapi.yaml`).
