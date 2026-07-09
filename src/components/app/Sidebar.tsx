@@ -2,6 +2,7 @@ import {
   Boxes,
   CalendarRange,
   ClipboardList,
+  Landmark,
   Layers,
   LayoutDashboard,
   LogOut,
@@ -48,6 +49,7 @@ const NAV: NavGroup[] = [
     label: 'Manage',
     items: [
       { label: 'Master Catalog', icon: Layers, to: '/catalog', roles: OWNER },
+      { label: 'Banking', icon: Landmark, to: '/banking', roles: OWNER },
       { label: 'Audit Log', icon: ScrollText, to: '/audit', roles: OWNER },
       { label: 'Users', icon: Users, to: '/users', roles: OWNER },
     ],

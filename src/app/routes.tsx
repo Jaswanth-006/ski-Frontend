@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { RoleGuard } from '@/auth/RoleGuard'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { AuditPage } from '@/features/audit/AuditPage'
+import { BankingPage } from '@/features/banking/BankingPage'
 import { CatalogPage } from '@/features/catalog/CatalogPage'
 import { DaySheetPage } from '@/features/day-sheet/DaySheetPage'
 import { ExpensesPage } from '@/features/expenses/ExpensesPage'
@@ -77,6 +78,14 @@ export function AppRoutes() {
         element={
           <RoleGuard allow={OWNER_ONLY}>
             <CatalogPage />
+          </RoleGuard>
+        }
+      />
+      <Route
+        path="/banking"
+        element={
+          <RoleGuard allow={OWNER_ONLY}>
+            <BankingPage />
           </RoleGuard>
         }
       />
