@@ -1,15 +1,14 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { Check, Download, Loader2, Lock } from 'lucide-react'
+import { Download, Loader2, Lock } from 'lucide-react'
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import {
   getGetDaySheetV1DaySheetOnDateGetQueryKey,
   useCloseDayV1DaySheetOnDateClosePost,
-  useExportDaySheetV1DaySheetOnDateExportPost,
   useGetDaySheetV1DaySheetOnDateGet,
 } from '@/api/generated/day-sheet/day-sheet'
-import { useGetJobV1JobsJobIdGet } from '@/api/generated/jobs/jobs'
 import type { DaySheetRow } from '@/api/generated/model'
+import { useAuthStore } from '@/state/auth'
 import { AppShell } from '@/components/app/AppShell'
 import { DataTable, type Column } from '@/components/app/DataTable'
 import { Money } from '@/components/app/Money'
@@ -25,22 +24,10 @@ export function DaySheetPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const date = searchParams.get('date') ?? today()
   const setDate = (next: string) => setSearchParams(next === today() ? {} : { date: next })
-  const [jobId, setJobId] = useState<string | null>(null)
+  const [downloading, setDownloading] = useState(false)
 
   const sheetQuery = useGetDaySheetV1DaySheetOnDateGet(date)
   const closeMutation = useCloseDayV1DaySheetOnDateClosePost()
-  const exportMutation = useExportDaySheetV1DaySheetOnDateExportPost()
-
-  const jobQuery = useGetJobV1JobsJobIdGet(jobId ?? '', {
-    query: {
-      enabled: !!jobId,
-      refetchInterval: (query) => {
-        const env = query.state.data
-        const done = env?.status === 200 && ['done', 'failed'].includes(env.data.status)
-        return done ? false : 1500
-      },
-    },
-  })
 
   const envelope = sheetQuery.data
   const sheet = envelope && envelope.status === 200 ? envelope.data : null
@@ -53,13 +40,26 @@ export function DaySheetPage() {
     const res = await closeMutation.mutateAsync({ onDate: date })
     if (res.status === 200) await invalidate()
   }
-  const startExport = async () => {
-    setJobId(null)
-    const res = await exportMutation.mutateAsync({ onDate: date })
-    if (res.status === 202) setJobId(res.data.job_id)
+  // Direct .xlsx download — no worker/object storage needed (streams from the API).
+  const downloadXlsx = async () => {
+    setDownloading(true)
+    try {
+      const base = import.meta.env.VITE_API_BASE_URL ?? ''
+      const token = useAuthStore.getState().accessToken
+      const res = await fetch(`${base}/v1/day-sheet/${date}/export.xlsx`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      })
+      if (!res.ok) return
+      const url = URL.createObjectURL(await res.blob())
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `day-sheet-${date}.xlsx`
+      a.click()
+      URL.revokeObjectURL(url)
+    } finally {
+      setDownloading(false)
+    }
   }
-
-  const job = jobQuery.data?.status === 200 ? jobQuery.data.data : null
 
   // Note values that appear anywhere today (high → low) become inline columns.
   const noteValues = (sheet?.denomination_totals ?? []).map((d) => d.note_value)
@@ -102,9 +102,9 @@ export function DaySheetPage() {
                   Day open
                 </StatusPill>
               )}
-              <Button variant="ghost" className="h-9" onClick={startExport} disabled={exportMutation.isPending}>
+              <Button variant="ghost" className="h-9" onClick={downloadXlsx} disabled={downloading}>
                 <Download size={16} />
-                Export
+                {downloading ? 'Preparing…' : 'Export'}
               </Button>
               {!sheet?.is_closed ? (
                 <Button variant="primary" className="h-9" onClick={closeDay} disabled={closeMutation.isPending}>
@@ -189,23 +189,6 @@ export function DaySheetPage() {
               <span className="text-ink font-semibold">Closing cash</span>
               <Money value={Number(sheet.cashier_closing)} className="font-display font-bold text-ink" />
             </div>
-          </div>
-        ) : null}
-
-        {/* Export progress / link */}
-        {jobId ? (
-          <div className="px-[18px] py-3 border-t border-line text-[13px]">
-            {job?.status === 'done' && job.result_url ? (
-              <a href={job.result_url} className="inline-flex items-center gap-1.5 text-ok font-semibold">
-                <Check size={15} /> Export ready — download .xlsx
-              </a>
-            ) : job?.status === 'failed' ? (
-              <span className="text-bad">Export failed{job.error ? `: ${job.error}` : ''}.</span>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 text-muted">
-                <Loader2 className="animate-spin text-orange" size={14} /> Building export…
-              </span>
-            )}
           </div>
         ) : null}
       </Card>
