@@ -21,6 +21,10 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  CollectionsTrendOut,
+  CollectionsV1AnalyticsCollectionsGetParams,
+  CylinderMovementOut,
+  CylinderMovementV1AnalyticsCylinderMovementGetParams,
   EodOut,
   EodV1AnalyticsEodGetParams,
   HTTPValidationError
@@ -148,6 +152,258 @@ export function useEodV1AnalyticsEodGet<TData = Awaited<ReturnType<typeof eodV1A
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getEodV1AnalyticsEodGetQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+/**
+ * Daily cash + UPI collections for the `days`-day window ending on `date` (default today).
+ * @summary Collections
+ */
+export type collectionsV1AnalyticsCollectionsGetResponse200 = {
+  data: CollectionsTrendOut
+  status: 200
+}
+
+export type collectionsV1AnalyticsCollectionsGetResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+    
+export type collectionsV1AnalyticsCollectionsGetResponseSuccess = (collectionsV1AnalyticsCollectionsGetResponse200) & {
+  headers: Headers;
+};
+export type collectionsV1AnalyticsCollectionsGetResponseError = (collectionsV1AnalyticsCollectionsGetResponse422) & {
+  headers: Headers;
+};
+
+export type collectionsV1AnalyticsCollectionsGetResponse = (collectionsV1AnalyticsCollectionsGetResponseSuccess | collectionsV1AnalyticsCollectionsGetResponseError)
+
+export const getCollectionsV1AnalyticsCollectionsGetUrl = (params?: CollectionsV1AnalyticsCollectionsGetParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/v1/analytics/collections?${stringifiedParams}` : `/v1/analytics/collections`
+}
+
+export const collectionsV1AnalyticsCollectionsGet = async (params?: CollectionsV1AnalyticsCollectionsGetParams, options?: RequestInit): Promise<collectionsV1AnalyticsCollectionsGetResponse> => {
+  
+  return customFetch<collectionsV1AnalyticsCollectionsGetResponse>(getCollectionsV1AnalyticsCollectionsGetUrl(params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getCollectionsV1AnalyticsCollectionsGetQueryKey = (params?: CollectionsV1AnalyticsCollectionsGetParams,) => {
+    return [
+    `/v1/analytics/collections`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getCollectionsV1AnalyticsCollectionsGetQueryOptions = <TData = Awaited<ReturnType<typeof collectionsV1AnalyticsCollectionsGet>>, TError = HTTPValidationError>(params?: CollectionsV1AnalyticsCollectionsGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof collectionsV1AnalyticsCollectionsGet>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getCollectionsV1AnalyticsCollectionsGetQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof collectionsV1AnalyticsCollectionsGet>>> = ({ signal }) => collectionsV1AnalyticsCollectionsGet(params, { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof collectionsV1AnalyticsCollectionsGet>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type CollectionsV1AnalyticsCollectionsGetQueryResult = NonNullable<Awaited<ReturnType<typeof collectionsV1AnalyticsCollectionsGet>>>
+export type CollectionsV1AnalyticsCollectionsGetQueryError = HTTPValidationError
+
+
+export function useCollectionsV1AnalyticsCollectionsGet<TData = Awaited<ReturnType<typeof collectionsV1AnalyticsCollectionsGet>>, TError = HTTPValidationError>(
+ params: undefined |  CollectionsV1AnalyticsCollectionsGetParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof collectionsV1AnalyticsCollectionsGet>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof collectionsV1AnalyticsCollectionsGet>>,
+          TError,
+          Awaited<ReturnType<typeof collectionsV1AnalyticsCollectionsGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCollectionsV1AnalyticsCollectionsGet<TData = Awaited<ReturnType<typeof collectionsV1AnalyticsCollectionsGet>>, TError = HTTPValidationError>(
+ params?: CollectionsV1AnalyticsCollectionsGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof collectionsV1AnalyticsCollectionsGet>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof collectionsV1AnalyticsCollectionsGet>>,
+          TError,
+          Awaited<ReturnType<typeof collectionsV1AnalyticsCollectionsGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCollectionsV1AnalyticsCollectionsGet<TData = Awaited<ReturnType<typeof collectionsV1AnalyticsCollectionsGet>>, TError = HTTPValidationError>(
+ params?: CollectionsV1AnalyticsCollectionsGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof collectionsV1AnalyticsCollectionsGet>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Collections
+ */
+
+export function useCollectionsV1AnalyticsCollectionsGet<TData = Awaited<ReturnType<typeof collectionsV1AnalyticsCollectionsGet>>, TError = HTTPValidationError>(
+ params?: CollectionsV1AnalyticsCollectionsGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof collectionsV1AnalyticsCollectionsGet>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getCollectionsV1AnalyticsCollectionsGetQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+/**
+ * Per-type cylinders loaded / sold / left in the warehouse for `date` (default today).
+ * @summary Cylinder Movement
+ */
+export type cylinderMovementV1AnalyticsCylinderMovementGetResponse200 = {
+  data: CylinderMovementOut
+  status: 200
+}
+
+export type cylinderMovementV1AnalyticsCylinderMovementGetResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+    
+export type cylinderMovementV1AnalyticsCylinderMovementGetResponseSuccess = (cylinderMovementV1AnalyticsCylinderMovementGetResponse200) & {
+  headers: Headers;
+};
+export type cylinderMovementV1AnalyticsCylinderMovementGetResponseError = (cylinderMovementV1AnalyticsCylinderMovementGetResponse422) & {
+  headers: Headers;
+};
+
+export type cylinderMovementV1AnalyticsCylinderMovementGetResponse = (cylinderMovementV1AnalyticsCylinderMovementGetResponseSuccess | cylinderMovementV1AnalyticsCylinderMovementGetResponseError)
+
+export const getCylinderMovementV1AnalyticsCylinderMovementGetUrl = (params?: CylinderMovementV1AnalyticsCylinderMovementGetParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/v1/analytics/cylinder-movement?${stringifiedParams}` : `/v1/analytics/cylinder-movement`
+}
+
+export const cylinderMovementV1AnalyticsCylinderMovementGet = async (params?: CylinderMovementV1AnalyticsCylinderMovementGetParams, options?: RequestInit): Promise<cylinderMovementV1AnalyticsCylinderMovementGetResponse> => {
+  
+  return customFetch<cylinderMovementV1AnalyticsCylinderMovementGetResponse>(getCylinderMovementV1AnalyticsCylinderMovementGetUrl(params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getCylinderMovementV1AnalyticsCylinderMovementGetQueryKey = (params?: CylinderMovementV1AnalyticsCylinderMovementGetParams,) => {
+    return [
+    `/v1/analytics/cylinder-movement`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getCylinderMovementV1AnalyticsCylinderMovementGetQueryOptions = <TData = Awaited<ReturnType<typeof cylinderMovementV1AnalyticsCylinderMovementGet>>, TError = HTTPValidationError>(params?: CylinderMovementV1AnalyticsCylinderMovementGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof cylinderMovementV1AnalyticsCylinderMovementGet>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getCylinderMovementV1AnalyticsCylinderMovementGetQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof cylinderMovementV1AnalyticsCylinderMovementGet>>> = ({ signal }) => cylinderMovementV1AnalyticsCylinderMovementGet(params, { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof cylinderMovementV1AnalyticsCylinderMovementGet>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type CylinderMovementV1AnalyticsCylinderMovementGetQueryResult = NonNullable<Awaited<ReturnType<typeof cylinderMovementV1AnalyticsCylinderMovementGet>>>
+export type CylinderMovementV1AnalyticsCylinderMovementGetQueryError = HTTPValidationError
+
+
+export function useCylinderMovementV1AnalyticsCylinderMovementGet<TData = Awaited<ReturnType<typeof cylinderMovementV1AnalyticsCylinderMovementGet>>, TError = HTTPValidationError>(
+ params: undefined |  CylinderMovementV1AnalyticsCylinderMovementGetParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof cylinderMovementV1AnalyticsCylinderMovementGet>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof cylinderMovementV1AnalyticsCylinderMovementGet>>,
+          TError,
+          Awaited<ReturnType<typeof cylinderMovementV1AnalyticsCylinderMovementGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCylinderMovementV1AnalyticsCylinderMovementGet<TData = Awaited<ReturnType<typeof cylinderMovementV1AnalyticsCylinderMovementGet>>, TError = HTTPValidationError>(
+ params?: CylinderMovementV1AnalyticsCylinderMovementGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof cylinderMovementV1AnalyticsCylinderMovementGet>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof cylinderMovementV1AnalyticsCylinderMovementGet>>,
+          TError,
+          Awaited<ReturnType<typeof cylinderMovementV1AnalyticsCylinderMovementGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCylinderMovementV1AnalyticsCylinderMovementGet<TData = Awaited<ReturnType<typeof cylinderMovementV1AnalyticsCylinderMovementGet>>, TError = HTTPValidationError>(
+ params?: CylinderMovementV1AnalyticsCylinderMovementGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof cylinderMovementV1AnalyticsCylinderMovementGet>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Cylinder Movement
+ */
+
+export function useCylinderMovementV1AnalyticsCylinderMovementGet<TData = Awaited<ReturnType<typeof cylinderMovementV1AnalyticsCylinderMovementGet>>, TError = HTTPValidationError>(
+ params?: CylinderMovementV1AnalyticsCylinderMovementGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof cylinderMovementV1AnalyticsCylinderMovementGet>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getCylinderMovementV1AnalyticsCylinderMovementGetQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

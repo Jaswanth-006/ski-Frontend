@@ -7,7 +7,14 @@ import {
   Smartphone,
   TrendingUp,
 } from 'lucide-react'
-import { useEodV1AnalyticsEodGet } from '@/api/generated/analytics/analytics'
+import { useNavigate } from 'react-router-dom'
+import {
+  useCollectionsV1AnalyticsCollectionsGet,
+  useCylinderMovementV1AnalyticsCylinderMovementGet,
+  useEodV1AnalyticsEodGet,
+} from '@/api/generated/analytics/analytics'
+import { useGetDaySheetV1DaySheetOnDateGet } from '@/api/generated/day-sheet/day-sheet'
+import type { DaySheetRow } from '@/api/generated/model'
 import { useAuth } from '@/auth/useAuth'
 import { AppShell } from '@/components/app/AppShell'
 import { Card, CardHeader } from '@/components/ui/card'
@@ -19,77 +26,116 @@ import { Money } from '@/components/app/Money'
 import { ReconcilePanel } from '@/components/app/ReconcilePanel'
 import { Reveal } from '@/components/app/Reveal'
 import { StatusPill } from '@/components/app/StatusPill'
+import { useAuthStore } from '@/state/auth'
 import { CollectionsChart } from './CollectionsChart'
 
-// Placeholder data — wired to the API in later phases.
-const GAUGES = [
-  { name: '14.2 kg', sub: 'Domestic', sold: 268, left: 52, value: 84 },
-  { name: '19 kg', sub: 'Commercial', sold: 52, left: 28, value: 65 },
-  { name: '5 kg', sub: 'Domestic', sold: 18, left: 22, value: 45 },
-  { name: '47.5 kg', sub: 'Commercial', sold: 9, left: 6, value: 60 },
-]
+const isoToday = () => new Date().toISOString().slice(0, 10)
 
-interface DeliveryRow {
-  initials: string
-  color: string
-  name: string
-  cylinders: number
-  cash: number
-  upi: number
-  total: number
-  status: 'settled' | 'counting'
+// Deterministic avatar tint per delivery driver.
+const AVATAR_COLORS = ['#10295C', '#2E6F4E', '#7A4FB0', '#C0552A', '#B03A5B', '#2A6F8E']
+const initialsOf = (name: string) =>
+  name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() ?? '')
+    .join('')
+const colorFor = (id: string) => {
+  let hash = 0
+  for (const ch of id) hash = (hash * 31 + ch.charCodeAt(0)) | 0
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length]
 }
 
-const DELIVERY: DeliveryRow[] = [
-  { initials: 'MR', color: '#10295C', name: 'Murugan R.', cylinders: 96, cash: 64200, upi: 20000, total: 84200, status: 'settled' },
-  { initials: 'SK', color: '#2E6F4E', name: 'Senthil K.', cylinders: 89, cash: 61600, upi: 18000, total: 79600, status: 'settled' },
-  { initials: 'RP', color: '#7A4FB0', name: 'Ravi P.', cylinders: 74, cash: 52400, upi: 13700, total: 66100, status: 'counting' },
-  { initials: 'KS', color: '#C0552A', name: 'Karthik S.', cylinders: 88, cash: 60400, upi: 18100, total: 78500, status: 'settled' },
-]
-
-const totals = DELIVERY.reduce(
-  (acc, r) => ({
-    cylinders: acc.cylinders + r.cylinders,
-    cash: acc.cash + r.cash,
-    upi: acc.upi + r.upi,
-    total: acc.total + r.total,
-  }),
-  { cylinders: 0, cash: 0, upi: 0, total: 0 },
-)
-
-const columns: Column<DeliveryRow>[] = [
-  { key: 'name', header: 'Delivery staff', render: (r) => r.name },
+const columns: Column<DaySheetRow>[] = [
+  { key: 'name', header: 'Delivery staff', render: (r) => r.delivery_name },
   { key: 'cylinders', header: 'Cylinders', numeric: true, render: (r) => r.cylinders },
-  { key: 'cash', header: 'Cash ₹', numeric: true, render: (r) => <Money value={r.cash} bare /> },
-  { key: 'upi', header: 'UPI ₹', numeric: true, render: (r) => <Money value={r.upi} bare /> },
-  { key: 'total', header: 'Total ₹', numeric: true, render: (r) => <Money value={r.total} bare /> },
+  { key: 'cash', header: 'Cash ₹', numeric: true, render: (r) => <Money value={Number(r.cash)} bare /> },
+  { key: 'upi', header: 'UPI ₹', numeric: true, render: (r) => <Money value={Number(r.upi)} bare /> },
+  { key: 'total', header: 'Total ₹', numeric: true, render: (r) => <Money value={Number(r.total)} bare /> },
 ]
 
 export function DashboardPage() {
   const { role } = useAuth()
+  const navigate = useNavigate()
+  const date = isoToday()
+  const prettyDate = new Date().toLocaleDateString('en-IN', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
+
   const eodQuery = useEodV1AnalyticsEodGet()
+  const trendQuery = useCollectionsV1AnalyticsCollectionsGet({ days: 7 })
+  const movementQuery = useCylinderMovementV1AnalyticsCylinderMovementGet()
+  const daySheetQuery = useGetDaySheetV1DaySheetOnDateGet(date)
+
   const eod = eodQuery.data?.status === 200 ? eodQuery.data.data : null
+  const trend = trendQuery.data?.status === 200 ? trendQuery.data.data.points : []
+  const movement = movementQuery.data?.status === 200 ? movementQuery.data.data.rows : []
+  const sheet = daySheetQuery.data?.status === 200 ? daySheetQuery.data.data : null
+  const rows: DaySheetRow[] = sheet?.rows ?? []
+
   const grossCash = Number(eod?.gross_cash ?? 0)
   const upi = Number(eod?.upi_total ?? 0)
   const netProfit = eod?.net_profit != null ? Number(eod.net_profit) : null
 
+  // Collections chart points: one per day, weekday label, last point = today.
+  const chartPoints = trend.map((p, i) => ({
+    label:
+      i === trend.length - 1
+        ? 'Today'
+        : new Date(`${p.business_date}T00:00:00`).toLocaleDateString('en-IN', { weekday: 'short' }),
+    total: Number(p.total),
+    today: i === trend.length - 1,
+  }))
+
+  // Cash reconciliation from the day sheet's counted denominations vs expected cash.
+  const counted = (sheet?.denomination_totals ?? []).reduce(
+    (sum, d) => sum + d.note_value * d.note_count,
+    0,
+  )
+  const variance = counted - grossCash
+  const reconciled = variance === 0
+
+  const totals = {
+    cylinders: rows.reduce((a, r) => a + r.cylinders, 0),
+    cash: rows.reduce((a, r) => a + Number(r.cash), 0),
+    upi: rows.reduce((a, r) => a + Number(r.upi), 0),
+    total: rows.reduce((a, r) => a + Number(r.total), 0),
+  }
+
+  const exportXlsx = async () => {
+    const base = import.meta.env.VITE_API_BASE_URL ?? ''
+    const token = useAuthStore.getState().accessToken
+    const res = await fetch(`${base}/v1/day-sheet/${date}/export.xlsx`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+    if (!res.ok) return
+    const url = URL.createObjectURL(await res.blob())
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `day-sheet-${date}.xlsx`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <AppShell
       title="Dashboard"
-      subtitle="Monday, 30 June 2026 · End-of-day overview"
-      notificationCount={3}
+      subtitle={`${prettyDate} · End-of-day overview`}
       topbarActions={
         <>
-          <StatusPill variant="open" dot>
-            Day open
+          <StatusPill variant={sheet?.is_closed ? 'ok' : 'open'} dot>
+            {sheet?.is_closed ? 'Day closed' : 'Day open'}
           </StatusPill>
-          <Button variant="ghost">
+          <Button variant="ghost" onClick={exportXlsx}>
             <Download size={16} />
             Export
           </Button>
-          <Button variant="primary">
+          <Button variant="primary" onClick={() => navigate('/day-sheet')}>
             <ArrowRight size={16} />
-            Close day
+            {sheet?.is_closed ? 'View day' : 'Close day'}
           </Button>
         </>
       }
@@ -161,7 +207,7 @@ export function DashboardPage() {
                 }
               />
               <div className="px-3 pb-3.5 pt-1.5">
-                <CollectionsChart />
+                <CollectionsChart points={chartPoints} />
               </div>
             </Card>
           </Reveal>
@@ -174,19 +220,27 @@ export function DashboardPage() {
                 right={<span className="text-[11.5px] text-muted">Remaining in stock</span>}
               />
               <div className="px-[18px] pb-[18px] pt-1.5 flex flex-col gap-[15px]">
-                {GAUGES.map((g) => (
-                  <Gauge
-                    key={g.name}
-                    name={g.name}
-                    sub={g.sub}
-                    value={g.value}
-                    figure={
-                      <span>
-                        <b className="text-ink font-display font-bold">{g.sold}</b> sold · {g.left} left
-                      </span>
-                    }
-                  />
-                ))}
+                {movement.length === 0 ? (
+                  <p className="text-[13px] text-muted py-3">No stock movement recorded today.</p>
+                ) : (
+                  movement.map((g) => {
+                    const denom = g.loaded > 0 ? g.loaded : g.sold + g.left
+                    const value = denom > 0 ? Math.round((g.sold / denom) * 100) : 0
+                    return (
+                      <Gauge
+                        key={g.code}
+                        name={g.label}
+                        value={value}
+                        figure={
+                          <span>
+                            <b className="text-ink font-display font-bold">{g.sold}</b> sold ·{' '}
+                            {g.left} left
+                          </span>
+                        }
+                      />
+                    )
+                  })
+                )}
               </div>
             </Card>
           </Reveal>
@@ -196,40 +250,64 @@ export function DashboardPage() {
         <div className="flex flex-col gap-5 min-w-0">
           <Reveal delay={0.1}>
             <ReconcilePanel
-              status="ok"
-              title="Cash tallied"
-              subtitle="Counted matches expected to the rupee"
+              status={reconciled ? 'ok' : 'warn'}
+              title={reconciled ? 'Cash tallied' : 'Cash mismatch'}
+              subtitle={
+                reconciled
+                  ? 'Counted matches expected to the rupee'
+                  : 'Counted cash differs from expected'
+              }
               rows={[
-                { label: 'Expected (sales − UPI)', value: <Money value={258400} /> },
-                { label: 'Counted (denominations)', value: <Money value={258400} /> },
-                { label: 'Variance', value: <Money value={0} />, good: true },
-                { label: 'Open mismatches', value: 'None', good: true },
+                { label: 'Expected (cash sales)', value: <Money value={grossCash} /> },
+                { label: 'Counted (denominations)', value: <Money value={counted} /> },
+                {
+                  label: 'Variance',
+                  value: <Money value={variance} />,
+                  good: reconciled,
+                },
+                {
+                  label: 'Cashier closing',
+                  value: <Money value={Number(sheet?.cashier_closing ?? 0)} />,
+                  good: true,
+                },
               ]}
             />
           </Reveal>
 
           <Reveal delay={0.14}>
             <Card>
-              <CardHeader title="Delivery staff · today" hint="4 active" />
+              <CardHeader
+                title="Delivery staff · today"
+                hint={`${rows.length} active`}
+              />
               <div className="px-2 pb-2.5 pt-1">
-                {DELIVERY.map((d) => (
-                  <div key={d.initials} className="flex items-center gap-3 px-2.5 py-2.5 rounded-xl hover:bg-surface transition-colors">
+                {rows.length === 0 ? (
+                  <p className="text-[13px] text-muted px-2.5 py-3">
+                    No sales entered for today yet.
+                  </p>
+                ) : (
+                  rows.map((d) => (
                     <div
-                      className="h-[34px] w-[34px] rounded-full grid place-items-center font-display font-bold text-[13px] text-white shrink-0"
-                      style={{ background: d.color }}
+                      key={d.delivery_id}
+                      className="flex items-center gap-3 px-2.5 py-2.5 rounded-xl hover:bg-surface transition-colors"
                     >
-                      {d.initials}
+                      <div
+                        className="h-[34px] w-[34px] rounded-full grid place-items-center font-display font-bold text-[13px] text-white shrink-0"
+                        style={{ background: colorFor(d.delivery_id) }}
+                      >
+                        {initialsOf(d.delivery_name)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <b className="text-[13.5px] text-ink block">{d.delivery_name}</b>
+                        <span className="text-[11.5px] text-muted">{d.cylinders} cylinders</span>
+                      </div>
+                      <Money
+                        value={Number(d.total)}
+                        className="font-display font-bold text-sm text-ink"
+                      />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <b className="text-[13.5px] text-ink block">{d.name}</b>
-                      <span className="text-[11.5px] text-muted">{d.cylinders} cylinders</span>
-                    </div>
-                    <Money value={d.total} className="font-display font-bold text-sm text-ink" />
-                    <StatusPill variant={d.status === 'settled' ? 'ok' : 'warn'} size="sm">
-                      {d.status === 'settled' ? 'Settled' : 'Counting'}
-                    </StatusPill>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </Card>
           </Reveal>
@@ -244,24 +322,30 @@ export function DashboardPage() {
             hint="Today's consolidated register"
             className="pb-3.5"
             right={
-              <Button variant="ghost">
+              <Button variant="ghost" onClick={() => navigate('/day-sheet')}>
                 View full day sheet
                 <ArrowRight size={15} />
               </Button>
             }
           />
-          <DataTable
-            columns={columns}
-            data={DELIVERY}
-            getRowKey={(r) => r.initials}
-            footer={[
-              'Total',
-              totals.cylinders,
-              <Money key="cash" value={totals.cash} bare />,
-              <Money key="upi" value={totals.upi} bare />,
-              <Money key="total" value={totals.total} bare />,
-            ]}
-          />
+          {rows.length === 0 ? (
+            <p className="text-[13px] text-muted px-[18px] pb-[18px]">
+              No sales entered for today yet.
+            </p>
+          ) : (
+            <DataTable
+              columns={columns}
+              data={rows}
+              getRowKey={(r) => r.delivery_id}
+              footer={[
+                'Total',
+                totals.cylinders,
+                <Money key="cash" value={totals.cash} bare />,
+                <Money key="upi" value={totals.upi} bare />,
+                <Money key="total" value={totals.total} bare />,
+              ]}
+            />
+          )}
         </Card>
       </Reveal>
     </AppShell>
