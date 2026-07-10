@@ -1,35 +1,47 @@
 import { motion, useReducedMotion } from 'framer-motion'
 
-interface Point {
+export interface CollectionPoint {
   label: string
-  /** SVG x/y already projected into the 0–700 × 0–200 viewBox. */
-  x: number
-  y: number
+  total: number
   today?: boolean
 }
 
-const POINTS: Point[] = [
-  { label: 'Tue', x: 40, y: 122 },
-  { label: 'Wed', x: 145, y: 91 },
-  { label: 'Thu', x: 250, y: 107 },
-  { label: 'Fri', x: 355, y: 99 },
-  { label: 'Sat', x: 460, y: 70 },
-  { label: 'Sun', x: 565, y: 39 },
-  { label: 'Today', x: 660, y: 57, today: true },
-]
+// SVG projection window (matches DESIGN_SYSTEM §5).
+const X0 = 40
+const X1 = 660
+const Y_TOP = 39
+const Y_BOT = 165
 
-const linePath = POINTS.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ')
-const areaPath = `${linePath} L660,165 L40,165 Z`
-
-/** Collections trend — custom SVG with a draw-in line (DESIGN_SYSTEM §5). */
-export function CollectionsChart() {
+/** Collections trend — custom SVG with a draw-in line, projected from real daily totals. */
+export function CollectionsChart({ points }: { points: CollectionPoint[] }) {
   const reduceMotion = useReducedMotion()
+
+  if (points.length === 0) {
+    return (
+      <div className="h-[200px] grid place-items-center text-[13px] text-muted">
+        No collections recorded yet
+      </div>
+    )
+  }
+
+  const max = Math.max(...points.map((p) => p.total), 1)
+  const projected = points.map((p, i) => ({
+    ...p,
+    x: points.length === 1 ? (X0 + X1) / 2 : X0 + (i * (X1 - X0)) / (points.length - 1),
+    y: Y_BOT - (p.total / max) * (Y_BOT - Y_TOP),
+  }))
+
+  const linePath = projected.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ')
+  const first = projected[0]
+  const last = projected[projected.length - 1]
+  const areaPath = `${linePath} L${last.x},${Y_BOT} L${first.x},${Y_BOT} Z`
+
   return (
     <svg
       viewBox="0 0 700 200"
       preserveAspectRatio="none"
       role="img"
-      aria-label="Collections over the last 7 days, trending up to today"
+      aria-label="Total collections over the last 7 days"
       className="w-full h-[200px] block"
     >
       <defs>
@@ -63,7 +75,7 @@ export function CollectionsChart() {
         transition={{ duration: 1.1, ease: [0.4, 0, 0.2, 1], delay: 0.15 }}
       />
 
-      {POINTS.map((p, i) => (
+      {projected.map((p, i) => (
         <motion.circle
           key={p.label}
           cx={p.x}
@@ -78,7 +90,7 @@ export function CollectionsChart() {
         />
       ))}
 
-      {POINTS.map((p) => (
+      {projected.map((p) => (
         <text
           key={`${p.label}-x`}
           x={p.x}
