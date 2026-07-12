@@ -24,6 +24,7 @@ export function SalesEntryPage() {
   const [qty, setQty] = useState<Record<string, string>>({})
   const [notes, setNotes] = useState<Record<number, string>>({})
   const [upi, setUpi] = useState('')
+  const [online, setOnline] = useState('')
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null)
 
   const pricesQuery = useGetPricesV1PricesGet({ date })
@@ -45,7 +46,8 @@ export function SalesEntryPage() {
     () => NOTES.reduce((sum, n) => sum + n * num(notes[n]), 0),
     [notes],
   )
-  const collected = cashTotal + num(upi)
+  const settled = cashTotal + num(upi) // what the delivery boy hands in
+  const collected = settled + num(online) // full sale = cash + upi + online
   const cylindersSold = priced.reduce((s, p) => s + num(qty[p.cylinder_type_id]), 0)
   const reconciled = revenue > 0 && Math.abs(collected - revenue) < 0.005
   const difference = collected - revenue
@@ -76,6 +78,7 @@ export function SalesEntryPage() {
       lines,
       denominations,
       upi_total: num(upi),
+      online_total: num(online),
     })
     const status = res.status as number
     if (status === 201) {
@@ -83,6 +86,7 @@ export function SalesEntryPage() {
       setQty({})
       setNotes({})
       setUpi('')
+      setOnline('')
       await queryClient.invalidateQueries()
     } else {
       const detail = (res.data as { detail?: unknown })?.detail
@@ -198,6 +202,22 @@ export function SalesEntryPage() {
                 onChange={(e) => setUpi(e.target.value)}
               />
             </div>
+            <div className="flex items-center justify-between gap-3 mt-1">
+              <label className="text-[13px] font-medium text-ink">
+                Online <span className="text-[11px] text-muted font-normal">→ company</span>
+              </label>
+              <Input
+                type="number"
+                min={0}
+                className="h-9 w-[120px] num text-right"
+                placeholder="0"
+                value={online}
+                onChange={(e) => setOnline(e.target.value)}
+              />
+            </div>
+            <p className="text-[11px] text-muted mt-1">
+              Online goes straight to the company — the delivery boy only settles cash + UPI.
+            </p>
           </div>
         </Card>
       </div>
@@ -205,14 +225,18 @@ export function SalesEntryPage() {
       {/* Reconciliation + submit */}
       <Card className={cn('bg-flame')}>
         <div className="p-[18px] flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-8 flex-wrap">
             <div>
               <div className="text-[11.5px] text-muted">Revenue (sold)</div>
               <Money value={revenue} className="font-display font-extrabold text-[18px] text-ink" />
             </div>
             <div>
-              <div className="text-[11.5px] text-muted">Collected (cash + UPI)</div>
-              <Money value={collected} className="font-display font-extrabold text-[18px] text-ink" />
+              <div className="text-[11.5px] text-muted">Settled by boy (cash + UPI)</div>
+              <Money value={settled} className="font-display font-extrabold text-[18px] text-ink" />
+            </div>
+            <div>
+              <div className="text-[11.5px] text-muted">Online → company</div>
+              <Money value={num(online)} className="font-display font-extrabold text-[18px] text-ink" />
             </div>
             <div>
               <div className="text-[11.5px] text-muted">Status</div>

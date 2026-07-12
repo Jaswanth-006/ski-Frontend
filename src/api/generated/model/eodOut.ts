@@ -15,6 +15,8 @@ export interface EodOut {
   /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   upi_total: string;
   /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
+  online_total: string;
+  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   expenses_total: string;
   net_profit: EodOutNetProfit;
 }

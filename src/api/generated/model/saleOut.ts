@@ -21,5 +21,9 @@ export interface SaleOut {
   /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   upi_total: string;
   /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
+  online_total: string;
+  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   revenue_total: string;
+  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
+  settled_total: string;
 }
