@@ -56,9 +56,33 @@ export function MonthSheetPage() {
         </button>
       ),
     },
-    { key: 'cyl', header: 'Cylinders', numeric: true, render: (r) => r.cylinders },
-    { key: 'cash', header: 'Cash ₹', numeric: true, render: (r) => <Money value={Number(r.cash)} bare /> },
+    { key: 'cyl', header: 'Sold', numeric: true, render: (r) => r.cylinders },
+    {
+      key: 'empty',
+      header: 'Empty ret.',
+      numeric: true,
+      render: (r) => r.empty_returned || <span className="text-muted">—</span>,
+    },
+    { key: 'cash', header: 'Hand cash ₹', numeric: true, render: (r) => <Money value={Number(r.cash)} bare /> },
+    {
+      key: 'notes',
+      header: 'Notes',
+      render: (r) =>
+        r.denominations.length ? (
+          <span className="num text-[11.5px] text-muted whitespace-nowrap">
+            {r.denominations.map((d) => `₹${d.note_value}×${d.note_count}`).join('  ')}
+          </span>
+        ) : (
+          <span className="text-muted">—</span>
+        ),
+    },
     { key: 'upi', header: 'UPI ₹', numeric: true, render: (r) => <Money value={Number(r.upi)} bare /> },
+    {
+      key: 'online',
+      header: 'Online ₹',
+      numeric: true,
+      render: (r) => Number(r.online) ? <Money value={Number(r.online)} bare /> : <span className="text-muted">—</span>,
+    },
     { key: 'total', header: 'Total ₹', numeric: true, render: (r) => <Money value={Number(r.total)} bare /> },
     { key: 'expenses', header: 'Expenses ₹', numeric: true, render: (r) => <Money value={Number(r.expenses)} bare /> },
     { key: 'net', header: 'Net ₹', numeric: true, render: (r) => <Money value={Number(r.net)} bare /> },
@@ -112,8 +136,11 @@ export function MonthSheetPage() {
                 ? [
                     'Total',
                     sheet.totals.cylinders,
+                    sheet.totals.empty_returned,
                     <Money key="c" value={Number(sheet.totals.cash)} bare />,
+                    '',
                     <Money key="u" value={Number(sheet.totals.upi)} bare />,
+                    <Money key="o" value={Number(sheet.totals.online)} bare />,
                     <Money key="t" value={Number(sheet.totals.total)} bare />,
                     <Money key="e" value={Number(sheet.totals.expenses)} bare />,
                     <Money key="n" value={Number(sheet.totals.net)} bare />,

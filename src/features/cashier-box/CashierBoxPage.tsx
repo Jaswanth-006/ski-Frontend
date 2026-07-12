@@ -1,4 +1,4 @@
-import { Loader2, Wallet } from 'lucide-react'
+import { Banknote, Loader2, Wallet } from 'lucide-react'
 import { useState } from 'react'
 import { useGetCashierBoxV1CashierBoxOnDateGet } from '@/api/generated/cashier-box/cashier-box'
 import { AppShell } from '@/components/app/AppShell'
@@ -26,44 +26,63 @@ export function CashierBoxPage() {
   const box = query.data?.status === 200 ? query.data.data : null
 
   return (
-    <AppShell title="Cashier Box" subtitle="Cash in hand — carries over until you deposit it">
-      <Card className="max-w-xl">
-        <CardHeader
-          title="Cash in hand"
-          hint="Opening carries from the previous day"
-          right={
-            <Input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="h-9 w-[150px]"
-            />
-          }
+    <AppShell
+      title="Cashier Box"
+      subtitle="Cash in hand — carries over until you deposit it"
+      topbarActions={
+        <Input
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          className="h-9 w-[150px]"
         />
-        {query.isLoading ? (
-          <div className="grid place-items-center py-14 text-muted">
-            <Loader2 className="animate-spin text-orange" size={22} />
-          </div>
-        ) : box ? (
-          <div className="px-[18px] pb-4 pt-1">
-            <Line label="Opening balance" value={Number(box.opening)} />
-            <Line label="Collected (cash + UPI)" value={Number(box.collected)} sign="+" />
-            <Line label="Expenses" value={Number(box.expenses)} sign="−" />
-            <Line label="Deposited out" value={Number(box.deposited)} sign="−" />
-            <div className="flex items-center justify-between pt-3.5 mt-1.5 border-t-2 border-line">
-              <span className="inline-flex items-center gap-2 text-[14px] font-semibold text-ink">
-                <Wallet size={16} className="text-orange" /> Closing balance
-              </span>
-              <Money
-                value={Number(box.closing)}
-                className="font-display font-extrabold text-[20px] text-ink"
-              />
+      }
+    >
+      {query.isLoading ? (
+        <div className="grid place-items-center py-14 text-muted">
+          <Loader2 className="animate-spin text-orange" size={22} />
+        </div>
+      ) : box ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
+          <Card>
+            <CardHeader title="Box balance" hint="Cash + UPI · opening carries from the previous day" />
+            <div className="px-[18px] pb-4 pt-1">
+              <Line label="Opening balance" value={Number(box.opening)} />
+              <Line label="Collected (cash + UPI)" value={Number(box.collected)} sign="+" />
+              <Line label="Expenses" value={Number(box.expenses)} sign="−" />
+              <Line label="Deposited out" value={Number(box.deposited)} sign="−" />
+              <div className="flex items-center justify-between pt-3.5 mt-1.5 border-t-2 border-line">
+                <span className="inline-flex items-center gap-2 text-[14px] font-semibold text-ink">
+                  <Wallet size={16} className="text-orange" /> Closing balance
+                </span>
+                <Money
+                  value={Number(box.closing)}
+                  className="font-display font-extrabold text-[20px] text-ink"
+                />
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="py-14 text-center text-[13px] text-bad">Could not load the cashier box.</div>
-        )}
-      </Card>
+          </Card>
+
+          <Card>
+            <CardHeader title="Current hand cash" hint="Physical notes only — excludes UPI" />
+            <div className="px-[18px] pb-4 pt-1">
+              <Line label="Opening hand cash" value={Number(box.hand_cash_opening)} />
+              <Line label="Cash collected" value={Number(box.hand_cash_collected)} sign="+" />
+              <div className="flex items-center justify-between pt-3.5 mt-1.5 border-t-2 border-line">
+                <span className="inline-flex items-center gap-2 text-[14px] font-semibold text-ink">
+                  <Banknote size={16} className="text-orange" /> Hand cash now
+                </span>
+                <Money
+                  value={Number(box.hand_cash_closing)}
+                  className="font-display font-extrabold text-[20px] text-ink"
+                />
+              </div>
+            </div>
+          </Card>
+        </div>
+      ) : (
+        <div className="py-14 text-center text-[13px] text-bad">Could not load the cashier box.</div>
+      )}
     </AppShell>
   )
 }
