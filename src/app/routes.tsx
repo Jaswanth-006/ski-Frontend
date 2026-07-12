@@ -5,6 +5,7 @@ import { AuditPage } from '@/features/audit/AuditPage'
 import { BankingPage } from '@/features/banking/BankingPage'
 import { CashierBoxPage } from '@/features/cashier-box/CashierBoxPage'
 import { CatalogPage } from '@/features/catalog/CatalogPage'
+import { CreditsPage } from '@/features/credits/CreditsPage'
 import { DaySheetPage } from '@/features/day-sheet/DaySheetPage'
 import { DepositsPage } from '@/features/deposits/DepositsPage'
 import { ExpensesPage } from '@/features/expenses/ExpensesPage'
@@ -79,6 +80,14 @@ export function AppRoutes() {
         element={
           <RoleGuard allow={OFFICE_AND_OWNER}>
             <DepositsPage />
+          </RoleGuard>
+        }
+      />
+      <Route
+        path="/credit"
+        element={
+          <RoleGuard allow={OFFICE_AND_OWNER}>
+            <CreditsPage />
           </RoleGuard>
         }
       />
