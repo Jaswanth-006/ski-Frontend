@@ -7,7 +7,8 @@ import {
   useCreateExpenseV1ExpensesPost,
   useListExpensesV1ExpensesGet,
 } from '@/api/generated/expenses/expenses'
-import type { ExpenseItemOut, ExpenseOut } from '@/api/generated/model'
+import { useListUsersV1UsersGet } from '@/api/generated/users/users'
+import type { ExpenseItemOut, ExpenseOut, UserOut } from '@/api/generated/model'
 import { AppShell } from '@/components/app/AppShell'
 import { Money } from '@/components/app/Money'
 import { Button } from '@/components/ui/button'
@@ -24,26 +25,37 @@ export function ExpensesPage() {
   const [amount, setAmount] = useState('')
   const [method, setMethod] = useState('cash')
   const [note, setNote] = useState('')
+  const [deliveryId, setDeliveryId] = useState('')
   const [error, setError] = useState<string | null>(null)
 
   const itemsQuery = useListExpenseItemsV1ExpenseItemsGet({ active: 'true' })
   const listQuery = useListExpensesV1ExpensesGet({ date })
+  const driversQuery = useListUsersV1UsersGet({ role: 'delivery', active: true })
   const createMutation = useCreateExpenseV1ExpensesPost()
 
   const items: ExpenseItemOut[] =
     itemsQuery.data?.status === 200 ? itemsQuery.data.data : []
   const expenses: ExpenseOut[] = listQuery.data?.status === 200 ? listQuery.data.data : []
+  const drivers: UserOut[] = driversQuery.data?.status === 200 ? driversQuery.data.data : []
 
   const add = async () => {
     setError(null)
     if (!itemId || Number(amount) <= 0) return setError('Pick an item and a positive amount.')
     const res = await createMutation.mutateAsync({
-      data: { business_date: date, item_id: itemId, amount: Number(amount), method, note: note || undefined },
+      data: {
+        business_date: date,
+        item_id: itemId,
+        amount: Number(amount),
+        method,
+        note: note || undefined,
+        delivery_id: deliveryId || undefined,
+      },
     })
     if (res.status === 201) {
       await queryClient.invalidateQueries({ queryKey: getListExpensesV1ExpensesGetQueryKey({ date }) })
       setAmount('')
       setNote('')
+      setDeliveryId('')
     } else {
       setError('Could not save the expense.')
     }
@@ -80,6 +92,21 @@ export function ExpensesPage() {
               <option value="digital">Digital</option>
             </Select>
           </div>
+          <div className="min-w-[170px]">
+            <label className="block text-[12.5px] text-muted mb-1">Delivery boy (optional)</label>
+            <Select
+              value={deliveryId}
+              onChange={(e) => setDeliveryId(e.target.value)}
+              className="h-9"
+            >
+              <option value="">— agency —</option>
+              {drivers.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name}
+                </option>
+              ))}
+            </Select>
+          </div>
           <div className="flex-1 min-w-[160px]">
             <label className="block text-[12.5px] text-muted mb-1">Note (optional)</label>
             <Input value={note} onChange={(e) => setNote(e.target.value)} className="h-9" />
@@ -106,6 +133,7 @@ export function ExpensesPage() {
                   <div className="text-[13.5px] font-medium text-ink">{e.item_name}</div>
                   <div className="text-[11.5px] text-muted">
                     {e.method}
+                    {e.delivery_name ? ` · ${e.delivery_name}` : ''}
                     {e.note ? ` · ${e.note}` : ''}
                   </div>
                 </div>

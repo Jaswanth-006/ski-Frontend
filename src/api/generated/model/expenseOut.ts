@@ -6,6 +6,8 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { ExpenseOutNote } from './expenseOutNote';
+import type { ExpenseOutDeliveryId } from './expenseOutDeliveryId';
+import type { ExpenseOutDeliveryName } from './expenseOutDeliveryName';
 
 export interface ExpenseOut {
   id: string;
@@ -16,5 +18,7 @@ export interface ExpenseOut {
   amount: string;
   method: string;
   note: ExpenseOutNote;
+  delivery_id: ExpenseOutDeliveryId;
+  delivery_name: ExpenseOutDeliveryName;
   created_at: string;
 }
