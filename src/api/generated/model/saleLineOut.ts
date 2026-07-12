@@ -14,5 +14,7 @@ export interface SaleLineOut {
   /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   unit_price: string;
   /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
+  other_sales_per_unit: string;
+  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   line_total: string;
 }

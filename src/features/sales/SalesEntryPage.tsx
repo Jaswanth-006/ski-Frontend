@@ -3,6 +3,7 @@ import { ArrowRight, Check, Loader2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { createSaleV1SalesPost } from '@/api/generated/sales/sales'
 import { useGetPricesV1PricesGet } from '@/api/generated/pricing/pricing'
+import { useListDeliveryOtherSalesV1DeliveryOtherSalesGet } from '@/api/generated/delivery-other-sales/delivery-other-sales'
 import { useListUsersV1UsersGet } from '@/api/generated/users/users'
 import type { PriceOut, UserOut } from '@/api/generated/model'
 import { AppShell } from '@/components/app/AppShell'
@@ -29,6 +30,13 @@ export function SalesEntryPage() {
 
   const pricesQuery = useGetPricesV1PricesGet({ date })
   const driversQuery = useListUsersV1UsersGet({ role: 'delivery', active: true })
+  const otherSalesQuery = useListDeliveryOtherSalesV1DeliveryOtherSalesGet()
+
+  const otherSales =
+    otherSalesQuery.data?.status === 200 ? otherSalesQuery.data.data : []
+  const boyExtra = Number(
+    otherSales.find((o) => o.delivery_id === driverId)?.amount_per_cylinder ?? 0,
+  )
 
   const priceEnvelope = pricesQuery.data
   const priced: PriceOut[] = (
@@ -39,8 +47,12 @@ export function SalesEntryPage() {
   const drivers: UserOut[] = driverEnvelope && driverEnvelope.status === 200 ? driverEnvelope.data : []
 
   const revenue = useMemo(
-    () => priced.reduce((sum, p) => sum + num(qty[p.cylinder_type_id]) * Number(p.unit_price), 0),
-    [priced, qty],
+    () =>
+      priced.reduce(
+        (sum, p) => sum + num(qty[p.cylinder_type_id]) * (Number(p.unit_price) + boyExtra),
+        0,
+      ),
+    [priced, qty, boyExtra],
   )
   const cashTotal = useMemo(
     () => NOTES.reduce((sum, n) => sum + n * num(notes[n]), 0),
@@ -141,13 +153,16 @@ export function SalesEntryPage() {
           ) : (
             <div className="px-[18px] pb-4 pt-1 flex flex-col">
               {priced.map((p) => {
-                const lineTotal = num(qty[p.cylinder_type_id]) * Number(p.unit_price)
+                const lineTotal = num(qty[p.cylinder_type_id]) * (Number(p.unit_price) + boyExtra)
                 return (
                   <div key={p.cylinder_type_id} className="flex items-center justify-between gap-3 py-2.5 border-b border-line last:border-0">
                     <div className="min-w-0">
                       <div className="text-[13.5px] font-medium text-ink">{p.label}</div>
                       <div className="text-[11.5px] text-muted num">
                         {p.code} · <Money value={Number(p.unit_price)} />/unit
+                        {boyExtra > 0 ? (
+                          <span className="text-orange"> + <Money value={boyExtra} /> other</span>
+                        ) : null}
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
