@@ -1,319 +1,343 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Check, Loader2, PackagePlus, Truck } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
+import { Check, PackagePlus, Plus, RotateCcw } from 'lucide-react'
 import { useState } from 'react'
 import {
-  adjustInventoryV1InventoryCylinderTypeIdPatch,
-  getGetInventoryV1InventoryGetQueryKey,
-  useGetInventoryV1InventoryGet,
-  useStockIntakeV1StockIntakePost,
-  useUpsertStockLoadV1StockLoadsPost,
+  getStockOverviewV1StockOverviewGetQueryKey,
+  useStockAc4V1StockAc4Post,
+  useStockErvV1StockErvPost,
+  useStockOverviewV1StockOverviewGet,
 } from '@/api/generated/stock/stock'
-import { useListUsersV1UsersGet } from '@/api/generated/users/users'
-import type { InventoryOut, UserOut } from '@/api/generated/model'
+import {
+  getListAccessoriesV1AccessoriesGetQueryKey,
+  useCreateAccessoryV1AccessoriesPost,
+  useListAccessoriesV1AccessoriesGet,
+} from '@/api/generated/accessories/accessories'
+import type { AccessoryOut, CylinderStockRow } from '@/api/generated/model'
 import { AppShell } from '@/components/app/AppShell'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Modal } from '@/components/ui/modal'
-import { Select } from '@/components/ui/select'
+import { useAuth } from '@/auth/useAuth'
 import { cn } from '@/lib/cn'
 
-const LOW_STOCK_THRESHOLD = 10
 const today = () => new Date().toISOString().slice(0, 10)
-
-function StockBadge({ quantity }: { quantity: number }) {
-  if (quantity === 0)
-    return (
-      <span className="inline-flex items-center rounded-full bg-badbg px-[9px] py-[3px] text-[10.5px] font-semibold text-bad">
-        Out of stock
-      </span>
-    )
-  if (quantity < LOW_STOCK_THRESHOLD)
-    return (
-      <span className="inline-flex items-center rounded-full bg-warnbg px-[9px] py-[3px] text-[10.5px] font-semibold text-warn">
-        Low
-      </span>
-    )
-  return null
-}
+const num = (v: string | undefined) => Number(v) || 0
 
 export function StockPage() {
   const queryClient = useQueryClient()
-  const inventoryQuery = useGetInventoryV1InventoryGet()
-  const intakeMutation = useStockIntakeV1StockIntakePost()
-  const [adds, setAdds] = useState<Record<string, string>>({})
-  const [intakeDone, setIntakeDone] = useState(false)
-  const [correctTarget, setCorrectTarget] = useState<InventoryOut | null>(null)
+  const { role } = useAuth()
+  const isOwner = role === 'super_admin'
+  const [date, setDate] = useState(today())
 
-  const envelope = inventoryQuery.data
-  const rows: InventoryOut[] = envelope && envelope.status === 200 ? envelope.data : []
+  const overviewQuery = useStockOverviewV1StockOverviewGet({ date })
+  const accessoriesQuery = useListAccessoriesV1AccessoriesGet()
+  const ac4Mutation = useStockAc4V1StockAc4Post()
+  const ervMutation = useStockErvV1StockErvPost()
 
-  const invalidate = () =>
-    queryClient.invalidateQueries({ queryKey: getGetInventoryV1InventoryGetQueryKey() })
+  const overview = overviewQuery.data?.status === 200 ? overviewQuery.data.data : null
+  const cylinders: CylinderStockRow[] = overview?.cylinders ?? []
+  const accessories: AccessoryOut[] =
+    accessoriesQuery.data?.status === 200 ? accessoriesQuery.data.data : []
+  const accessoryStock = overview?.accessories ?? []
+  const accClosing = (id: string) =>
+    accessoryStock.find((a) => a.accessory_id === id)?.closing ?? 0
 
-  const recordIntake = async () => {
-    setIntakeDone(false)
-    const lines = rows
-      .filter((r) => Number(adds[r.cylinder_type_id]) > 0)
-      .map((r) => ({ cylinder_type_id: r.cylinder_type_id, qty: Number(adds[r.cylinder_type_id]) }))
-    if (lines.length === 0) return
-    const res = await intakeMutation.mutateAsync({ data: { lines } })
-    if (res.status === 200) {
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: getStockOverviewV1StockOverviewGetQueryKey() })
+    queryClient.invalidateQueries({ queryKey: getListAccessoriesV1AccessoriesGetQueryKey() })
+  }
+
+  // ac4 — stock received
+  const [ac4Cyl, setAc4Cyl] = useState<Record<string, string>>({})
+  const [ac4Acc, setAc4Acc] = useState<Record<string, string>>({})
+  const [ac4Done, setAc4Done] = useState(false)
+  const recordAc4 = async () => {
+    setAc4Done(false)
+    const cyl = cylinders
+      .filter((c) => num(ac4Cyl[c.cylinder_type_id]) > 0)
+      .map((c) => ({ cylinder_type_id: c.cylinder_type_id, qty: num(ac4Cyl[c.cylinder_type_id]) }))
+    const acc = accessories
+      .filter((a) => num(ac4Acc[a.id]) > 0)
+      .map((a) => ({ accessory_id: a.id, qty: num(ac4Acc[a.id]) }))
+    if (cyl.length === 0 && acc.length === 0) return
+    const res = await ac4Mutation.mutateAsync({
+      data: { business_date: date, cylinders: cyl, accessories: acc },
+    })
+    if (res.status === 201) {
       await invalidate()
-      setAdds({})
-      setIntakeDone(true)
+      setAc4Cyl({})
+      setAc4Acc({})
+      setAc4Done(true)
+    }
+  }
+
+  // erv — empty return
+  const [erv, setErv] = useState<Record<string, string>>({})
+  const [ervDone, setErvDone] = useState(false)
+  const recordErv = async () => {
+    setErvDone(false)
+    const lines = cylinders
+      .filter((c) => num(erv[c.cylinder_type_id]) > 0)
+      .map((c) => ({ cylinder_type_id: c.cylinder_type_id, qty: num(erv[c.cylinder_type_id]) }))
+    if (lines.length === 0) return
+    const res = await ervMutation.mutateAsync({ data: { business_date: date, lines } })
+    if (res.status === 201) {
+      await invalidate()
+      setErv({})
+      setErvDone(true)
     }
   }
 
   return (
-    <AppShell title="Stock Intake" subtitle="Morning stock & live inventory">
-      {/* Record intake */}
+    <AppShell
+      title="Stock"
+      subtitle="ac4 received · erv returned · opening → closing"
+      topbarActions={
+        <Input
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          className="h-9 w-[150px]"
+        />
+      }
+    >
+      {/* Opening → closing overview */}
+      <Card className="overflow-hidden">
+        <CardHeader
+          title="Stock overview"
+          hint={`Full & empty cylinders on ${date} · today's closing carries to tomorrow`}
+        />
+        <div className="overflow-x-auto">
+          <table className="w-full text-[13px] min-w-[720px]">
+            <thead>
+              <tr className="text-[11px] uppercase tracking-[.04em] text-muted">
+                <th className="text-left font-semibold px-[18px] py-2">Variety</th>
+                <th className="text-right font-semibold px-2">Full open</th>
+                <th className="text-right font-semibold px-2">+ ac4</th>
+                <th className="text-right font-semibold px-2">− sold</th>
+                <th className="text-right font-semibold px-2 text-ink">Full close</th>
+                <th className="text-right font-semibold px-2 pl-5">Empty open</th>
+                <th className="text-right font-semibold px-2">+ cust.</th>
+                <th className="text-right font-semibold px-2">− erv</th>
+                <th className="text-right font-semibold px-[18px] text-ink">Empty close</th>
+              </tr>
+            </thead>
+            <tbody>
+              {cylinders.map((c) => (
+                <tr key={c.cylinder_type_id} className="border-t border-line num">
+                  <td className="px-[18px] py-2.5 text-left">
+                    <div className="text-ink font-medium">{c.label}</div>
+                    <div className="text-[11px] text-muted">{c.code}</div>
+                  </td>
+                  <td className="text-right px-2 text-muted">{c.full_opening}</td>
+                  <td className="text-right px-2 text-ok">{c.full_received || ''}</td>
+                  <td className="text-right px-2 text-muted">{c.full_sold || ''}</td>
+                  <td className="text-right px-2 font-display font-bold text-ink">{c.full_closing}</td>
+                  <td className="text-right px-2 pl-5 text-muted">{c.empty_opening}</td>
+                  <td className="text-right px-2 text-ok">{c.empty_returned_by_customers || ''}</td>
+                  <td className="text-right px-2 text-muted">{c.empty_sent_to_plant || ''}</td>
+                  <td className="text-right px-[18px] font-display font-bold text-ink">
+                    {c.empty_closing}
+                  </td>
+                </tr>
+              ))}
+              {cylinders.length === 0 ? (
+                <tr>
+                  <td colSpan={9} className="px-[18px] py-6 text-center text-muted">
+                    No cylinder types yet.
+                  </td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        </div>
+        {accessoryStock.length > 0 ? (
+          <div className="border-t border-line px-[18px] py-3 flex flex-wrap gap-x-6 gap-y-1.5">
+            <span className="text-[11px] uppercase tracking-[.04em] text-muted font-semibold self-center">
+              Accessories
+            </span>
+            {accessoryStock.map((a) => (
+              <span key={a.accessory_id} className="text-[13px] text-ink num">
+                {a.name}: <b className="font-display">{a.closing}</b>
+              </span>
+            ))}
+          </div>
+        ) : null}
+      </Card>
+
+      {/* ac4 — stock received */}
       <Card>
         <CardHeader
-          title="Record morning intake"
-          hint="Add today's delivered quantities — each appends an immutable ledger entry"
+          title="ac4 · Stock received"
+          hint="Full cylinders and accessories received from the plant — adds to stock"
           right={
             <div className="flex items-center gap-3">
-              {intakeDone ? (
+              {ac4Done ? (
                 <span className="inline-flex items-center gap-1.5 text-[12.5px] text-ok">
                   <Check size={15} /> Recorded
                 </span>
               ) : null}
-              <Button variant="primary" className="h-9" onClick={recordIntake} disabled={intakeMutation.isPending}>
+              <Button
+                variant="primary"
+                className="h-9"
+                onClick={recordAc4}
+                disabled={ac4Mutation.isPending}
+              >
                 <PackagePlus size={16} />
-                {intakeMutation.isPending ? 'Recording…' : 'Record intake'}
+                {ac4Mutation.isPending ? 'Recording…' : 'Record ac4'}
               </Button>
             </div>
           }
         />
         <div className="px-[18px] pb-5 pt-1 flex flex-col gap-2">
-          {rows.map((r) => (
-            <div key={r.cylinder_type_id} className="flex items-center justify-between gap-4 py-2 border-b border-line last:border-0">
-              <div>
-                <div className="text-[13.5px] font-medium text-ink">{r.label}</div>
-                <div className="text-[11.5px] text-muted num">{r.code} · in stock: {r.quantity}</div>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-muted text-[12px]">add</span>
-                <Input
-                  type="number"
-                  min={0}
-                  className="h-9 w-[110px] num text-right"
-                  placeholder="0"
-                  value={adds[r.cylinder_type_id] ?? ''}
-                  onChange={(e) => {
-                    setAdds((p) => ({ ...p, [r.cylinder_type_id]: e.target.value }))
-                    setIntakeDone(false)
-                  }}
-                />
-              </div>
-            </div>
+          <div className="text-[11px] uppercase tracking-[.05em] text-muted font-semibold pt-1">
+            Full cylinders
+          </div>
+          {cylinders.map((c) => (
+            <StockLineInput
+              key={c.cylinder_type_id}
+              label={c.label}
+              code={c.code}
+              closing={`full in stock: ${c.full_closing}`}
+              value={ac4Cyl[c.cylinder_type_id]}
+              onChange={(v) => {
+                setAc4Cyl((p) => ({ ...p, [c.cylinder_type_id]: v }))
+                setAc4Done(false)
+              }}
+            />
           ))}
+          <div className="text-[11px] uppercase tracking-[.05em] text-muted font-semibold pt-3 flex items-center justify-between">
+            Accessories
+            {isOwner ? <AddAccessory onCreated={invalidate} /> : null}
+          </div>
+          {accessories.length === 0 ? (
+            <p className="text-[12.5px] text-muted py-1">
+              No accessories yet{isOwner ? ' — add one above.' : '.'}
+            </p>
+          ) : (
+            accessories.map((a) => (
+              <StockLineInput
+                key={a.id}
+                label={a.name}
+                closing={`in stock: ${accClosing(a.id)}`}
+                value={ac4Acc[a.id]}
+                onChange={(v) => {
+                  setAc4Acc((p) => ({ ...p, [a.id]: v }))
+                  setAc4Done(false)
+                }}
+              />
+            ))
+          )}
         </div>
       </Card>
 
-      <DriverLoadsSection types={rows} />
-
-      {/* Live inventory */}
+      {/* erv — empty return */}
       <Card>
-        <CardHeader title="Live inventory" hint="Current counts · low varieties are flagged" />
-        {inventoryQuery.isLoading ? (
-          <div className="grid place-items-center py-12 text-muted">
-            <Loader2 className="animate-spin text-orange" size={22} />
-          </div>
-        ) : (
-          <div className="px-[18px] pb-4 pt-1 flex flex-col">
-            {rows.map((r) => (
-              <div key={r.cylinder_type_id} className="flex items-center justify-between gap-4 py-2.5 border-b border-line last:border-0">
-                <div className="flex items-center gap-3">
-                  <span className={cn('num font-display font-bold text-[15px] w-12 text-right', r.quantity < LOW_STOCK_THRESHOLD ? 'text-warn' : 'text-ink')}>
-                    {r.quantity}
-                  </span>
-                  <div>
-                    <div className="text-[13.5px] font-medium text-ink">{r.label}</div>
-                    <div className="text-[11.5px] text-muted num">{r.code}</div>
-                  </div>
-                  <StockBadge quantity={r.quantity} />
-                </div>
-                <Button variant="ghost" className="h-8 px-3 text-[12px]" onClick={() => setCorrectTarget(r)}>
-                  Correct
-                </Button>
-              </div>
-            ))}
-          </div>
-        )}
+        <CardHeader
+          title="erv · Empty return"
+          hint="Empty cylinders sent back to the plant — reduces empty stock"
+          right={
+            <div className="flex items-center gap-3">
+              {ervDone ? (
+                <span className="inline-flex items-center gap-1.5 text-[12.5px] text-ok">
+                  <Check size={15} /> Recorded
+                </span>
+              ) : null}
+              <Button
+                variant="primary"
+                className="h-9"
+                onClick={recordErv}
+                disabled={ervMutation.isPending}
+              >
+                <RotateCcw size={16} />
+                {ervMutation.isPending ? 'Recording…' : 'Record erv'}
+              </Button>
+            </div>
+          }
+        />
+        <div className="px-[18px] pb-5 pt-1 flex flex-col gap-2">
+          {cylinders.map((c) => (
+            <StockLineInput
+              key={c.cylinder_type_id}
+              label={c.label}
+              code={c.code}
+              closing={`empty in stock: ${c.empty_closing}`}
+              value={erv[c.cylinder_type_id]}
+              onChange={(v) => {
+                setErv((p) => ({ ...p, [c.cylinder_type_id]: v }))
+                setErvDone(false)
+              }}
+            />
+          ))}
+        </div>
       </Card>
-
-      <Modal open={correctTarget !== null} onClose={() => setCorrectTarget(null)} title="Correct count">
-        {correctTarget ? (
-          <CorrectForm
-            target={correctTarget}
-            onDone={async () => {
-              await invalidate()
-              setCorrectTarget(null)
-            }}
-            onConflict={invalidate}
-          />
-        ) : null}
-      </Modal>
     </AppShell>
   )
 }
 
-function DriverLoadsSection({ types }: { types: InventoryOut[] }) {
-  const [date, setDate] = useState(today())
-  const [driverId, setDriverId] = useState('')
-  const [loads, setLoads] = useState<Record<string, { loaded: string; returned: string }>>({})
-  const [done, setDone] = useState(false)
-  const driversQuery = useListUsersV1UsersGet({ role: 'delivery', active: true })
-  const upsert = useUpsertStockLoadV1StockLoadsPost()
-
-  const drivers: UserOut[] = driversQuery.data?.status === 200 ? driversQuery.data.data : []
-  const set = (id: string, field: 'loaded' | 'returned', value: string) =>
-    setLoads((p) => ({ ...p, [id]: { ...(p[id] ?? { loaded: '', returned: '' }), [field]: value } }))
-
-  const save = async () => {
-    setDone(false)
-    if (!driverId) return
-    for (const t of types) {
-      const v = loads[t.cylinder_type_id]
-      const loaded = Number(v?.loaded) || 0
-      const returned = Number(v?.returned) || 0
-      if (loaded > 0 || returned > 0) {
-        await upsert.mutateAsync({
-          data: {
-            business_date: date,
-            delivery_id: driverId,
-            cylinder_type_id: t.cylinder_type_id,
-            loaded_qty: loaded,
-            returned_qty: returned,
-          },
-        })
-      }
-    }
-    setLoads({})
-    setDone(true)
-  }
-
+function StockLineInput({
+  label,
+  code,
+  closing,
+  value,
+  onChange,
+}: {
+  label: string
+  code?: string
+  closing: string
+  value: string | undefined
+  onChange: (v: string) => void
+}) {
   return (
-    <Card>
-      <CardHeader
-        title="Driver loads"
-        hint="How many cylinders each driver loaded out and brought back"
-        right={
-          <div className="flex items-center gap-3">
-            {done ? (
-              <span className="inline-flex items-center gap-1.5 text-[12.5px] text-ok">
-                <Check size={15} /> Saved
-              </span>
-            ) : null}
-            <Button variant="primary" className="h-9" onClick={save} disabled={upsert.isPending || !driverId}>
-              <Truck size={16} /> Save loads
-            </Button>
-          </div>
-        }
-      />
-      <div className="px-[18px] pb-5 pt-1 flex flex-col gap-3">
-        <div className="flex flex-wrap items-end gap-3">
-          <div>
-            <label className="block text-[12.5px] text-muted mb-1">Date</label>
-            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-9 w-[150px]" />
-          </div>
-          <div className="min-w-[200px]">
-            <label className="block text-[12.5px] text-muted mb-1">Delivery person</label>
-            <Select value={driverId} onChange={(e) => setDriverId(e.target.value)} className="h-9">
-              <option value="">Select…</option>
-              {drivers.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
-            </Select>
-          </div>
+    <div className="flex items-center justify-between gap-4 py-2 border-b border-line last:border-0">
+      <div>
+        <div className="text-[13.5px] font-medium text-ink">{label}</div>
+        <div className={cn('text-[11.5px] text-muted num')}>
+          {code ? `${code} · ` : ''}
+          {closing}
         </div>
-        {driverId ? (
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-3 text-[11px] uppercase tracking-[.05em] text-muted font-semibold">
-              <span className="flex-1">Variety</span>
-              <span className="w-[100px] text-right">Loaded</span>
-              <span className="w-[100px] text-right">Returned</span>
-            </div>
-            {types.map((t) => (
-              <div key={t.cylinder_type_id} className="flex items-center gap-3 py-1.5 border-b border-line last:border-0">
-                <div className="flex-1 min-w-0">
-                  <div className="text-[13.5px] font-medium text-ink">{t.label}</div>
-                  <div className="text-[11.5px] text-muted num">{t.code}</div>
-                </div>
-                <Input
-                  type="number" min={0} placeholder="0"
-                  className="h-9 w-[100px] num text-right"
-                  value={loads[t.cylinder_type_id]?.loaded ?? ''}
-                  onChange={(e) => set(t.cylinder_type_id, 'loaded', e.target.value)}
-                />
-                <Input
-                  type="number" min={0} placeholder="0"
-                  className="h-9 w-[100px] num text-right"
-                  value={loads[t.cylinder_type_id]?.returned ?? ''}
-                  onChange={(e) => set(t.cylinder_type_id, 'returned', e.target.value)}
-                />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-[12.5px] text-muted">Pick a delivery person to record loads.</p>
-        )}
       </div>
-    </Card>
+      <div className="flex items-center gap-2">
+        <span className="text-muted text-[12px]">qty</span>
+        <Input
+          type="number"
+          min={0}
+          className="h-9 w-[110px] num text-right"
+          placeholder="0"
+          value={value ?? ''}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      </div>
+    </div>
   )
 }
 
-function CorrectForm({
-  target,
-  onDone,
-  onConflict,
-}: {
-  target: InventoryOut
-  onDone: () => void
-  onConflict: () => Promise<unknown>
-}) {
-  const [qty, setQty] = useState(String(target.quantity))
-  const [error, setError] = useState<string | null>(null)
-  const mutation = useMutation({
-    mutationFn: () =>
-      adjustInventoryV1InventoryCylinderTypeIdPatch(
-        target.cylinder_type_id,
-        { quantity: Number(qty) },
-        { headers: { 'If-Match': String(target.version) } },
-      ),
-  })
-
+function AddAccessory({ onCreated }: { onCreated: () => void }) {
+  const [name, setName] = useState('')
+  const create = useCreateAccessoryV1AccessoriesPost()
   const submit = async () => {
-    setError(null)
-    const res = await mutation.mutateAsync()
-    const status = res.status as number // 409/404 aren't in the typed union
-    if (status === 200) {
-      onDone()
-    } else if (status === 409) {
-      setError('This inventory was changed elsewhere. It has been refreshed — reopen and retry.')
-      await onConflict()
-    } else {
-      setError('Could not save the correction.')
+    const trimmed = name.trim()
+    if (!trimmed) return
+    const res = await create.mutateAsync({ data: { name: trimmed } })
+    if (res.status === 201) {
+      setName('')
+      onCreated()
     }
   }
-
   return (
-    <div className="flex flex-col gap-4">
-      <div>
-        <label className="block text-[13px] font-medium text-ink mb-1.5">
-          New quantity for <span className="num">{target.code}</span>{' '}
-          <span className="text-muted">(current: {target.quantity}, v{target.version})</span>
-        </label>
-        <Input type="number" min={0} className="num" value={qty} onChange={(e) => setQty(e.target.value)} />
-      </div>
-      {error ? (
-        <div className="text-[12.5px] text-bad bg-badbg rounded-lg px-3 py-2" role="alert">
-          {error}
-        </div>
-      ) : null}
-      <Button variant="primary" className="w-full" onClick={submit} disabled={mutation.isPending}>
-        {mutation.isPending ? 'Saving…' : 'Save correction'}
+    <span className="flex items-center gap-1.5 normal-case">
+      <Input
+        className="h-8 w-[150px] text-[12.5px]"
+        placeholder="New accessory…"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') submit()
+        }}
+      />
+      <Button variant="ghost" className="h-8 px-2.5" onClick={submit} disabled={create.isPending}>
+        <Plus size={15} />
       </Button>
-    </div>
+    </span>
   )
 }
