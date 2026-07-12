@@ -117,6 +117,7 @@ export * from './readyzReadyzGet200';
 export * from './refreshRequest';
 export * from './rootGet200';
 export * from './saleCreate';
+export * from './saleCreateOnlineTotal';
 export * from './saleCreateUpiTotal';
 export * from './saleLineIn';
 export * from './saleLineOut';

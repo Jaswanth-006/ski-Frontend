@@ -13,5 +13,7 @@ export interface DaySheetTotals {
   /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   upi: string;
   /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
+  online: string;
+  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   total: string;
 }

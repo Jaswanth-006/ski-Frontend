@@ -81,7 +81,14 @@ export function DaySheetPage() {
     ),
     { key: 'cash', header: 'Cash ₹', numeric: true, render: (r) => <Money value={Number(r.cash)} bare /> },
     { key: 'upi', header: 'UPI ₹', numeric: true, render: (r) => <Money value={Number(r.upi)} bare /> },
-    { key: 'total', header: 'Total ₹', numeric: true, render: (r) => <Money value={Number(r.total)} bare /> },
+    {
+      key: 'online',
+      header: 'Online ₹',
+      numeric: true,
+      render: (r) =>
+        Number(r.online) ? <Money value={Number(r.online)} bare /> : <span className="text-muted">—</span>,
+    },
+    { key: 'total', header: 'Settled ₹', numeric: true, render: (r) => <Money value={Number(r.total)} bare /> },
   ]
 
   return (
@@ -134,6 +141,7 @@ export function DaySheetPage() {
                     ...sheet.denomination_totals.map((d) => d.note_count),
                     <Money key="c" value={Number(sheet.totals.cash)} bare />,
                     <Money key="u" value={Number(sheet.totals.upi)} bare />,
+                    <Money key="o" value={Number(sheet.totals.online)} bare />,
                     <Money key="t" value={Number(sheet.totals.total)} bare />,
                   ]
                 : undefined
