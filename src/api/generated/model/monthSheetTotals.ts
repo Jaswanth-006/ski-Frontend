@@ -8,10 +8,13 @@
 
 export interface MonthSheetTotals {
   cylinders: number;
+  empty_returned: number;
   /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   cash: string;
   /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   upi: string;
+  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
+  online: string;
   /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   total: string;
   /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */

@@ -9,7 +9,8 @@
 export interface DeliveryReportRow {
   delivery_id: string;
   delivery_name: string;
-  sold: number;
-  loaded: number;
-  returned: number;
+  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
+  sales: string;
+  full_cylinders: number;
+  empty_cylinders: number;
 }

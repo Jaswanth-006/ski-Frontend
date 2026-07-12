@@ -58,13 +58,13 @@ export function ReportsPage() {
 
   const exportCsv = () => {
     if (tab === 'stock') {
-      const r = rows as { code: string; label: string; bought: number; sold: number; loaded: number; returned: number }[]
-      downloadCsv(`stock_${start}_${end}`, ['Code', 'Variety', 'Bought', 'Sold', 'Loaded', 'Returned'],
-        r.map((x) => [x.code, x.label, x.bought, x.sold, x.loaded, x.returned]))
+      const r = rows as { code: string; label: string; ac4: number; erv: number }[]
+      downloadCsv(`stock_${start}_${end}`, ['Code', 'Variety', 'ac4 (received)', 'erv (returned)'],
+        r.map((x) => [x.code, x.label, x.ac4, x.erv]))
     } else if (tab === 'delivery') {
-      const r = rows as { delivery_name: string; sold: number; loaded: number; returned: number }[]
-      downloadCsv(`delivery_${start}_${end}`, ['Delivery staff', 'Sold', 'Loaded', 'Returned'],
-        r.map((x) => [x.delivery_name, x.sold, x.loaded, x.returned]))
+      const r = rows as { delivery_name: string; sales: string; full_cylinders: number; empty_cylinders: number }[]
+      downloadCsv(`delivery_${start}_${end}`, ['Delivery staff', 'Sales', 'Full cylinders', 'Empty cylinders'],
+        r.map((x) => [x.delivery_name, x.sales, x.full_cylinders, x.empty_cylinders]))
     } else if (tab === 'expenses') {
       const r = rows as { item_name: string; total: string; count: number }[]
       downloadCsv(`expenses_${start}_${end}`, ['Item', 'Total', 'Count'],
@@ -80,17 +80,15 @@ export function ReportsPage() {
     tab === 'stock'
       ? [
           { key: 'label', header: 'Variety', render: (r) => <span>{r.label as string} <span className="text-muted num text-[11.5px]">{r.code as string}</span></span> },
-          { key: 'bought', header: 'Bought', numeric: true, render: (r) => r.bought as number },
-          { key: 'sold', header: 'Sold', numeric: true, render: (r) => r.sold as number },
-          { key: 'loaded', header: 'Loaded', numeric: true, render: (r) => r.loaded as number },
-          { key: 'returned', header: 'Returned', numeric: true, render: (r) => r.returned as number },
+          { key: 'ac4', header: 'ac4 · received', numeric: true, render: (r) => r.ac4 as number },
+          { key: 'erv', header: 'erv · returned', numeric: true, render: (r) => r.erv as number },
         ]
       : tab === 'delivery'
         ? [
             { key: 'name', header: 'Delivery staff', render: (r) => r.delivery_name as string },
-            { key: 'sold', header: 'Sold', numeric: true, render: (r) => r.sold as number },
-            { key: 'loaded', header: 'Loaded', numeric: true, render: (r) => r.loaded as number },
-            { key: 'returned', header: 'Returned', numeric: true, render: (r) => r.returned as number },
+            { key: 'sales', header: 'Sales ₹', numeric: true, render: (r) => <Money value={Number(r.sales)} bare /> },
+            { key: 'full', header: 'Full cylinders', numeric: true, render: (r) => r.full_cylinders as number },
+            { key: 'empty', header: 'Empty cylinders', numeric: true, render: (r) => r.empty_cylinders as number },
           ]
         : tab === 'expenses'
           ? [

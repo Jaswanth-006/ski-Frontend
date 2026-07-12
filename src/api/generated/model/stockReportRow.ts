@@ -10,8 +10,6 @@ export interface StockReportRow {
   cylinder_type_id: string;
   code: string;
   label: string;
-  bought: number;
-  sold: number;
-  loaded: number;
-  returned: number;
+  ac4: number;
+  erv: number;
 }
