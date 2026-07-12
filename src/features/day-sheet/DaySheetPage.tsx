@@ -89,6 +89,14 @@ export function DaySheetPage() {
         Number(r.online) ? <Money value={Number(r.online)} bare /> : <span className="text-muted">—</span>,
     },
     { key: 'total', header: 'Settled ₹', numeric: true, render: (r) => <Money value={Number(r.total)} bare /> },
+    {
+      key: 'expense',
+      header: 'Expense ₹',
+      numeric: true,
+      render: (r) =>
+        Number(r.expense) ? <Money value={Number(r.expense)} bare /> : <span className="text-muted">—</span>,
+    },
+    { key: 'net', header: 'Net ₹', numeric: true, render: (r) => <Money value={Number(r.net)} bare /> },
   ]
 
   return (
@@ -143,6 +151,8 @@ export function DaySheetPage() {
                     <Money key="u" value={Number(sheet.totals.upi)} bare />,
                     <Money key="o" value={Number(sheet.totals.online)} bare />,
                     <Money key="t" value={Number(sheet.totals.total)} bare />,
+                    <Money key="e" value={Number(sheet.totals.expense)} bare />,
+                    <Money key="n" value={Number(sheet.totals.net)} bare />,
                   ]
                 : undefined
             }

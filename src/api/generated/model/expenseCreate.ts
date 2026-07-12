@@ -7,6 +7,7 @@
  */
 import type { ExpenseCreateAmount } from './expenseCreateAmount';
 import type { ExpenseCreateNote } from './expenseCreateNote';
+import type { ExpenseCreateDeliveryId } from './expenseCreateDeliveryId';
 
 export interface ExpenseCreate {
   business_date: string;
@@ -14,4 +15,5 @@ export interface ExpenseCreate {
   amount: ExpenseCreateAmount;
   method: string;
   note?: ExpenseCreateNote;
+  delivery_id?: ExpenseCreateDeliveryId;
 }
