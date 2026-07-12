@@ -19,6 +19,7 @@ import { Card, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Modal } from '@/components/ui/modal'
 import { ExpenseItemsSection } from './ExpenseItemsSection'
+import { OtherSalesSection } from './OtherSalesSection'
 import { PricingSection } from './PricingSection'
 
 const ALL_PARAMS = { active: 'all' as const }
@@ -110,6 +111,8 @@ export function CatalogPage() {
       </Card>
 
       <PricingSection />
+
+      <OtherSalesSection />
 
       <ExpenseItemsSection />
 
