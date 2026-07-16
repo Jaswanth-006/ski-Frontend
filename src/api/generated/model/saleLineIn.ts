@@ -5,9 +5,11 @@
  * System of record for an LPG distributorship. See 01-BACKEND-PRD.
  * OpenAPI spec version: 0.1.0
  */
+import type { SaleLineInEmptyQty } from './saleLineInEmptyQty';
 
 export interface SaleLineIn {
   cylinder_type_id: string;
   /** @minimum 1 */
   qty: number;
+  empty_qty?: SaleLineInEmptyQty;
 }

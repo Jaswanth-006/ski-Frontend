@@ -12,6 +12,7 @@ export interface DaySheetRow {
   delivery_name: string;
   party_kind: string;
   cylinders: number;
+  empties: number;
   loaded: number;
   returned: number;
   /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */

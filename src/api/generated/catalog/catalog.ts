@@ -350,6 +350,95 @@ export const useUpdateCylinderTypeV1CylinderTypesTypeIdPatch = <TError = HTTPVal
       return useMutation(mutationOptions, queryClient);
     }
     /**
+ * @summary Delete Cylinder Type
+ */
+export type deleteCylinderTypeV1CylinderTypesTypeIdDeleteResponse204 = {
+  data: void
+  status: 204
+}
+
+export type deleteCylinderTypeV1CylinderTypesTypeIdDeleteResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+    
+export type deleteCylinderTypeV1CylinderTypesTypeIdDeleteResponseSuccess = (deleteCylinderTypeV1CylinderTypesTypeIdDeleteResponse204) & {
+  headers: Headers;
+};
+export type deleteCylinderTypeV1CylinderTypesTypeIdDeleteResponseError = (deleteCylinderTypeV1CylinderTypesTypeIdDeleteResponse422) & {
+  headers: Headers;
+};
+
+export type deleteCylinderTypeV1CylinderTypesTypeIdDeleteResponse = (deleteCylinderTypeV1CylinderTypesTypeIdDeleteResponseSuccess | deleteCylinderTypeV1CylinderTypesTypeIdDeleteResponseError)
+
+export const getDeleteCylinderTypeV1CylinderTypesTypeIdDeleteUrl = (typeId: string,) => {
+
+
+  
+
+  return `/v1/cylinder-types/${typeId}`
+}
+
+export const deleteCylinderTypeV1CylinderTypesTypeIdDelete = async (typeId: string, options?: RequestInit): Promise<deleteCylinderTypeV1CylinderTypesTypeIdDeleteResponse> => {
+  
+  return customFetch<deleteCylinderTypeV1CylinderTypesTypeIdDeleteResponse>(getDeleteCylinderTypeV1CylinderTypesTypeIdDeleteUrl(typeId),
+  {      
+    ...options,
+    method: 'DELETE'
+    
+    
+  }
+);}
+
+
+
+
+export const getDeleteCylinderTypeV1CylinderTypesTypeIdDeleteMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCylinderTypeV1CylinderTypesTypeIdDelete>>, TError,{typeId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteCylinderTypeV1CylinderTypesTypeIdDelete>>, TError,{typeId: string}, TContext> => {
+
+const mutationKey = ['deleteCylinderTypeV1CylinderTypesTypeIdDelete'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteCylinderTypeV1CylinderTypesTypeIdDelete>>, {typeId: string}> = (props) => {
+          const {typeId} = props ?? {};
+
+          return  deleteCylinderTypeV1CylinderTypesTypeIdDelete(typeId,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteCylinderTypeV1CylinderTypesTypeIdDeleteMutationResult = NonNullable<Awaited<ReturnType<typeof deleteCylinderTypeV1CylinderTypesTypeIdDelete>>>
+    
+    export type DeleteCylinderTypeV1CylinderTypesTypeIdDeleteMutationError = HTTPValidationError
+
+    /**
+ * @summary Delete Cylinder Type
+ */
+export const useDeleteCylinderTypeV1CylinderTypesTypeIdDelete = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCylinderTypeV1CylinderTypesTypeIdDelete>>, TError,{typeId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteCylinderTypeV1CylinderTypesTypeIdDelete>>,
+        TError,
+        {typeId: string},
+        TContext
+      > => {
+
+      const mutationOptions = getDeleteCylinderTypeV1CylinderTypesTypeIdDeleteMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
  * @summary List Expense Items
  */
 export type listExpenseItemsV1ExpenseItemsGetResponse200 = {
