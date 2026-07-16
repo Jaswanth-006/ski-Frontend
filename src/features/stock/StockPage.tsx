@@ -108,18 +108,14 @@ export function StockPage() {
           hint={`Full & empty cylinders on ${date} · today's closing carries to tomorrow`}
         />
         <div className="overflow-x-auto">
-          <table className="w-full text-[13px] min-w-[720px]">
+          <table className="w-full text-[13px] min-w-[520px]">
             <thead>
               <tr className="text-[11px] uppercase tracking-[.04em] text-muted">
                 <th className="text-left font-semibold px-[18px] py-2">Variety</th>
-                <th className="text-right font-semibold px-2">Full open</th>
-                <th className="text-right font-semibold px-2">+ ac4</th>
-                <th className="text-right font-semibold px-2">− sold</th>
-                <th className="text-right font-semibold px-2 text-ink">Full close</th>
-                <th className="text-right font-semibold px-2 pl-5">Empty open</th>
-                <th className="text-right font-semibold px-2">+ cust.</th>
-                <th className="text-right font-semibold px-2">− erv</th>
-                <th className="text-right font-semibold px-[18px] text-ink">Empty close</th>
+                <th className="text-right font-semibold px-3">Full opening</th>
+                <th className="text-right font-semibold px-3 text-ink">Full closing</th>
+                <th className="text-right font-semibold px-3 pl-6">Empty opening</th>
+                <th className="text-right font-semibold px-[18px] text-ink">Empty closing</th>
               </tr>
             </thead>
             <tbody>
@@ -129,13 +125,9 @@ export function StockPage() {
                     <div className="text-ink font-medium">{c.label}</div>
                     <div className="text-[11px] text-muted">{c.code}</div>
                   </td>
-                  <td className="text-right px-2 text-muted">{c.full_opening}</td>
-                  <td className="text-right px-2 text-ok">{c.full_received || ''}</td>
-                  <td className="text-right px-2 text-muted">{c.full_sold || ''}</td>
-                  <td className="text-right px-2 font-display font-bold text-ink">{c.full_closing}</td>
-                  <td className="text-right px-2 pl-5 text-muted">{c.empty_opening}</td>
-                  <td className="text-right px-2 text-ok">{c.empty_returned_by_customers || ''}</td>
-                  <td className="text-right px-2 text-muted">{c.empty_sent_to_plant || ''}</td>
+                  <td className="text-right px-3 text-muted">{c.full_opening}</td>
+                  <td className="text-right px-3 font-display font-bold text-ink">{c.full_closing}</td>
+                  <td className="text-right px-3 pl-6 text-muted">{c.empty_opening}</td>
                   <td className="text-right px-[18px] font-display font-bold text-ink">
                     {c.empty_closing}
                   </td>
@@ -143,7 +135,7 @@ export function StockPage() {
               ))}
               {cylinders.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-[18px] py-6 text-center text-muted">
+                  <td colSpan={5} className="px-[18px] py-6 text-center text-muted">
                     No cylinder types yet.
                   </td>
                 </tr>
