@@ -67,7 +67,20 @@ export function DaySheetPage() {
     r.denominations.find((x) => x.note_value === value)?.note_count ?? 0
 
   const columns: Column<DaySheetRow>[] = [
-    { key: 'name', header: 'Delivery staff', render: (r) => r.delivery_name },
+    {
+      key: 'name',
+      header: 'Party',
+      render: (r) => (
+        <span className="inline-flex items-center gap-1.5">
+          {r.delivery_name}
+          {r.party_kind === 'customer' ? (
+            <span className="inline-flex items-center rounded-full bg-surface px-[7px] py-[2px] text-[10px] font-semibold text-muted">
+              Customer
+            </span>
+          ) : null}
+        </span>
+      ),
+    },
     { key: 'loaded', header: 'Loaded', numeric: true, render: (r) => r.loaded || <span className="text-muted">—</span> },
     { key: 'cyl', header: 'Sold', numeric: true, render: (r) => r.cylinders },
     { key: 'returned', header: 'Returned', numeric: true, render: (r) => r.returned || <span className="text-muted">—</span> },
@@ -97,6 +110,18 @@ export function DaySheetPage() {
         Number(r.expense) ? <Money value={Number(r.expense)} bare /> : <span className="text-muted">—</span>,
     },
     { key: 'net', header: 'Net ₹', numeric: true, render: (r) => <Money value={Number(r.net)} bare /> },
+    {
+      key: 'balance',
+      header: 'Balance ₹',
+      numeric: true,
+      render: (r) =>
+        Number(r.balance) ? (
+          <Money value={Number(r.balance)} bare className="text-bad" />
+        ) : (
+          <span className="text-muted">—</span>
+        ),
+    },
+    { key: 'handed', header: 'Handed ₹', numeric: true, render: (r) => <Money value={Number(r.handed)} bare /> },
   ]
 
   return (
@@ -153,6 +178,8 @@ export function DaySheetPage() {
                     <Money key="t" value={Number(sheet.totals.total)} bare />,
                     <Money key="e" value={Number(sheet.totals.expense)} bare />,
                     <Money key="n" value={Number(sheet.totals.net)} bare />,
+                    <Money key="b" value={Number(sheet.totals.balance)} bare />,
+                    <Money key="h" value={Number(sheet.totals.handed)} bare />,
                   ]
                 : undefined
             }

@@ -5,12 +5,16 @@
  * System of record for an LPG distributorship. See 01-BACKEND-PRD.
  * OpenAPI spec version: 0.1.0
  */
+import type { SaleOutDeliveryId } from './saleOutDeliveryId';
+import type { SaleOutCustomerId } from './saleOutCustomerId';
 import type { SaleLineOut } from './saleLineOut';
 
 export interface SaleOut {
   id: string;
-  delivery_id: string;
-  delivery_name: string;
+  delivery_id: SaleOutDeliveryId;
+  customer_id: SaleOutCustomerId;
+  party_kind: string;
+  party_name: string;
   business_date: string;
   status: string;
   submitted_via: string;

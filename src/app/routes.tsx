@@ -7,6 +7,7 @@ import { CashierBoxPage } from '@/features/cashier-box/CashierBoxPage'
 import { CatalogPage } from '@/features/catalog/CatalogPage'
 import { CreditsPage } from '@/features/credits/CreditsPage'
 import { DaySheetPage } from '@/features/day-sheet/DaySheetPage'
+import { DeliveryBalancePage } from '@/features/delivery-balance/DeliveryBalancePage'
 import { DepositsPage } from '@/features/deposits/DepositsPage'
 import { ExpensesPage } from '@/features/expenses/ExpensesPage'
 import { LoginPage } from '@/features/auth/LoginPage'
@@ -88,6 +89,14 @@ export function AppRoutes() {
         element={
           <RoleGuard allow={OFFICE_AND_OWNER}>
             <CreditsPage />
+          </RoleGuard>
+        }
+      />
+      <Route
+        path="/delivery-balance"
+        element={
+          <RoleGuard allow={OFFICE_AND_OWNER}>
+            <DeliveryBalancePage />
           </RoleGuard>
         }
       />

@@ -75,6 +75,7 @@ export function DashboardPage() {
   const movement = movementQuery.data?.status === 200 ? movementQuery.data.data.rows : []
   const sheet = daySheetQuery.data?.status === 200 ? daySheetQuery.data.data : null
   const rows: DaySheetRow[] = sheet?.rows ?? []
+  const deliveryRows = rows.filter((r) => r.party_kind === 'delivery')
 
   const grossCash = Number(eod?.gross_cash ?? 0)
   const upi = Number(eod?.upi_total ?? 0)
@@ -278,15 +279,15 @@ export function DashboardPage() {
             <Card>
               <CardHeader
                 title="Delivery staff · today"
-                hint={`${rows.length} active`}
+                hint={`${deliveryRows.length} active`}
               />
               <div className="px-2 pb-2.5 pt-1">
-                {rows.length === 0 ? (
+                {deliveryRows.length === 0 ? (
                   <p className="text-[13px] text-muted px-2.5 py-3">
                     No sales entered for today yet.
                   </p>
                 ) : (
-                  rows.map((d) => (
+                  deliveryRows.map((d) => (
                     <div
                       key={d.delivery_id}
                       className="flex items-center gap-3 px-2.5 py-2.5 rounded-xl hover:bg-surface transition-colors"
