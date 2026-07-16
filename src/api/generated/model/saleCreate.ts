@@ -5,13 +5,16 @@
  * System of record for an LPG distributorship. See 01-BACKEND-PRD.
  * OpenAPI spec version: 0.1.0
  */
+import type { SaleCreateDeliveryId } from './saleCreateDeliveryId';
+import type { SaleCreateCustomerId } from './saleCreateCustomerId';
 import type { SaleLineIn } from './saleLineIn';
 import type { DenominationIn } from './denominationIn';
 import type { SaleCreateUpiTotal } from './saleCreateUpiTotal';
 import type { SaleCreateOnlineTotal } from './saleCreateOnlineTotal';
 
 export interface SaleCreate {
-  delivery_id: string;
+  delivery_id?: SaleCreateDeliveryId;
+  customer_id?: SaleCreateCustomerId;
   business_date: string;
   /** @minItems 1 */
   lines: SaleLineIn[];

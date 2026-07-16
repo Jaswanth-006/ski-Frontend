@@ -10,6 +10,7 @@ import type { Denomination } from './denomination';
 export interface DaySheetRow {
   delivery_id: string;
   delivery_name: string;
+  party_kind: string;
   cylinders: number;
   loaded: number;
   returned: number;
@@ -25,5 +26,9 @@ export interface DaySheetRow {
   expense: string;
   /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   net: string;
+  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
+  balance: string;
+  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
+  handed: string;
   denominations: Denomination[];
 }

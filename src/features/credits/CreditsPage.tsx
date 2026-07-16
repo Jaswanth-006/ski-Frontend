@@ -1,6 +1,9 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { Check, HandCoins, Plus } from 'lucide-react'
+import { ArrowRight, Check, HandCoins, Plus } from 'lucide-react'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useBalanceSummaryV1DeliveryBalancesSummaryGet } from '@/api/generated/delivery-balances/delivery-balances'
+import type { DeliveryBalanceSummaryOut } from '@/api/generated/model'
 import {
   getListCreditsV1CreditsGetQueryKey,
   useCreateCreditV1CreditsPost,
@@ -19,6 +22,11 @@ const today = () => new Date().toISOString().slice(0, 10)
 
 export function CreditsPage() {
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
+  const balanceQuery = useBalanceSummaryV1DeliveryBalancesSummaryGet()
+  const boyBalances: DeliveryBalanceSummaryOut[] = (
+    balanceQuery.data?.status === 200 ? balanceQuery.data.data : []
+  ).filter((b) => Number(b.balance) > 0)
   const [person, setPerson] = useState('')
   const [amount, setAmount] = useState('')
   const [givenDate, setGivenDate] = useState(today())
@@ -106,6 +114,28 @@ export function CreditsPage() {
           <div className="mx-[18px] mb-[18px] text-[12.5px] text-bad bg-badbg rounded-lg px-3 py-2">{error}</div>
         ) : null}
       </Card>
+
+      {boyBalances.length > 0 ? (
+        <Card>
+          <CardHeader
+            title="Delivery boys who owe us"
+            hint="From unpaid sale settlements"
+            right={
+              <Button variant="ghost" className="h-8 px-3 text-[12px]" onClick={() => navigate('/delivery-balance')}>
+                Manage <ArrowRight size={14} />
+              </Button>
+            }
+          />
+          <div className="px-[18px] pb-4 pt-1 flex flex-col">
+            {boyBalances.map((b) => (
+              <div key={b.delivery_id} className="flex items-center justify-between gap-3 py-2.5 border-b border-line last:border-0">
+                <span className="text-[13.5px] font-medium text-ink">{b.delivery_name}</span>
+                <Money value={Number(b.balance)} className="font-display font-bold text-bad" />
+              </div>
+            ))}
+          </div>
+        </Card>
+      ) : null}
 
       <Card>
         <CardHeader title="Outstanding" hint={`${open.length} unpaid`} />
