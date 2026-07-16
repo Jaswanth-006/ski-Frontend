@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Modal } from '@/components/ui/modal'
+import { AccessoriesSection } from './AccessoriesSection'
 import { CustomersSection } from './CustomersSection'
 import { ExpenseItemsSection } from './ExpenseItemsSection'
 import { OtherSalesSection } from './OtherSalesSection'
@@ -130,6 +131,8 @@ export function CatalogPage() {
           <DataTable columns={columns} data={types} getRowKey={(t) => t.id} />
         )}
       </Card>
+
+      <AccessoriesSection />
 
       <PricingSection />
 
