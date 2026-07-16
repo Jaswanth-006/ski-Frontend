@@ -27,6 +27,7 @@ import type {
 import type {
   AccessoryCreate,
   AccessoryOut,
+  AccessoryUpdate,
   HTTPValidationError,
   ListAccessoriesV1AccessoriesGetParams
 } from '.././model';
@@ -250,6 +251,186 @@ export const useCreateAccessoryV1AccessoriesPost = <TError = HTTPValidationError
       > => {
 
       const mutationOptions = getCreateAccessoryV1AccessoriesPostMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
+ * @summary Update Accessory
+ */
+export type updateAccessoryV1AccessoriesAccessoryIdPatchResponse200 = {
+  data: AccessoryOut
+  status: 200
+}
+
+export type updateAccessoryV1AccessoriesAccessoryIdPatchResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+    
+export type updateAccessoryV1AccessoriesAccessoryIdPatchResponseSuccess = (updateAccessoryV1AccessoriesAccessoryIdPatchResponse200) & {
+  headers: Headers;
+};
+export type updateAccessoryV1AccessoriesAccessoryIdPatchResponseError = (updateAccessoryV1AccessoriesAccessoryIdPatchResponse422) & {
+  headers: Headers;
+};
+
+export type updateAccessoryV1AccessoriesAccessoryIdPatchResponse = (updateAccessoryV1AccessoriesAccessoryIdPatchResponseSuccess | updateAccessoryV1AccessoriesAccessoryIdPatchResponseError)
+
+export const getUpdateAccessoryV1AccessoriesAccessoryIdPatchUrl = (accessoryId: string,) => {
+
+
+  
+
+  return `/v1/accessories/${accessoryId}`
+}
+
+export const updateAccessoryV1AccessoriesAccessoryIdPatch = async (accessoryId: string,
+    accessoryUpdate: AccessoryUpdate, options?: RequestInit): Promise<updateAccessoryV1AccessoriesAccessoryIdPatchResponse> => {
+  
+  return customFetch<updateAccessoryV1AccessoriesAccessoryIdPatchResponse>(getUpdateAccessoryV1AccessoriesAccessoryIdPatchUrl(accessoryId),
+  {      
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      accessoryUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateAccessoryV1AccessoriesAccessoryIdPatchMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAccessoryV1AccessoriesAccessoryIdPatch>>, TError,{accessoryId: string;data: AccessoryUpdate}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateAccessoryV1AccessoriesAccessoryIdPatch>>, TError,{accessoryId: string;data: AccessoryUpdate}, TContext> => {
+
+const mutationKey = ['updateAccessoryV1AccessoriesAccessoryIdPatch'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAccessoryV1AccessoriesAccessoryIdPatch>>, {accessoryId: string;data: AccessoryUpdate}> = (props) => {
+          const {accessoryId,data} = props ?? {};
+
+          return  updateAccessoryV1AccessoriesAccessoryIdPatch(accessoryId,data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateAccessoryV1AccessoriesAccessoryIdPatchMutationResult = NonNullable<Awaited<ReturnType<typeof updateAccessoryV1AccessoriesAccessoryIdPatch>>>
+    export type UpdateAccessoryV1AccessoriesAccessoryIdPatchMutationBody = AccessoryUpdate
+    export type UpdateAccessoryV1AccessoriesAccessoryIdPatchMutationError = HTTPValidationError
+
+    /**
+ * @summary Update Accessory
+ */
+export const useUpdateAccessoryV1AccessoriesAccessoryIdPatch = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAccessoryV1AccessoriesAccessoryIdPatch>>, TError,{accessoryId: string;data: AccessoryUpdate}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateAccessoryV1AccessoriesAccessoryIdPatch>>,
+        TError,
+        {accessoryId: string;data: AccessoryUpdate},
+        TContext
+      > => {
+
+      const mutationOptions = getUpdateAccessoryV1AccessoriesAccessoryIdPatchMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
+ * @summary Delete Accessory
+ */
+export type deleteAccessoryV1AccessoriesAccessoryIdDeleteResponse204 = {
+  data: void
+  status: 204
+}
+
+export type deleteAccessoryV1AccessoriesAccessoryIdDeleteResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+    
+export type deleteAccessoryV1AccessoriesAccessoryIdDeleteResponseSuccess = (deleteAccessoryV1AccessoriesAccessoryIdDeleteResponse204) & {
+  headers: Headers;
+};
+export type deleteAccessoryV1AccessoriesAccessoryIdDeleteResponseError = (deleteAccessoryV1AccessoriesAccessoryIdDeleteResponse422) & {
+  headers: Headers;
+};
+
+export type deleteAccessoryV1AccessoriesAccessoryIdDeleteResponse = (deleteAccessoryV1AccessoriesAccessoryIdDeleteResponseSuccess | deleteAccessoryV1AccessoriesAccessoryIdDeleteResponseError)
+
+export const getDeleteAccessoryV1AccessoriesAccessoryIdDeleteUrl = (accessoryId: string,) => {
+
+
+  
+
+  return `/v1/accessories/${accessoryId}`
+}
+
+export const deleteAccessoryV1AccessoriesAccessoryIdDelete = async (accessoryId: string, options?: RequestInit): Promise<deleteAccessoryV1AccessoriesAccessoryIdDeleteResponse> => {
+  
+  return customFetch<deleteAccessoryV1AccessoriesAccessoryIdDeleteResponse>(getDeleteAccessoryV1AccessoriesAccessoryIdDeleteUrl(accessoryId),
+  {      
+    ...options,
+    method: 'DELETE'
+    
+    
+  }
+);}
+
+
+
+
+export const getDeleteAccessoryV1AccessoriesAccessoryIdDeleteMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAccessoryV1AccessoriesAccessoryIdDelete>>, TError,{accessoryId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteAccessoryV1AccessoriesAccessoryIdDelete>>, TError,{accessoryId: string}, TContext> => {
+
+const mutationKey = ['deleteAccessoryV1AccessoriesAccessoryIdDelete'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteAccessoryV1AccessoriesAccessoryIdDelete>>, {accessoryId: string}> = (props) => {
+          const {accessoryId} = props ?? {};
+
+          return  deleteAccessoryV1AccessoriesAccessoryIdDelete(accessoryId,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteAccessoryV1AccessoriesAccessoryIdDeleteMutationResult = NonNullable<Awaited<ReturnType<typeof deleteAccessoryV1AccessoriesAccessoryIdDelete>>>
+    
+    export type DeleteAccessoryV1AccessoriesAccessoryIdDeleteMutationError = HTTPValidationError
+
+    /**
+ * @summary Delete Accessory
+ */
+export const useDeleteAccessoryV1AccessoriesAccessoryIdDelete = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAccessoryV1AccessoriesAccessoryIdDelete>>, TError,{accessoryId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteAccessoryV1AccessoriesAccessoryIdDelete>>,
+        TError,
+        {accessoryId: string},
+        TContext
+      > => {
+
+      const mutationOptions = getDeleteAccessoryV1AccessoriesAccessoryIdDeleteMutationOptions(options);
 
       return useMutation(mutationOptions, queryClient);
     }
