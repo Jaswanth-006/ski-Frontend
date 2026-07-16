@@ -4,7 +4,6 @@ import { useMemo, useState } from 'react'
 import { createSaleV1SalesPost } from '@/api/generated/sales/sales'
 import { useGetPricesV1PricesGet } from '@/api/generated/pricing/pricing'
 import { useListDeliveryOtherSalesV1DeliveryOtherSalesGet } from '@/api/generated/delivery-other-sales/delivery-other-sales'
-import { createBalanceEntryV1DeliveryBalancesPost } from '@/api/generated/delivery-balances/delivery-balances'
 import { createExpenseV1ExpensesPost } from '@/api/generated/expenses/expenses'
 import { useListExpenseItemsV1ExpenseItemsGet } from '@/api/generated/catalog/catalog'
 import { useListCustomersV1CustomersGet } from '@/api/generated/customers/customers'
@@ -39,7 +38,7 @@ export function SalesEntryPage() {
   const [upi, setUpi] = useState('')
   const [online, setOnline] = useState('')
   const [expenseRows, setExpenseRows] = useState<ExpenseRow[]>([])
-  const [handed, setHanded] = useState('')
+  const [balanceInput, setBalanceInput] = useState('')
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null)
 
   const isDelivery = partyKind === 'delivery'
@@ -71,16 +70,16 @@ export function SalesEntryPage() {
     [priced, qty, boyExtra],
   )
   const cashTotal = useMemo(() => NOTES.reduce((sum, n) => sum + n * num(notes[n]), 0), [notes])
-  const settled = cashTotal + num(upi) // what the delivery boy collects (cash + upi)
-  const collected = settled + num(online) // full sale = cash + upi + online
+  const settled = cashTotal + num(upi) // cash + upi handed in
+  const balance = isDelivery ? num(balanceInput) : 0 // uncollected — the boy owes it
+  const collected = settled + num(online) + balance // full sale = cash + upi + online + balance
   const cylindersSold = priced.reduce((s, p) => s + num(qty[p.cylinder_type_id]), 0)
   const reconciled = revenue > 0 && Math.abs(collected - revenue) < 0.005
   const difference = collected - revenue
+  // What's still unaccounted (before balance) — offered as "add to balance".
+  const shortfall = Math.max(0, revenue - settled - num(online) - balance)
 
   const expensesTotal = expenseRows.reduce((s, r) => s + num(r.amount), 0)
-  const net = settled - expensesTotal // due to office after route expenses
-  const handedValue = handed === '' ? net : num(handed) // default: fully handed
-  const balance = Math.max(0, net - handedValue) // what he still owes today
 
   const createSale = useMutation({
     mutationFn: (body: object) =>
@@ -111,6 +110,7 @@ export function SalesEntryPage() {
       denominations,
       upi_total: num(upi),
       online_total: num(online),
+      balance_total: balance, // backend charges this to the boy's balance
     })
     const status = res.status as number
     if (status !== 201) {
@@ -124,7 +124,7 @@ export function SalesEntryPage() {
       return setResult({ ok: false, message: flags })
     }
 
-    // Delivery-only follow-ups: route expenses and the unpaid balance.
+    // Delivery-only follow-up: post the boy's route expenses (balance is handled by the sale).
     if (isDelivery) {
       for (const r of expenseRows) {
         if (r.itemId && num(r.amount) > 0) {
@@ -137,15 +137,6 @@ export function SalesEntryPage() {
           } as never)
         }
       }
-      if (balance > 0) {
-        await createBalanceEntryV1DeliveryBalancesPost({
-          delivery_id: driverId,
-          amount: balance,
-          entry_date: date,
-          kind: 'charge',
-          note: 'sale settlement shortfall',
-        } as never)
-      }
     }
 
     setResult({ ok: true, message: 'Sale moved to the day sheet.' })
@@ -154,7 +145,7 @@ export function SalesEntryPage() {
     setUpi('')
     setOnline('')
     setExpenseRows([])
-    setHanded('')
+    setBalanceInput('')
     await queryClient.invalidateQueries()
   }
 
@@ -357,6 +348,34 @@ export function SalesEntryPage() {
               </label>
               <Input type="number" min={0} className="h-9 w-[120px] num text-right" placeholder="0" value={online} onChange={(e) => setOnline(e.target.value)} />
             </div>
+            {isDelivery ? (
+              <>
+                <div className="flex items-center justify-between gap-3 mt-1">
+                  <label className="text-[13px] font-medium text-ink">
+                    Balance <span className="text-[11px] text-muted font-normal">boy owes</span>
+                  </label>
+                  <Input
+                    type="number"
+                    min={0}
+                    className="h-9 w-[120px] num text-right"
+                    placeholder="0"
+                    value={balanceInput}
+                    onChange={(e) => setBalanceInput(e.target.value)}
+                  />
+                </div>
+                {shortfall > 0 ? (
+                  <button
+                    onClick={() => setBalanceInput(String(num(balanceInput) + shortfall))}
+                    className="mt-1 self-end text-[12px] font-semibold text-orange hover:underline"
+                  >
+                    + Add <Money value={shortfall} bare /> to balance
+                  </button>
+                ) : null}
+                <p className="text-[11px] text-muted mt-0.5">
+                  The notes above are what he hands in; anything he keeps goes to his balance.
+                </p>
+              </>
+            ) : null}
           </div>
         </Card>
       </div>
@@ -393,31 +412,6 @@ export function SalesEntryPage() {
             <ArrowRight size={16} />
           </Button>
         </div>
-
-        {/* Settlement — delivery only */}
-        {isDelivery ? (
-          <div className="mx-[18px] mb-[18px] rounded-lg bg-white/70 px-3.5 py-3 flex flex-wrap items-center gap-x-8 gap-y-2">
-            <div>
-              <div className="text-[11px] text-muted">Due to office (settled − expenses)</div>
-              <Money value={net} className="font-display font-bold text-ink" />
-            </div>
-            <div className="flex items-center gap-2">
-              <label className="text-[12.5px] text-muted">Amount handed</label>
-              <Input
-                type="number"
-                min={0}
-                placeholder={String(net)}
-                className="h-9 w-[120px] num text-right"
-                value={handed}
-                onChange={(e) => setHanded(e.target.value)}
-              />
-            </div>
-            <div>
-              <div className="text-[11px] text-muted">Balance (boy owes)</div>
-              <Money value={balance} className={cn('font-display font-bold', balance > 0 ? 'text-bad' : 'text-ok')} />
-            </div>
-          </div>
-        ) : null}
 
         {result ? (
           <div
