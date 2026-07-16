@@ -37,7 +37,7 @@ export function SalesEntryPage() {
   const [empties, setEmpties] = useState<Record<string, string>>({})
   const [notes, setNotes] = useState<Record<number, string>>({})
   const [upi, setUpi] = useState('')
-  const [online, setOnline] = useState('')
+  const [onlineQty, setOnlineQty] = useState<Record<string, string>>({})
   const [expenseRows, setExpenseRows] = useState<ExpenseRow[]>([])
   const [balanceInput, setBalanceInput] = useState('')
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null)
@@ -71,14 +71,23 @@ export function SalesEntryPage() {
     [priced, qty, boyExtra],
   )
   const cashTotal = useMemo(() => NOTES.reduce((sum, n) => sum + n * num(notes[n]), 0), [notes])
+  // Online is billed per cylinder: count them and the amount works itself out.
+  const onlineAmount = useMemo(
+    () =>
+      priced.reduce(
+        (sum, p) => sum + num(onlineQty[p.cylinder_type_id]) * (Number(p.unit_price) + boyExtra),
+        0,
+      ),
+    [priced, onlineQty, boyExtra],
+  )
   const settled = cashTotal + num(upi) // cash + upi handed in
   const balance = isDelivery ? num(balanceInput) : 0 // uncollected — the boy owes it
-  const collected = settled + num(online) + balance // full sale = cash + upi + online + balance
+  const collected = settled + onlineAmount + balance // full sale = cash + upi + online + balance
   const cylindersSold = priced.reduce((s, p) => s + num(qty[p.cylinder_type_id]), 0)
   const reconciled = revenue > 0 && Math.abs(collected - revenue) < 0.005
   const difference = collected - revenue
   // What's still unaccounted (before balance) — offered as "add to balance".
-  const shortfall = Math.max(0, revenue - settled - num(online) - balance)
+  const shortfall = Math.max(0, revenue - settled - onlineAmount - balance)
 
   const expensesTotal = expenseRows.reduce((s, r) => s + num(r.amount), 0)
 
@@ -118,7 +127,7 @@ export function SalesEntryPage() {
       lines,
       denominations,
       upi_total: num(upi),
-      online_total: num(online),
+      online_total: onlineAmount,
       balance_total: balance, // backend charges this to the boy's balance
     })
     const status = res.status as number
@@ -153,7 +162,7 @@ export function SalesEntryPage() {
     setEmpties({})
     setNotes({})
     setUpi('')
-    setOnline('')
+    setOnlineQty({})
     setExpenseRows([])
     setBalanceInput('')
     await queryClient.invalidateQueries()
@@ -228,10 +237,14 @@ export function SalesEntryPage() {
                 <div className="flex items-center justify-end gap-3 pb-1 text-[10.5px] uppercase tracking-[.05em] text-muted font-semibold">
                   <span className="w-[80px] text-center">Sold</span>
                   <span className="w-[80px] text-center">Empty back</span>
+                  <span className="w-[80px] text-center">Online</span>
                   <span className="w-[90px] text-right">Total</span>
                 </div>
                 {priced.map((p) => {
-                  const lineTotal = num(qty[p.cylinder_type_id]) * (Number(p.unit_price) + boyExtra)
+                  const unit = Number(p.unit_price) + boyExtra
+                  const lineTotal = num(qty[p.cylinder_type_id]) * unit
+                  const onlineOver =
+                    num(onlineQty[p.cylinder_type_id]) > num(qty[p.cylinder_type_id])
                   return (
                     <div key={p.cylinder_type_id} className="flex items-center justify-between gap-3 py-2.5 border-b border-line last:border-0">
                       <div className="min-w-0">
@@ -260,13 +273,27 @@ export function SalesEntryPage() {
                           value={empties[p.cylinder_type_id] ?? ''}
                           onChange={(e) => setEmpties((s) => ({ ...s, [p.cylinder_type_id]: e.target.value }))}
                         />
+                        <Input
+                          type="number"
+                          min={0}
+                          className={cn(
+                            'h-9 w-[80px] num text-right',
+                            onlineOver ? 'border-bad text-bad' : '',
+                          )}
+                          placeholder="0"
+                          value={onlineQty[p.cylinder_type_id] ?? ''}
+                          onChange={(e) =>
+                            setOnlineQty((s) => ({ ...s, [p.cylinder_type_id]: e.target.value }))
+                          }
+                        />
                         <Money value={lineTotal} className="w-[90px] text-right font-display font-semibold text-ink" />
                       </div>
                     </div>
                   )
                 })}
                 <p className="text-[11px] text-muted pt-2">
-                  Empty back defaults to the number sold — change it if a different count came in.
+                  Empty back defaults to the number sold. Online = how many of those cylinders were
+                  billed online — the amount is worked out for you.
                 </p>
               </div>
             )}
@@ -363,10 +390,10 @@ export function SalesEntryPage() {
               <Input type="number" min={0} className="h-9 w-[120px] num text-right" placeholder="0" value={upi} onChange={(e) => setUpi(e.target.value)} />
             </div>
             <div className="flex items-center justify-between gap-3 mt-1">
-              <label className="text-[13px] font-medium text-ink">
+              <span className="text-[13px] font-medium text-ink">
                 Online <span className="text-[11px] text-muted font-normal">→ company</span>
-              </label>
-              <Input type="number" min={0} className="h-9 w-[120px] num text-right" placeholder="0" value={online} onChange={(e) => setOnline(e.target.value)} />
+              </span>
+              <Money value={onlineAmount} className="font-display font-bold text-ink" />
             </div>
             {isDelivery ? (
               <>
