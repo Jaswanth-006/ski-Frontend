@@ -81,9 +81,8 @@ export function DaySheetPage() {
         </span>
       ),
     },
-    { key: 'loaded', header: 'Loaded', numeric: true, render: (r) => r.loaded || <span className="text-muted">—</span> },
     { key: 'cyl', header: 'Sold', numeric: true, render: (r) => r.cylinders },
-    { key: 'returned', header: 'Returned', numeric: true, render: (r) => r.returned || <span className="text-muted">—</span> },
+    { key: 'empties', header: 'Empty back', numeric: true, render: (r) => r.empties || <span className="text-muted">—</span> },
     ...noteValues.map(
       (v): Column<DaySheetRow> => ({
         key: `n${v}`,
@@ -168,9 +167,8 @@ export function DaySheetPage() {
               sheet
                 ? [
                     'Total',
-                    sheet.stock.loaded,
                     sheet.totals.cylinders,
-                    sheet.stock.returned,
+                    sheet.totals.empties,
                     ...sheet.denomination_totals.map((d) => d.note_count),
                     <Money key="c" value={Number(sheet.totals.cash)} bare />,
                     <Money key="u" value={Number(sheet.totals.upi)} bare />,

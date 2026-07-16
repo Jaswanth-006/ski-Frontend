@@ -11,6 +11,7 @@ export interface SaleLineOut {
   code: string;
   label: string;
   qty: number;
+  empty_qty: number;
   /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   unit_price: string;
   /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */

@@ -8,6 +8,7 @@
 
 export interface DaySheetTotals {
   cylinders: number;
+  empties: number;
   /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   cash: string;
   /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */

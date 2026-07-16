@@ -7,6 +7,7 @@ import { z } from 'zod'
 import {
   getListCylinderTypesV1CylinderTypesGetQueryKey,
   useCreateCylinderTypeV1CylinderTypesPost,
+  useDeleteCylinderTypeV1CylinderTypesTypeIdDelete,
   useListCylinderTypesV1CylinderTypesGet,
   useUpdateCylinderTypeV1CylinderTypesTypeIdPatch,
 } from '@/api/generated/catalog/catalog'
@@ -32,6 +33,7 @@ export function CatalogPage() {
 
   const listQuery = useListCylinderTypesV1CylinderTypesGet(ALL_PARAMS)
   const patchMutation = useUpdateCylinderTypeV1CylinderTypesTypeIdPatch()
+  const deleteMutation = useDeleteCylinderTypeV1CylinderTypesTypeIdDelete()
 
   const envelope = listQuery.data
   const types: CylinderTypeOut[] = envelope && envelope.status === 200 ? envelope.data : []
@@ -43,6 +45,16 @@ export function CatalogPage() {
 
   const toggleActive = async (row: CylinderTypeOut) => {
     await patchMutation.mutateAsync({ typeId: row.id, data: { is_active: !row.is_active } })
+    await invalidate()
+  }
+
+  const remove = async (row: CylinderTypeOut) => {
+    if (!window.confirm(`Delete "${row.label}"? This can't be undone.`)) return
+    const res = await deleteMutation.mutateAsync({ typeId: row.id })
+    if ((res.status as number) === 409) {
+      window.alert('This variety is used by prices, stock, or sales — deactivate it instead.')
+      return
+    }
     await invalidate()
   }
 
@@ -78,6 +90,14 @@ export function CatalogPage() {
             onClick={() => toggleActive(t)}
           >
             {t.is_active ? 'Deactivate' : 'Reactivate'}
+          </Button>
+          <Button
+            variant="ghost"
+            className="h-8 px-3 text-[12px] text-bad hover:bg-badbg"
+            disabled={deleteMutation.isPending}
+            onClick={() => remove(t)}
+          >
+            Delete
           </Button>
         </div>
       ),

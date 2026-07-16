@@ -34,6 +34,7 @@ export function SalesEntryPage() {
   const [driverId, setDriverId] = useState('')
   const [customerId, setCustomerId] = useState('')
   const [qty, setQty] = useState<Record<string, string>>({})
+  const [empties, setEmpties] = useState<Record<string, string>>({})
   const [notes, setNotes] = useState<Record<number, string>>({})
   const [upi, setUpi] = useState('')
   const [online, setOnline] = useState('')
@@ -93,7 +94,15 @@ export function SalesEntryPage() {
     setResult(null)
     const lines = priced
       .filter((p) => num(qty[p.cylinder_type_id]) > 0)
-      .map((p) => ({ cylinder_type_id: p.cylinder_type_id, qty: num(qty[p.cylinder_type_id]) }))
+      .map((p) => ({
+        cylinder_type_id: p.cylinder_type_id,
+        qty: num(qty[p.cylinder_type_id]),
+        // Empty back defaults to the number sold when left blank.
+        empty_qty:
+          empties[p.cylinder_type_id] === undefined || empties[p.cylinder_type_id] === ''
+            ? num(qty[p.cylinder_type_id])
+            : num(empties[p.cylinder_type_id]),
+      }))
     if (isDelivery && !driverId) return setResult({ ok: false, message: 'Select a delivery person.' })
     if (!isDelivery && !customerId) return setResult({ ok: false, message: 'Select a customer.' })
     if (lines.length === 0) return setResult({ ok: false, message: 'Enter at least one cylinder.' })
@@ -141,6 +150,7 @@ export function SalesEntryPage() {
 
     setResult({ ok: true, message: 'Sale moved to the day sheet.' })
     setQty({})
+    setEmpties({})
     setNotes({})
     setUpi('')
     setOnline('')
@@ -156,20 +166,14 @@ export function SalesEntryPage() {
         <div className="p-[18px] flex flex-wrap items-end gap-5">
           <div>
             <label className="block text-[13px] font-medium text-ink mb-1.5">Sold to</label>
-            <div className="flex rounded-lg border border-line overflow-hidden w-fit">
-              {(['delivery', 'customer'] as PartyKind[]).map((k) => (
-                <button
-                  key={k}
-                  onClick={() => setPartyKind(k)}
-                  className={cn(
-                    'px-3.5 py-2 text-[13px] font-medium transition-colors',
-                    partyKind === k ? 'bg-orange text-white' : 'text-muted hover:bg-surface',
-                  )}
-                >
-                  {k === 'delivery' ? 'Delivery boy' : 'Customer'}
-                </button>
-              ))}
-            </div>
+            <Select
+              value={partyKind}
+              onChange={(e) => setPartyKind(e.target.value as PartyKind)}
+              className="w-[160px]"
+            >
+              <option value="delivery">Delivery boy</option>
+              <option value="customer">Customer</option>
+            </Select>
           </div>
           {isDelivery ? (
             <div className="min-w-[220px]">
@@ -221,6 +225,11 @@ export function SalesEntryPage() {
               </div>
             ) : (
               <div className="px-[18px] pb-4 pt-1 flex flex-col">
+                <div className="flex items-center justify-end gap-3 pb-1 text-[10.5px] uppercase tracking-[.05em] text-muted font-semibold">
+                  <span className="w-[80px] text-center">Sold</span>
+                  <span className="w-[80px] text-center">Empty back</span>
+                  <span className="w-[90px] text-right">Total</span>
+                </div>
                 {priced.map((p) => {
                   const lineTotal = num(qty[p.cylinder_type_id]) * (Number(p.unit_price) + boyExtra)
                   return (
@@ -238,16 +247,27 @@ export function SalesEntryPage() {
                         <Input
                           type="number"
                           min={0}
-                          className="h-9 w-[90px] num text-right"
+                          className="h-9 w-[80px] num text-right"
                           placeholder="0"
                           value={qty[p.cylinder_type_id] ?? ''}
                           onChange={(e) => setQty((s) => ({ ...s, [p.cylinder_type_id]: e.target.value }))}
+                        />
+                        <Input
+                          type="number"
+                          min={0}
+                          className="h-9 w-[80px] num text-right"
+                          placeholder={qty[p.cylinder_type_id] || '0'}
+                          value={empties[p.cylinder_type_id] ?? ''}
+                          onChange={(e) => setEmpties((s) => ({ ...s, [p.cylinder_type_id]: e.target.value }))}
                         />
                         <Money value={lineTotal} className="w-[90px] text-right font-display font-semibold text-ink" />
                       </div>
                     </div>
                   )
                 })}
+                <p className="text-[11px] text-muted pt-2">
+                  Empty back defaults to the number sold — change it if a different count came in.
+                </p>
               </div>
             )}
           </Card>
@@ -351,9 +371,7 @@ export function SalesEntryPage() {
             {isDelivery ? (
               <>
                 <div className="flex items-center justify-between gap-3 mt-1">
-                  <label className="text-[13px] font-medium text-ink">
-                    Balance <span className="text-[11px] text-muted font-normal">boy owes</span>
-                  </label>
+                  <label className="text-[13px] font-medium text-ink">Balance</label>
                   <Input
                     type="number"
                     min={0}
@@ -371,9 +389,6 @@ export function SalesEntryPage() {
                     + Add <Money value={shortfall} bare /> to balance
                   </button>
                 ) : null}
-                <p className="text-[11px] text-muted mt-0.5">
-                  The notes above are what he hands in; anything he keeps goes to his balance.
-                </p>
               </>
             ) : null}
           </div>

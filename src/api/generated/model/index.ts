@@ -149,6 +149,7 @@ export * from './saleCreateDeliveryId';
 export * from './saleCreateOnlineTotal';
 export * from './saleCreateUpiTotal';
 export * from './saleLineIn';
+export * from './saleLineInEmptyQty';
 export * from './saleLineOut';
 export * from './saleOut';
 export * from './saleOutCustomerId';
