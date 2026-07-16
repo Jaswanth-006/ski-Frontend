@@ -143,6 +143,7 @@ export * from './readyzReadyzGet200';
 export * from './refreshRequest';
 export * from './rootGet200';
 export * from './saleCreate';
+export * from './saleCreateBalanceTotal';
 export * from './saleCreateCustomerId';
 export * from './saleCreateDeliveryId';
 export * from './saleCreateOnlineTotal';
