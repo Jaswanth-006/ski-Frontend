@@ -12,9 +12,9 @@ import { DepositsPage } from '@/features/deposits/DepositsPage'
 import { ExpensesPage } from '@/features/expenses/ExpensesPage'
 import { LoginPage } from '@/features/auth/LoginPage'
 import { MonthSheetPage } from '@/features/month-sheet/MonthSheetPage'
+import { PurchasePage } from '@/features/purchase/PurchasePage'
 import { ReportsPage } from '@/features/reports/ReportsPage'
 import { SalesEntryPage } from '@/features/sales/SalesEntryPage'
-import { StockPage } from '@/features/stock/StockPage'
 import { UsersPage } from '@/features/users/UsersPage'
 
 const OFFICE_AND_OWNER = ['super_admin', 'office_admin']
@@ -37,13 +37,14 @@ export function AppRoutes() {
 
       {/* Daily operations — owner + office */}
       <Route
-        path="/stock"
+        path="/purchase"
         element={
           <RoleGuard allow={OFFICE_AND_OWNER}>
-            <StockPage />
+            <PurchasePage />
           </RoleGuard>
         }
       />
+      <Route path="/stock" element={<Navigate to="/purchase" replace />} />
       <Route
         path="/sales/new"
         element={
