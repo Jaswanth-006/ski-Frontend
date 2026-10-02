@@ -31,6 +31,7 @@ import type {
   InventoryAdjust,
   InventoryOut,
   ListStockLoadsV1StockLoadsGetParams,
+  ReturnRequest,
   StockIntake,
   StockLoadOut,
   StockLoadUpsert,
@@ -350,6 +351,97 @@ export const useStockErvV1StockErvPost = <TError = HTTPValidationError,
       > => {
 
       const mutationOptions = getStockErvV1StockErvPostMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
+ * return — damaged or lost cylinders (full/empty) or accessories taken out of stock.
+ * @summary Stock Return
+ */
+export type stockReturnV1StockReturnPostResponse201 = {
+  data: StockOverview
+  status: 201
+}
+
+export type stockReturnV1StockReturnPostResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+    
+export type stockReturnV1StockReturnPostResponseSuccess = (stockReturnV1StockReturnPostResponse201) & {
+  headers: Headers;
+};
+export type stockReturnV1StockReturnPostResponseError = (stockReturnV1StockReturnPostResponse422) & {
+  headers: Headers;
+};
+
+export type stockReturnV1StockReturnPostResponse = (stockReturnV1StockReturnPostResponseSuccess | stockReturnV1StockReturnPostResponseError)
+
+export const getStockReturnV1StockReturnPostUrl = () => {
+
+
+  
+
+  return `/v1/stock/return`
+}
+
+export const stockReturnV1StockReturnPost = async (returnRequest: ReturnRequest, options?: RequestInit): Promise<stockReturnV1StockReturnPostResponse> => {
+  
+  return customFetch<stockReturnV1StockReturnPostResponse>(getStockReturnV1StockReturnPostUrl(),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      returnRequest,)
+  }
+);}
+
+
+
+
+export const getStockReturnV1StockReturnPostMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stockReturnV1StockReturnPost>>, TError,{data: ReturnRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof stockReturnV1StockReturnPost>>, TError,{data: ReturnRequest}, TContext> => {
+
+const mutationKey = ['stockReturnV1StockReturnPost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof stockReturnV1StockReturnPost>>, {data: ReturnRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  stockReturnV1StockReturnPost(data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StockReturnV1StockReturnPostMutationResult = NonNullable<Awaited<ReturnType<typeof stockReturnV1StockReturnPost>>>
+    export type StockReturnV1StockReturnPostMutationBody = ReturnRequest
+    export type StockReturnV1StockReturnPostMutationError = HTTPValidationError
+
+    /**
+ * @summary Stock Return
+ */
+export const useStockReturnV1StockReturnPost = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stockReturnV1StockReturnPost>>, TError,{data: ReturnRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof stockReturnV1StockReturnPost>>,
+        TError,
+        {data: ReturnRequest},
+        TContext
+      > => {
+
+      const mutationOptions = getStockReturnV1StockReturnPostMutationOptions(options);
 
       return useMutation(mutationOptions, queryClient);
     }
