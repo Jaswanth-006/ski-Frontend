@@ -121,7 +121,7 @@ export function CreditsPage() {
             title="Delivery boys who owe us"
             hint="From unpaid sale settlements"
             right={
-              <Button variant="ghost" className="h-8 px-3 text-[12px]" onClick={() => navigate('/delivery-balance')}>
+              <Button variant="ghost" className="h-8 px-3 text-[12px]" onClick={() => navigate('/balance')}>
                 Manage <ArrowRight size={14} />
               </Button>
             }

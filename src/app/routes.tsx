@@ -2,12 +2,12 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { RoleGuard } from '@/auth/RoleGuard'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { AuditPage } from '@/features/audit/AuditPage'
+import { BalancePage } from '@/features/balance/BalancePage'
 import { BankingPage } from '@/features/banking/BankingPage'
 import { CashierBoxPage } from '@/features/cashier-box/CashierBoxPage'
 import { CatalogPage } from '@/features/catalog/CatalogPage'
 import { CreditsPage } from '@/features/credits/CreditsPage'
 import { DaySheetPage } from '@/features/day-sheet/DaySheetPage'
-import { DeliveryBalancePage } from '@/features/delivery-balance/DeliveryBalancePage'
 import { DepositsPage } from '@/features/deposits/DepositsPage'
 import { ExpensesPage } from '@/features/expenses/ExpensesPage'
 import { LoginPage } from '@/features/auth/LoginPage'
@@ -94,13 +94,14 @@ export function AppRoutes() {
         }
       />
       <Route
-        path="/delivery-balance"
+        path="/balance"
         element={
           <RoleGuard allow={OFFICE_AND_OWNER}>
-            <DeliveryBalancePage />
+            <BalancePage />
           </RoleGuard>
         }
       />
+      <Route path="/delivery-balance" element={<Navigate to="/balance" replace />} />
       <Route
         path="/cashier-box"
         element={

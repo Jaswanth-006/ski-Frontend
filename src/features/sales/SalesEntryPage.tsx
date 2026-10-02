@@ -33,13 +33,17 @@ export function SalesEntryPage() {
   const [partyKind, setPartyKind] = useState<PartyKind>('delivery')
   const [driverId, setDriverId] = useState('')
   const [customerId, setCustomerId] = useState('')
+  const [invoiceNo, setInvoiceNo] = useState('')
+  // Cylinder lines, in the order they were added from the dropdown.
+  const [lineIds, setLineIds] = useState<string[]>([])
+  const [pickId, setPickId] = useState('')
+  const [pickQty, setPickQty] = useState('')
   const [qty, setQty] = useState<Record<string, string>>({})
   const [empties, setEmpties] = useState<Record<string, string>>({})
   const [notes, setNotes] = useState<Record<number, string>>({})
   const [upi, setUpi] = useState('')
   const [onlineQty, setOnlineQty] = useState<Record<string, string>>({})
   const [expenseRows, setExpenseRows] = useState<ExpenseRow[]>([])
-  const [balanceInput, setBalanceInput] = useState('')
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null)
 
   const isDelivery = partyKind === 'delivery'
@@ -58,36 +62,59 @@ export function SalesEntryPage() {
   const priced: PriceOut[] = (
     pricesQuery.data?.status === 200 ? pricesQuery.data.data : []
   ).filter((p) => p.unit_price != null)
+  // Only the cylinders added as lines take part in the sale.
+  const lines: PriceOut[] = lineIds
+    .map((id) => priced.find((p) => p.cylinder_type_id === id))
+    .filter((p): p is PriceOut => p !== undefined)
   const drivers: UserOut[] = driversQuery.data?.status === 200 ? driversQuery.data.data : []
   const customers: CustomerOut[] = customersQuery.data?.status === 200 ? customersQuery.data.data : []
   const items: ExpenseItemOut[] = itemsQuery.data?.status === 200 ? itemsQuery.data.data : []
 
   const revenue = useMemo(
     () =>
-      priced.reduce(
+      lines.reduce(
         (sum, p) => sum + num(qty[p.cylinder_type_id]) * (Number(p.unit_price) + boyExtra),
         0,
       ),
-    [priced, qty, boyExtra],
+    [lines, qty, boyExtra],
   )
   const cashTotal = useMemo(() => NOTES.reduce((sum, n) => sum + n * num(notes[n]), 0), [notes])
   // Online is billed per cylinder: count them and the amount works itself out.
   const onlineAmount = useMemo(
     () =>
-      priced.reduce(
+      lines.reduce(
         (sum, p) => sum + num(onlineQty[p.cylinder_type_id]) * (Number(p.unit_price) + boyExtra),
         0,
       ),
-    [priced, onlineQty, boyExtra],
+    [lines, onlineQty, boyExtra],
   )
   const settled = cashTotal + num(upi) // cash + upi handed in
-  const balance = isDelivery ? num(balanceInput) : 0 // uncollected — the boy owes it
+  // Whatever isn't paid becomes the balance the boy / customer owes — worked out, not typed.
+  const balance = Math.max(0, Math.round((revenue - settled - onlineAmount) * 100) / 100)
   const collected = settled + onlineAmount + balance // full sale = cash + upi + online + balance
-  const cylindersSold = priced.reduce((s, p) => s + num(qty[p.cylinder_type_id]), 0)
+  const cylindersSold = lines.reduce((s, p) => s + num(qty[p.cylinder_type_id]), 0)
+  // Only an overpayment can leave the sale unbalanced now.
   const reconciled = revenue > 0 && Math.abs(collected - revenue) < 0.005
   const difference = collected - revenue
-  // What's still unaccounted (before balance) — offered as "add to balance".
-  const shortfall = Math.max(0, revenue - settled - onlineAmount - balance)
+  const invoice = invoiceNo.trim()
+
+  const addLine = () => {
+    if (!pickId || num(pickQty) <= 0) return
+    setLineIds((ids) => (ids.includes(pickId) ? ids : [...ids, pickId]))
+    setQty((s) => ({ ...s, [pickId]: String(num(s[pickId]) + num(pickQty)) }))
+    setPickId('')
+    setPickQty('')
+  }
+  const removeLine = (id: string) => {
+    setLineIds((ids) => ids.filter((x) => x !== id))
+    for (const set of [setQty, setEmpties, setOnlineQty]) {
+      set((s) => {
+        const next = { ...s }
+        delete next[id]
+        return next
+      })
+    }
+  }
 
   const expensesTotal = expenseRows.reduce((s, r) => s + num(r.amount), 0)
 
@@ -101,7 +128,7 @@ export function SalesEntryPage() {
 
   const submit = async () => {
     setResult(null)
-    const lines = priced
+    const saleLines = lines
       .filter((p) => num(qty[p.cylinder_type_id]) > 0)
       .map((p) => ({
         cylinder_type_id: p.cylinder_type_id,
@@ -114,7 +141,8 @@ export function SalesEntryPage() {
       }))
     if (isDelivery && !driverId) return setResult({ ok: false, message: 'Select a delivery person.' })
     if (!isDelivery && !customerId) return setResult({ ok: false, message: 'Select a customer.' })
-    if (lines.length === 0) return setResult({ ok: false, message: 'Enter at least one cylinder.' })
+    if (!invoice) return setResult({ ok: false, message: 'Enter the invoice number.' })
+    if (saleLines.length === 0) return setResult({ ok: false, message: 'Add at least one cylinder.' })
 
     const denominations = NOTES.filter((n) => num(notes[n]) > 0).map((n) => ({
       note_value: n,
@@ -122,13 +150,14 @@ export function SalesEntryPage() {
     }))
 
     const res = await createSale.mutateAsync({
+      invoice_no: invoice,
       ...(isDelivery ? { delivery_id: driverId } : { customer_id: customerId }),
       business_date: date,
-      lines,
+      lines: saleLines,
       denominations,
       upi_total: num(upi),
       online_total: onlineAmount,
-      balance_total: balance, // backend charges this to the boy's balance
+      balance_total: balance, // backend charges this to the boy's / customer's balance
     })
     const status = res.status as number
     if (status !== 201) {
@@ -157,14 +186,15 @@ export function SalesEntryPage() {
       }
     }
 
-    setResult({ ok: true, message: 'Sale moved to the day sheet.' })
+    setResult({ ok: true, message: `Sale ${invoice} moved to the day sheet.` })
+    setInvoiceNo('')
+    setLineIds([])
     setQty({})
     setEmpties({})
     setNotes({})
     setUpi('')
     setOnlineQty({})
     setExpenseRows([])
-    setBalanceInput('')
     await queryClient.invalidateQueries()
   }
 
@@ -216,6 +246,18 @@ export function SalesEntryPage() {
             <label className="block text-[13px] font-medium text-ink mb-1.5">Business date</label>
             <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-[160px]" />
           </div>
+          <div>
+            <label className="block text-[13px] font-medium text-ink mb-1.5">
+              Invoice number <span className="text-bad">*</span>
+            </label>
+            <Input
+              value={invoiceNo}
+              onChange={(e) => setInvoiceNo(e.target.value)}
+              maxLength={50}
+              placeholder="e.g. 10452"
+              className="w-[180px]"
+            />
+          </div>
         </div>
       </Card>
 
@@ -233,68 +275,129 @@ export function SalesEntryPage() {
                 No prices set for this date. Set them under Master Catalog → Pricing first.
               </div>
             ) : (
-              <div className="px-[18px] pb-4 pt-1 flex flex-col">
-                <div className="flex items-center justify-end gap-3 pb-1 text-[10.5px] uppercase tracking-[.05em] text-muted font-semibold">
-                  <span className="w-[80px] text-center">Sold</span>
-                  <span className="w-[80px] text-center">Empty back</span>
-                  <span className="w-[80px] text-center">Online</span>
-                  <span className="w-[90px] text-right">Total</span>
+              <div className="px-[18px] pb-4 pt-2 flex flex-col">
+                {/* Pick a cylinder + quantity, then Add — same as Purchase. */}
+                <div className="flex flex-wrap items-end gap-2 pb-3">
+                  <div className="flex-1 min-w-[200px]">
+                    <label className="block text-[12px] font-medium text-muted mb-1">Cylinder</label>
+                    <Select value={pickId} onChange={(e) => setPickId(e.target.value)} className="h-9">
+                      <option value="">Select cylinder…</option>
+                      {priced.map((p) => (
+                        <option key={p.cylinder_type_id} value={p.cylinder_type_id}>
+                          {p.label} ({p.code}) — ₹{Number(p.unit_price) + boyExtra}
+                          {lineIds.includes(p.cylinder_type_id) ? ' · added' : ''}
+                        </option>
+                      ))}
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="block text-[12px] font-medium text-muted mb-1">Quantity</label>
+                    <Input
+                      type="number"
+                      min={1}
+                      className="h-9 w-[100px] num text-right"
+                      placeholder="0"
+                      value={pickQty}
+                      onChange={(e) => setPickQty(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') addLine()
+                      }}
+                    />
+                  </div>
+                  <Button
+                    variant="ghost"
+                    className="h-9 px-3"
+                    onClick={addLine}
+                    disabled={!pickId || num(pickQty) <= 0}
+                  >
+                    <Plus size={15} /> Add
+                  </Button>
                 </div>
-                {priced.map((p) => {
-                  const unit = Number(p.unit_price) + boyExtra
-                  const lineTotal = num(qty[p.cylinder_type_id]) * unit
-                  const onlineOver =
-                    num(onlineQty[p.cylinder_type_id]) > num(qty[p.cylinder_type_id])
-                  return (
-                    <div key={p.cylinder_type_id} className="flex items-center justify-between gap-3 py-2.5 border-b border-line last:border-0">
-                      <div className="min-w-0">
-                        <div className="text-[13.5px] font-medium text-ink">{p.label}</div>
-                        <div className="text-[11.5px] text-muted num">
-                          {p.code} · <Money value={Number(p.unit_price)} />/unit
-                          {boyExtra > 0 ? (
-                            <span className="text-orange"> + <Money value={boyExtra} /> other</span>
-                          ) : null}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Input
-                          type="number"
-                          min={0}
-                          className="h-9 w-[80px] num text-right"
-                          placeholder="0"
-                          value={qty[p.cylinder_type_id] ?? ''}
-                          onChange={(e) => setQty((s) => ({ ...s, [p.cylinder_type_id]: e.target.value }))}
-                        />
-                        <Input
-                          type="number"
-                          min={0}
-                          className="h-9 w-[80px] num text-right"
-                          placeholder={qty[p.cylinder_type_id] || '0'}
-                          value={empties[p.cylinder_type_id] ?? ''}
-                          onChange={(e) => setEmpties((s) => ({ ...s, [p.cylinder_type_id]: e.target.value }))}
-                        />
-                        <Input
-                          type="number"
-                          min={0}
-                          className={cn(
-                            'h-9 w-[80px] num text-right',
-                            onlineOver ? 'border-bad text-bad' : '',
-                          )}
-                          placeholder="0"
-                          value={onlineQty[p.cylinder_type_id] ?? ''}
-                          onChange={(e) =>
-                            setOnlineQty((s) => ({ ...s, [p.cylinder_type_id]: e.target.value }))
-                          }
-                        />
-                        <Money value={lineTotal} className="w-[90px] text-right font-display font-semibold text-ink" />
-                      </div>
+
+                {lines.length === 0 ? (
+                  <p className="text-[12.5px] text-muted py-2 border-t border-line">
+                    No cylinders yet. Pick one, enter the quantity and click Add.
+                  </p>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-end gap-3 pb-1 pt-2 border-t border-line text-[10.5px] uppercase tracking-[.05em] text-muted font-semibold">
+                      <span className="w-[72px] text-center">Sold</span>
+                      <span className="w-[72px] text-center">Empty back</span>
+                      <span className="w-[72px] text-center">Online</span>
+                      <span className="w-[90px] text-right">Total</span>
+                      <span className="w-8" />
                     </div>
-                  )
-                })}
-                <p className="text-[11px] text-muted pt-2">
-                  Empty back defaults to the number sold. Online = how many of those cylinders were
-                  billed online — the amount is worked out for you.
-                </p>
+                    {lines.map((p) => {
+                      const unit = Number(p.unit_price) + boyExtra
+                      const lineTotal = num(qty[p.cylinder_type_id]) * unit
+                      const onlineOver =
+                        num(onlineQty[p.cylinder_type_id]) > num(qty[p.cylinder_type_id])
+                      return (
+                        <div
+                          key={p.cylinder_type_id}
+                          className="flex items-center justify-between gap-3 py-2.5 border-b border-line last:border-0"
+                        >
+                          <div className="min-w-0">
+                            <div className="text-[13.5px] font-medium text-ink">{p.label}</div>
+                            <div className="text-[11.5px] text-muted num">
+                              {p.code} · <Money value={Number(p.unit_price)} />/unit
+                              {boyExtra > 0 ? (
+                                <span className="text-orange"> + <Money value={boyExtra} /> other</span>
+                              ) : null}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <Input
+                              type="number"
+                              min={0}
+                              aria-label={`${p.label} sold`}
+                              className="h-9 w-[72px] num text-right"
+                              placeholder="0"
+                              value={qty[p.cylinder_type_id] ?? ''}
+                              onChange={(e) => setQty((s) => ({ ...s, [p.cylinder_type_id]: e.target.value }))}
+                            />
+                            <Input
+                              type="number"
+                              min={0}
+                              aria-label={`${p.label} empty back`}
+                              className="h-9 w-[72px] num text-right"
+                              placeholder={qty[p.cylinder_type_id] || '0'}
+                              value={empties[p.cylinder_type_id] ?? ''}
+                              onChange={(e) => setEmpties((s) => ({ ...s, [p.cylinder_type_id]: e.target.value }))}
+                            />
+                            <Input
+                              type="number"
+                              min={0}
+                              aria-label={`${p.label} online`}
+                              className={cn(
+                                'h-9 w-[72px] num text-right',
+                                onlineOver ? 'border-bad text-bad' : '',
+                              )}
+                              placeholder="0"
+                              value={onlineQty[p.cylinder_type_id] ?? ''}
+                              onChange={(e) =>
+                                setOnlineQty((s) => ({ ...s, [p.cylinder_type_id]: e.target.value }))
+                              }
+                            />
+                            <Money value={lineTotal} className="w-[90px] text-right font-display font-semibold text-ink" />
+                            <Button
+                              variant="ghost"
+                              className="h-8 w-8 px-0"
+                              aria-label={`Remove ${p.label}`}
+                              onClick={() => removeLine(p.cylinder_type_id)}
+                            >
+                              <X size={15} />
+                            </Button>
+                          </div>
+                        </div>
+                      )
+                    })}
+                    <p className="text-[11px] text-muted pt-2">
+                      Empty back defaults to the number sold. Online = how many of those cylinders were
+                      billed online — the amount is worked out for you.
+                    </p>
+                  </>
+                )}
               </div>
             )}
           </Card>
@@ -395,29 +498,18 @@ export function SalesEntryPage() {
               </span>
               <Money value={onlineAmount} className="font-display font-bold text-ink" />
             </div>
-            {isDelivery ? (
-              <>
-                <div className="flex items-center justify-between gap-3 mt-1">
-                  <label className="text-[13px] font-medium text-ink">Balance</label>
-                  <Input
-                    type="number"
-                    min={0}
-                    className="h-9 w-[120px] num text-right"
-                    placeholder="0"
-                    value={balanceInput}
-                    onChange={(e) => setBalanceInput(e.target.value)}
-                  />
-                </div>
-                {shortfall > 0 ? (
-                  <button
-                    onClick={() => setBalanceInput(String(num(balanceInput) + shortfall))}
-                    className="mt-1 self-end text-[12px] font-semibold text-orange hover:underline"
-                  >
-                    + Add <Money value={shortfall} bare /> to balance
-                  </button>
-                ) : null}
-              </>
-            ) : null}
+            <div className="flex items-center justify-between gap-3 mt-1">
+              <span className="text-[13px] font-medium text-ink">
+                Balance{' '}
+                <span className="text-[11px] text-muted font-normal">
+                  → {isDelivery ? 'delivery boy' : 'customer'} owes · auto
+                </span>
+              </span>
+              <Money
+                value={balance}
+                className={cn('font-display font-bold', balance > 0 ? 'text-bad' : 'text-ink')}
+              />
+            </div>
           </div>
         </Card>
       </div>
@@ -431,7 +523,7 @@ export function SalesEntryPage() {
               <Money value={revenue} className="font-display font-extrabold text-[18px] text-ink" />
             </div>
             <div>
-              <div className="text-[11.5px] text-muted">Collected (cash+UPI+online)</div>
+              <div className="text-[11.5px] text-muted">Accounted (cash+UPI+online+balance)</div>
               <Money value={collected} className="font-display font-extrabold text-[18px] text-ink" />
             </div>
             <div>
@@ -449,7 +541,7 @@ export function SalesEntryPage() {
               )}
             </div>
           </div>
-          <Button variant="primary" onClick={submit} disabled={createSale.isPending || !reconciled || cylindersSold === 0}>
+          <Button variant="primary" onClick={submit} disabled={createSale.isPending || !reconciled || cylindersSold === 0 || !invoice}>
             {createSale.isPending ? 'Posting…' : 'Move to Day Sheet'}
             <ArrowRight size={16} />
           </Button>
