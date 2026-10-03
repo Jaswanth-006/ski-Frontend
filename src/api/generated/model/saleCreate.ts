@@ -14,6 +14,11 @@ import type { SaleCreateOnlineTotal } from './saleCreateOnlineTotal';
 import type { SaleCreateBalanceTotal } from './saleCreateBalanceTotal';
 
 export interface SaleCreate {
+  /**
+   * @minLength 1
+   * @maxLength 50
+   */
+  invoice_no: string;
   delivery_id?: SaleCreateDeliveryId;
   customer_id?: SaleCreateCustomerId;
   business_date: string;
