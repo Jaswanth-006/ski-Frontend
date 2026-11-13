@@ -30,8 +30,8 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { BrandMark } from '@/components/app/BrandMark'
 import { cn } from '@/lib/cn'
 import { AGENCY } from './agency'
-import { Cylinder } from './Cylinder'
 import { focusLogin } from './focusLogin'
+import { PHOTO_CREDITS, PHOTOS } from './photos'
 
 const NAV = [
   { href: '#home', label: 'Home' },
@@ -238,19 +238,23 @@ export function Hero({ loginCard }: { loginCard: ReactNode }) {
 
         <div className="relative">
           <motion.div
-            aria-hidden="true"
-            className="absolute -left-20 bottom-0 hidden w-36 xl:block"
-            animate={reduceMotion ? undefined : { y: [0, -10, 0] }}
-            transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-          >
-            <Cylinder />
-          </motion.div>
-          <motion.div
             initial={reduceMotion ? false : { opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.15 }}
             className="relative mx-auto w-full max-w-[400px] lg:mr-0"
           >
+            <motion.div
+              className="absolute -left-52 top-52 hidden xl:block"
+              animate={reduceMotion ? undefined : { y: [0, -12, 0] }}
+              transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <span className="absolute -inset-4 rounded-full border-2 border-dashed border-orange/50" />
+              <img
+                src={PHOTOS.cylinderHero}
+                alt="Red Indane domestic LPG cylinder"
+                className="relative h-40 w-40 rounded-full object-cover object-[50%_45%] shadow-2xl ring-8 ring-white/15"
+              />
+            </motion.div>
             {loginCard}
           </motion.div>
         </div>
@@ -304,17 +308,13 @@ export function About() {
       <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-2">
         <InView>
           <div className="relative mx-auto aspect-square w-full max-w-[440px]">
-            <div className="absolute inset-0 rounded-[28px] bg-navy" />
-            <div
-              aria-hidden="true"
-              className="absolute inset-0 rounded-[28px] opacity-60"
-              style={{ backgroundImage: 'radial-gradient(70% 70% at 70% 20%, rgba(242,101,34,.45), transparent 60%)' }}
+            <div className="absolute -left-4 -top-4 h-full w-full rounded-[28px] bg-navy" />
+            <img
+              src={PHOTOS.cylinderPair}
+              alt="Indane 14.2 kg and 5 kg cylinders side by side"
+              loading="lazy"
+              className="absolute inset-0 h-full w-full rounded-[28px] object-cover shadow-card"
             />
-            <div className="absolute inset-0 flex items-end justify-center gap-2 pb-10">
-              <Cylinder className="w-24" squat />
-              <Cylinder className="w-36" />
-              <Cylinder className="w-28" />
-            </div>
             <div className="absolute -bottom-6 -right-2 rounded-xl bg-orange px-5 py-4 text-white shadow-primary sm:-right-6">
               <p className="font-display text-[26px] font-extrabold leading-none">Indane</p>
               <p className="mt-1 text-[12px] text-white/85">IndianOil LPG</p>
@@ -444,10 +444,9 @@ export function Counters() {
 /* ---------- cylinders ---------- */
 
 const CYLINDERS = [
-  { size: '14.2 kg', name: 'Domestic', use: 'Standard home kitchen refill', tag: 'Most booked', scale: 'w-24' },
-  { size: '5 kg', name: 'FTL / Chhotu', use: 'Free-trade, easy to carry', tag: 'Portable', scale: 'w-[86px]', squat: true },
-  { size: '19 kg', name: 'Commercial', use: 'Hotels, tea stalls and shops', tag: 'Business', scale: 'w-[104px]' },
-  { size: '47.5 kg', name: 'Commercial', use: 'Large kitchens and industry', tag: 'Bulk', scale: 'w-28' },
+  { size: '14.2 kg', name: 'Domestic', use: 'The standard home kitchen refill, booked through Indane.', tag: 'Most booked', photo: PHOTOS.cylinderDomestic },
+  { size: '5 kg', name: 'FTL / Chhotu', use: 'Free-trade and easy to carry, for students and small homes.', tag: 'Portable', photo: PHOTOS.cylinder5kg },
+  { size: '19 · 47.5 kg', name: 'Commercial', use: 'Hotels, tea stalls, shops and large kitchens.', tag: 'Business', photo: PHOTOS.cylinderStack },
 ]
 
 export function Cylinders() {
@@ -455,15 +454,20 @@ export function Cylinders() {
     <section id="cylinders" className="scroll-mt-20 px-5 py-20">
       <div className="mx-auto max-w-6xl">
         <SectionHead eyebrow="Our cylinders" title="Indane cylinders for every kitchen" />
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {CYLINDERS.map((c, i) => (
             <InView key={c.size} delay={i * 0.08}>
               <div className="group h-full overflow-hidden rounded-xl border border-line bg-white shadow-card">
-                <div className="relative flex h-52 items-end justify-center bg-gradient-to-b from-orange-50 to-white pb-4">
-                  <span className="absolute left-4 top-4 rounded-full bg-navy px-2.5 py-1 text-[11px] font-semibold text-white">
+                <div className="relative h-60 overflow-hidden">
+                  <img
+                    src={c.photo}
+                    alt={`Indane ${c.size} ${c.name.toLowerCase()} cylinder`}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <span className="absolute left-4 top-4 rounded-full bg-orange px-2.5 py-1 text-[11px] font-semibold text-white shadow-primary">
                     {c.tag}
                   </span>
-                  <Cylinder className={cn(c.scale, 'transition-transform duration-500 group-hover:-translate-y-2')} squat={c.squat} />
                 </div>
                 <div className="p-5">
                   <p className="font-display text-[22px] font-extrabold text-navy">{c.size}</p>
@@ -481,33 +485,45 @@ export function Cylinders() {
 
 /* ---------- gallery ---------- */
 
-const GALLERY: { icon: LucideIcon; title: string; sub: string; span?: string; tone: string }[] = [
-  { icon: Warehouse, title: 'Godown', sub: 'Stock & loading', span: 'lg:col-span-2 lg:row-span-2', tone: 'from-navy to-navy-700' },
-  { icon: Truck, title: 'Delivery fleet', sub: 'Doorstep supply', tone: 'from-orange to-orange-600' },
-  { icon: Store, title: 'Showroom', sub: 'Bookings & KYC', tone: 'from-navy-700 to-navy-900' },
-  { icon: Wrench, title: 'Safety checks', sub: 'Hose & regulator', tone: 'from-navy-900 to-navy' },
-  { icon: Users, title: 'Our team', sub: 'Office & delivery', tone: 'from-orange-600 to-orange' },
+const GALLERY: { icon: LucideIcon; title: string; sub: string; photo?: string; span?: string }[] = [
+  { icon: Warehouse, title: 'Sealed & stacked', sub: 'Indane refills ready to go out', photo: PHOTOS.cylinderStack, span: 'lg:col-span-2 lg:row-span-2' },
+  { icon: Truck, title: 'Out for delivery', sub: 'Loaded carrier on its round', photo: PHOTOS.deliveryVehicle },
+  { icon: Store, title: 'Distributor outlet', sub: 'Bookings, KYC & refills', photo: PHOTOS.shopfront },
+  { icon: Users, title: 'Doorstep supply', sub: 'Cylinders by cycle and van', photo: PHOTOS.distribution },
+  { icon: Wrench, title: 'Safety checks', sub: 'Hose, regulator & stove' },
 ]
 
 export function Gallery() {
   return (
     <section className="bg-white px-5 py-20">
       <div className="mx-auto max-w-6xl">
-        <SectionHead eyebrow="Gallery" title="A look around the agency" />
-        <div className="grid auto-rows-[170px] gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <SectionHead eyebrow="Gallery" title="From the godown to every kitchen" />
+        <div className="grid auto-rows-[190px] gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {GALLERY.map((g, i) => (
             <InView key={g.title} delay={i * 0.06} className={g.span}>
-              <div className={cn('group relative h-full overflow-hidden rounded-xl bg-gradient-to-br p-6 text-white', g.tone)}>
-                <g.icon
-                  aria-hidden="true"
-                  className="absolute -bottom-6 -right-6 h-40 w-40 opacity-15 transition-transform duration-500 group-hover:scale-110"
-                />
+              <div className="group relative h-full overflow-hidden rounded-xl bg-gradient-to-br from-orange to-orange-600 p-6 text-white">
+                {g.photo ? (
+                  <>
+                    <img
+                      src={g.photo}
+                      alt={g.sub}
+                      loading="lazy"
+                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
+                    <span className="absolute inset-0 bg-gradient-to-t from-navy-900/90 via-navy-900/25 to-transparent" />
+                  </>
+                ) : (
+                  <g.icon
+                    aria-hidden="true"
+                    className="absolute -bottom-6 -right-6 h-40 w-40 opacity-15 transition-transform duration-500 group-hover:scale-110"
+                  />
+                )}
                 <div className="relative flex h-full flex-col justify-end">
-                  <span className="mb-3 grid h-11 w-11 place-items-center rounded-[12px] bg-white/15 backdrop-blur">
+                  <span className="mb-3 grid h-10 w-10 place-items-center rounded-[12px] bg-white/15 backdrop-blur">
                     <g.icon className="h-5 w-5" />
                   </span>
                   <p className="font-display text-[19px] font-bold">{g.title}</p>
-                  <p className="text-[13px] text-white/75">{g.sub}</p>
+                  <p className="text-[13px] text-white/80">{g.sub}</p>
                 </div>
               </div>
             </InView>
@@ -712,6 +728,23 @@ export function Footer() {
           <p>© {new Date().getFullYear()} {AGENCY.name}. All rights reserved.</p>
           <p>Operations dashboard · Ski</p>
         </div>
+        <details className="mx-auto max-w-6xl pb-5 text-[11.5px] text-white/50">
+          <summary className="cursor-pointer hover:text-white/80">Photo credits (Wikimedia Commons)</summary>
+          <ul className="mt-2 space-y-1">
+            {PHOTO_CREDITS.map((c) => (
+              <li key={c.url}>
+                <a href={c.url} target="_blank" rel="noreferrer" className="underline hover:text-white">
+                  {c.title}
+                </a>{' '}
+                by {c.author},{' '}
+                <a href={c.licenseUrl} target="_blank" rel="noreferrer" className="underline hover:text-white">
+                  {c.license}
+                </a>
+                , resized
+              </li>
+            ))}
+          </ul>
+        </details>
       </div>
     </footer>
   )
