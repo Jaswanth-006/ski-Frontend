@@ -1,17 +1,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import type { ReactNode } from 'react'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { SalesListPage } from './SalesListPage'
+import { MemoryRouter } from 'react-router-dom'
+import { InvoicesTab } from './InvoicesTab'
 
-vi.mock('@/components/app/AppShell', () => ({
-  AppShell: ({ title, children }: { title: string; children: ReactNode }) => (
-    <div>
-      <h1>{title}</h1>
-      {children}
-    </div>
-  ),
-}))
 
 const sale = (id: string, invoice: string, status: string, reason: string | null = null) => ({
   id,
@@ -48,7 +39,7 @@ const sale = (id: string, invoice: string, status: string, reason: string | null
   cancel_reason: reason,
 })
 
-describe('SalesListPage', () => {
+describe('Edit entries · Invoices tab', () => {
   let calls: { url: string; method: string; body: unknown }[]
 
   beforeEach(() => {
@@ -72,10 +63,8 @@ describe('SalesListPage', () => {
   it('lists invoices and cancels one with a reason', async () => {
     render(
       <QueryClientProvider client={new QueryClient()}>
-        <MemoryRouter initialEntries={['/sales?date=2026-11-13']}>
-          <Routes>
-            <Route path="/sales" element={<SalesListPage />} />
-          </Routes>
+        <MemoryRouter>
+          <InvoicesTab date="2026-11-13" />
         </MemoryRouter>
       </QueryClientProvider>,
     )

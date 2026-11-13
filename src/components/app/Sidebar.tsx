@@ -3,7 +3,6 @@ import {
   Boxes,
   CalendarRange,
   ClipboardList,
-  FileText,
   HandCoins,
   Landmark,
   Layers,
@@ -47,7 +46,6 @@ const NAV: NavGroup[] = [
     items: [
       { label: 'Purchase', icon: Boxes, to: '/purchase', roles: ALL },
       { label: 'Sales Entry', icon: Receipt, to: '/sales/new', roles: ALL },
-      { label: 'Invoices', icon: FileText, to: '/sales', end: true, roles: ALL },
       { label: 'Day Sheet', icon: ClipboardList, to: '/day-sheet', roles: ALL },
       { label: 'Month Sheet', icon: CalendarRange, to: '/month-sheet', roles: ALL },
       { label: 'Expenses', icon: Wallet, to: '/expenses', roles: ALL },

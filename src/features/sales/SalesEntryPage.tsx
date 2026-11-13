@@ -280,7 +280,9 @@ export function SalesEntryPage() {
 
     if (isEdit) {
       await queryClient.invalidateQueries()
-      navigate(`/sales?date=${date}`, { state: { flash: `Invoice ${invoice} updated.` } })
+      navigate(`/corrections?tab=invoices&date=${date}`, {
+        state: { flash: `Invoice ${invoice} updated.` },
+      })
       return
     }
 
@@ -337,7 +339,10 @@ export function SalesEntryPage() {
                 className="w-[260px]"
               />
             </div>
-            <Link to="/sales" className="text-[13px] font-medium text-muted hover:text-ink pb-2">
+            <Link
+              to={`/corrections?tab=invoices&date=${date}`}
+              className="text-[13px] font-medium text-muted hover:text-ink pb-2"
+            >
               Back to invoices
             </Link>
           </div>

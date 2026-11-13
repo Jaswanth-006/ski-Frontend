@@ -1,35 +1,27 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { Ban, Check, Loader2, Pencil, Plus } from 'lucide-react'
+import { Ban, Loader2, Pencil, Plus } from 'lucide-react'
 import { useState } from 'react'
-import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   useCancelSaleV1SalesSaleIdCancelPost,
   useListSalesV1SalesGet,
 } from '@/api/generated/sales/sales'
 import type { SaleOut } from '@/api/generated/model'
-import { AppShell } from '@/components/app/AppShell'
 import { DataTable, type Column } from '@/components/app/DataTable'
 import { Money } from '@/components/app/Money'
 import { Button } from '@/components/ui/button'
-import { Card, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Modal } from '@/components/ui/modal'
 import { cn } from '@/lib/cn'
-import { todayISO } from '@/lib/date'
 
-const today = todayISO
 const n = (v: string | number | null | undefined) => Number(v ?? 0)
 const sum = (s: SaleOut, k: 'qty' | 'empty_qty' | 'damaged_qty') =>
   s.lines.reduce((t, l) => t + l[k], 0)
 
-/** One day's invoices, with Edit and Cancel to correct mistakes. */
-export function SalesListPage() {
+/** The Edit entries "Invoices" tab: one day's sales, with Edit and Cancel. */
+export function InvoicesTab({ date }: { date: string }) {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
-  const location = useLocation()
-  const [search, setSearch] = useSearchParams()
-  const date = search.get('date') ?? today()
-  const flash = (location.state as { flash?: string } | null)?.flash
 
   const listQuery = useListSalesV1SalesGet({ date })
   const sales: SaleOut[] = listQuery.data?.status === 200 ? listQuery.data.data : []
@@ -97,17 +89,21 @@ export function SalesListPage() {
           <div className="flex justify-end gap-1.5">
             <Button
               variant="ghost"
-              className="h-8 px-2.5 text-[12.5px]"
+              className="h-8 w-8 px-0"
+              aria-label={`Edit invoice ${s.invoice_no ?? ''}`}
+              title="Edit"
               onClick={() => navigate(`/sales/new?edit=${s.id}`)}
             >
-              <Pencil size={14} /> Edit
+              <Pencil size={14} />
             </Button>
             <Button
               variant="ghost"
-              className="h-8 px-2.5 text-[12.5px] text-bad hover:border-bad/40"
+              className="h-8 w-8 px-0 text-bad hover:border-bad/40"
+              aria-label={`Cancel invoice ${s.invoice_no ?? ''}`}
+              title="Cancel"
               onClick={() => setCancelling(s)}
             >
-              <Ban size={14} /> Cancel
+              <Ban size={14} />
             </Button>
           </div>
         ) : null,
@@ -120,37 +116,20 @@ export function SalesListPage() {
     active.reduce((t, s) => t + sum(s, k), 0)
 
   return (
-    <AppShell title="Invoices" subtitle="Every sale posted for the day — edit or cancel a wrong one">
-      {flash ? (
-        <div className="flex items-center gap-2 rounded-lg bg-okbg px-3 py-2 text-[13px] text-ok" role="status">
-          <Check size={15} /> {flash}
-        </div>
-      ) : null}
-      <Card className="overflow-hidden">
-        <CardHeader
-          title="Invoices"
-          hint={
-            sales.length
-              ? `${active.length} active${cancelledCount ? ` · ${cancelledCount} cancelled` : ''}`
-              : 'Pick a date'
-          }
-          right={
-            <div className="flex items-center gap-3">
-              <Input
-                type="date"
-                value={date}
-                onChange={(e) => setSearch({ date: e.target.value }, { replace: true })}
-                className="h-9 w-[150px]"
-              />
-              <Link
-                to="/sales/new"
-                className="inline-flex h-9 items-center gap-1.5 rounded-[10px] bg-orange px-3.5 text-[13px] font-semibold text-white shadow-primary hover:bg-orange-600"
-              >
-                <Plus size={15} /> New sale
-              </Link>
-            </div>
-          }
-        />
+    <>
+      <div className="flex flex-wrap items-center justify-between gap-3 px-[18px] pb-3">
+        <span className="text-[12.5px] text-muted">
+          {sales.length
+            ? `${active.length} active${cancelledCount ? ` · ${cancelledCount} cancelled` : ''}`
+            : ''}
+        </span>
+        <Link
+          to="/sales/new"
+          className="inline-flex h-9 items-center gap-1.5 rounded-[10px] bg-orange px-3.5 text-[13px] font-semibold text-white shadow-primary hover:bg-orange-600"
+        >
+          <Plus size={15} /> New sale
+        </Link>
+      </div>
         {listQuery.isLoading ? (
           <div className="grid place-items-center py-14 text-muted">
             <Loader2 className="animate-spin text-orange" size={22} />
@@ -177,7 +156,6 @@ export function SalesListPage() {
             ]}
           />
         )}
-      </Card>
 
       <CancelSaleModal
         sale={cancelling}
@@ -187,7 +165,7 @@ export function SalesListPage() {
           await queryClient.invalidateQueries()
         }}
       />
-    </AppShell>
+    </>
   )
 }
 
