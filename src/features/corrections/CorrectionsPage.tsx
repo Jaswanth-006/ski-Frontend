@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { ExternalLink, Loader2 } from 'lucide-react'
+import { Check, Loader2 } from 'lucide-react'
 import { useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useLocation, useSearchParams } from 'react-router-dom'
 import {
   deleteCreditV1CreditsCreditIdDeletePost,
   deleteCustomerBalanceV1CustomerBalancesEntryIdDeletePost,
@@ -38,6 +38,7 @@ import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { cn } from '@/lib/cn'
 import { todayISO } from '@/lib/date'
+import { InvoicesTab } from './InvoicesTab'
 import { DeleteDialog, EditDialog, Field, RowActions, type ApiResult } from './shared'
 
 type Tab = 'invoices' | 'purchase' | 'expenses' | 'deposits' | 'balance' | 'credits'
@@ -57,6 +58,7 @@ const ddmmyyyy = (iso: string) => iso.split('-').reverse().join('.')
 /** One place to correct any recorded entry. Every change needs a reason and is audited. */
 export function CorrectionsPage() {
   const [search, setSearch] = useSearchParams()
+  const flash = (useLocation().state as { flash?: string } | null)?.flash
   const tabParam = search.get('tab')
   const tab: Tab = TABS.some((t) => t.key === tabParam) ? (tabParam as Tab) : 'invoices'
   const date = search.get('date') ?? todayISO()
@@ -68,6 +70,14 @@ export function CorrectionsPage() {
       title="Edit entries"
       subtitle="Correct a wrong entry — every change needs a reason and goes to the audit log"
     >
+      {flash ? (
+        <div
+          className="flex items-center gap-2 rounded-lg bg-okbg px-3 py-2 text-[13px] text-ok"
+          role="status"
+        >
+          <Check size={15} /> {flash}
+        </div>
+      ) : null}
       <Card className="overflow-hidden">
         <CardHeader
           title="Entries"
@@ -139,23 +149,6 @@ function useRefresh() {
 
 function asResult(p: Promise<{ status: number; data: unknown }>): Promise<ApiResult> {
   return p
-}
-
-// ------------------------------------------------------------------ invoices
-
-function InvoicesTab({ date }: { date: string }) {
-  return (
-    <div className="px-[18px] pb-8 pt-4 text-[13.5px] text-muted">
-      Invoices are edited or cancelled from the Invoices page, which re-checks the payment and puts
-      stock back.{' '}
-      <Link
-        to={`/sales?date=${date}`}
-        className="inline-flex items-center gap-1 font-semibold text-orange hover:underline"
-      >
-        Open invoices for {ddmmyyyy(date)} <ExternalLink size={13} />
-      </Link>
-    </div>
-  )
 }
 
 // ------------------------------------------------------------------ purchase

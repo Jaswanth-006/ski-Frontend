@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes, useSearchParams } from 'react-router-dom'
 import { RoleGuard } from '@/auth/RoleGuard'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { AuditPage } from '@/features/audit/AuditPage'
@@ -17,7 +17,6 @@ import { PurchasePage } from '@/features/purchase/PurchasePage'
 import { DeliveryStatementPage } from '@/features/reports/DeliveryStatementPage'
 import { ReportsPage } from '@/features/reports/ReportsPage'
 import { SalesEntryPage } from '@/features/sales/SalesEntryPage'
-import { SalesListPage } from '@/features/sales/SalesListPage'
 import { UsersPage } from '@/features/users/UsersPage'
 
 const OFFICE_AND_OWNER = ['super_admin', 'office_admin']
@@ -56,14 +55,7 @@ export function AppRoutes() {
           </RoleGuard>
         }
       />
-      <Route
-        path="/sales"
-        element={
-          <RoleGuard allow={OFFICE_AND_OWNER}>
-            <SalesListPage />
-          </RoleGuard>
-        }
-      />
+      <Route path="/sales" element={<InvoicesRedirect />} />
       <Route
         path="/day-sheet"
         element={
@@ -182,5 +174,14 @@ export function AppRoutes() {
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+  )
+}
+
+/** The old Invoices page now lives in Edit entries → Invoices (keeps ?date=). */
+function InvoicesRedirect() {
+  const [search] = useSearchParams()
+  const date = search.get('date')
+  return (
+    <Navigate to={`/corrections?tab=invoices${date ? `&date=${date}` : ''}`} replace />
   )
 }
