@@ -40,6 +40,7 @@ export function SalesEntryPage() {
   const [pickQty, setPickQty] = useState('')
   const [qty, setQty] = useState<Record<string, string>>({})
   const [empties, setEmpties] = useState<Record<string, string>>({})
+  const [damaged, setDamaged] = useState<Record<string, string>>({})
   const [notes, setNotes] = useState<Record<number, string>>({})
   const [upi, setUpi] = useState('')
   const [onlineQty, setOnlineQty] = useState<Record<string, string>>({})
@@ -110,6 +111,9 @@ export function SalesEntryPage() {
               ? 'Payment is more than the sale'
               : null
 
+  // Blank "Empty back" means every cylinder sold came back as an empty, except the damaged / lost ones.
+  const emptyDefault = (id: string) => Math.max(0, num(qty[id]) - num(damaged[id]))
+
   const addLine = () => {
     if (!pickId || num(pickQty) <= 0) return
     setLineIds((ids) => (ids.includes(pickId) ? ids : [...ids, pickId]))
@@ -119,7 +123,7 @@ export function SalesEntryPage() {
   }
   const removeLine = (id: string) => {
     setLineIds((ids) => ids.filter((x) => x !== id))
-    for (const set of [setQty, setEmpties, setOnlineQty]) {
+    for (const set of [setQty, setEmpties, setDamaged, setOnlineQty]) {
       set((s) => {
         const next = { ...s }
         delete next[id]
@@ -145,11 +149,11 @@ export function SalesEntryPage() {
       .map((p) => ({
         cylinder_type_id: p.cylinder_type_id,
         qty: num(qty[p.cylinder_type_id]),
-        // Empty back defaults to the number sold when left blank.
         empty_qty:
           empties[p.cylinder_type_id] === undefined || empties[p.cylinder_type_id] === ''
-            ? num(qty[p.cylinder_type_id])
+            ? emptyDefault(p.cylinder_type_id)
             : num(empties[p.cylinder_type_id]),
+        damaged_qty: num(damaged[p.cylinder_type_id]),
       }))
     if (isDelivery && !driverId) return setResult({ ok: false, message: 'Select a delivery person.' })
     if (!isDelivery && !customerId) return setResult({ ok: false, message: 'Select a customer.' })
@@ -203,6 +207,7 @@ export function SalesEntryPage() {
     setLineIds([])
     setQty({})
     setEmpties({})
+    setDamaged({})
     setNotes({})
     setUpi('')
     setOnlineQty({})
@@ -335,6 +340,7 @@ export function SalesEntryPage() {
                     <div className="flex items-center justify-end gap-3 pb-1 pt-2 border-t border-line text-[10.5px] uppercase tracking-[.05em] text-muted font-semibold">
                       <span className="w-[72px] text-center">Sold</span>
                       <span className="w-[72px] text-center">Empty back</span>
+                      <span className="w-[72px] text-center">Return</span>
                       <span className="w-[72px] text-center">Online</span>
                       <span className="w-[90px] text-right">Total</span>
                       <span className="w-8" />
@@ -373,9 +379,19 @@ export function SalesEntryPage() {
                               min={0}
                               aria-label={`${p.label} empty back`}
                               className="h-9 w-[72px] num text-right"
-                              placeholder={qty[p.cylinder_type_id] || '0'}
+                              placeholder={String(emptyDefault(p.cylinder_type_id))}
                               value={empties[p.cylinder_type_id] ?? ''}
                               onChange={(e) => setEmpties((s) => ({ ...s, [p.cylinder_type_id]: e.target.value }))}
+                            />
+                            <Input
+                              type="number"
+                              min={0}
+                              aria-label={`${p.label} return (damaged or lost)`}
+                              title="Damaged or lost cylinders"
+                              className="h-9 w-[72px] num text-right"
+                              placeholder="0"
+                              value={damaged[p.cylinder_type_id] ?? ''}
+                              onChange={(e) => setDamaged((s) => ({ ...s, [p.cylinder_type_id]: e.target.value }))}
                             />
                             <Input
                               type="number"
@@ -405,8 +421,9 @@ export function SalesEntryPage() {
                       )
                     })}
                     <p className="text-[11px] text-muted pt-2">
-                      Empty back defaults to the number sold. Online = how many of those cylinders were
-                      billed online — the amount is worked out for you.
+                      Return = cylinders that came back damaged or were lost. Empty back defaults to sold
+                      minus return. Online = how many of those cylinders were billed online — the amount
+                      is worked out for you.
                     </p>
                   </>
                 )}
