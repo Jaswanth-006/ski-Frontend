@@ -17,7 +17,7 @@ import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { cn } from '@/lib/cn'
 
-const NOTES = [500, 200, 100, 50, 20, 10]
+const NOTES = [500, 200, 100, 50, 20, 10, 1]
 const today = () => new Date().toISOString().slice(0, 10)
 const num = (v: string | undefined) => Number(v ?? '') || 0
 
@@ -97,6 +97,18 @@ export function SalesEntryPage() {
   const reconciled = revenue > 0 && Math.abs(collected - revenue) < 0.005
   const difference = collected - revenue
   const invoice = invoiceNo.trim()
+  const blocker =
+    cylindersSold === 0
+      ? 'Add at least one cylinder'
+      : isDelivery && !driverId
+        ? 'Select a delivery person'
+        : !isDelivery && !customerId
+          ? 'Select a customer'
+          : !invoice
+            ? 'Enter the invoice number'
+            : !reconciled
+              ? 'Payment is more than the sale'
+              : null
 
   const addLine = () => {
     if (!pickId || num(pickQty) <= 0) return
@@ -541,10 +553,13 @@ export function SalesEntryPage() {
               )}
             </div>
           </div>
-          <Button variant="primary" onClick={submit} disabled={createSale.isPending || !reconciled || cylindersSold === 0 || !invoice}>
-            {createSale.isPending ? 'Posting…' : 'Move to Day Sheet'}
-            <ArrowRight size={16} />
-          </Button>
+          <div className="flex items-center gap-3">
+            {blocker ? <span className="text-[12.5px] text-bad">{blocker}</span> : null}
+            <Button variant="primary" onClick={submit} disabled={createSale.isPending || blocker !== null}>
+              {createSale.isPending ? 'Posting…' : 'Move to Day Sheet'}
+              <ArrowRight size={16} />
+            </Button>
+          </div>
         </div>
 
         {result ? (
