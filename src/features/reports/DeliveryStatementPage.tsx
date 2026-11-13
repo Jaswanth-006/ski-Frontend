@@ -15,10 +15,11 @@ const today = () => new Date().toISOString().slice(0, 10)
 const monthStart = () => today().slice(0, 8) + '01'
 const ddmmyyyy = (iso: string) => iso.split('-').reverse().join('.')
 
-type Row = DeliveryLedgerRow | { kind: 'opening'; entry_date: string; balance: string }
+type Row = DeliveryLedgerRow
 
 const n = (v: string | number | undefined) => Number(v ?? 0)
 const isSale = (r: Row) => r.kind === 'sale'
+const owed = (v: string | number | undefined) => (n(v) > 0 ? 'text-bad' : undefined)
 
 /** Amount cell: blank on lines where the column doesn't apply. */
 function Amt({ v, show }: { v: string | undefined; show: boolean }) {
@@ -37,9 +38,7 @@ export function DeliveryStatementPage() {
   const data = q.data?.status === 200 ? q.data.data : null
   const notFound = q.data !== undefined && q.data.status !== 200
 
-  const rows: Row[] = data
-    ? [{ kind: 'opening', entry_date: start, balance: data.opening_balance }, ...data.rows]
-    : []
+  const rows: Row[] = data?.rows ?? []
 
   const columns: Column<Row>[] = [
     { key: 'date', header: 'Date', render: (r) => <span className="num">{ddmmyyyy(r.entry_date)}</span> },
@@ -47,9 +46,7 @@ export function DeliveryStatementPage() {
       key: 'invoice',
       header: 'Invoice',
       render: (r) =>
-        r.kind === 'opening' ? (
-          <span className="text-muted">Balance brought forward</span>
-        ) : r.kind === 'sale' ? (
+        r.kind === 'sale' ? (
           <span className="num font-medium">{r.invoice_no ?? '—'}</span>
         ) : (
           <span className="flex items-center gap-2">
@@ -65,17 +62,17 @@ export function DeliveryStatementPage() {
           </span>
         ),
     },
-    { key: 'qty', header: 'Sold', numeric: true, render: (r) => (isSale(r) && 'qty' in r ? r.qty : null) },
-    { key: 'empty', header: 'Empty', numeric: true, render: (r) => (isSale(r) && 'empty_qty' in r ? r.empty_qty : null) },
+    { key: 'qty', header: 'Sold', numeric: true, render: (r) => (isSale(r) ? r.qty : null) },
+    { key: 'empty', header: 'Empty', numeric: true, render: (r) => (isSale(r) ? r.empty_qty : null) },
     {
       key: 'amount',
       header: 'Amount ₹',
       numeric: true,
-      render: (r) => ('amount' in r && n(r.amount) > 0 ? <Money value={n(r.amount)} bare /> : null),
+      render: (r) => (n(r.amount) > 0 ? <Money value={n(r.amount)} bare /> : null),
     },
-    { key: 'cash', header: 'Cash ₹', numeric: true, render: (r) => ('cash' in r ? <Amt v={r.cash} show={isSale(r)} /> : null) },
-    { key: 'upi', header: 'UPI ₹', numeric: true, render: (r) => ('upi' in r ? <Amt v={r.upi} show={isSale(r)} /> : null) },
-    { key: 'online', header: 'Online ₹', numeric: true, render: (r) => ('online' in r ? <Amt v={r.online} show={isSale(r)} /> : null) },
+    { key: 'cash', header: 'Cash ₹', numeric: true, render: (r) => <Amt v={r.cash} show={isSale(r)} /> },
+    { key: 'upi', header: 'UPI ₹', numeric: true, render: (r) => <Amt v={r.upi} show={isSale(r)} /> },
+    { key: 'online', header: 'Online ₹', numeric: true, render: (r) => <Amt v={r.online} show={isSale(r)} /> },
     {
       key: 'repaid',
       header: 'Repaid ₹',
@@ -86,7 +83,8 @@ export function DeliveryStatementPage() {
       key: 'balance',
       header: 'Balance ₹',
       numeric: true,
-      render: (r) => <Money value={n(r.balance)} bare className={n(r.balance) > 0 ? 'text-bad' : undefined} />,
+      render: (r) =>
+        r.kind === 'repayment' ? null : <Money value={n(r.balance)} bare className={owed(r.balance)} />,
     },
   ]
 
@@ -101,7 +99,7 @@ export function DeliveryStatementPage() {
         <Money key="u" value={n(data.total_upi)} bare />,
         <Money key="o" value={n(data.total_online)} bare />,
         <Money key="r" value={n(data.total_repaid)} bare />,
-        <Money key="b" value={n(data.closing_balance)} bare className={n(data.closing_balance) > 0 ? 'text-bad' : undefined} />,
+        <Money key="b" value={n(data.total_balance)} bare className={owed(data.total_balance)} />,
       ]
     : undefined
 
@@ -113,7 +111,6 @@ export function DeliveryStatementPage() {
       `${data.delivery_name.replace(/\s+/g, '_')}_${start}_${end}`,
       ['Date', 'Invoice', 'Sold', 'Empty', 'Amount', 'Cash', 'UPI', 'Online', 'Repaid', 'Balance'],
       [
-        [ddmmyyyy(start), 'Balance brought forward', '', '', '', '', '', '', '', data.opening_balance],
         ...data.rows.map((r) => [
           ddmmyyyy(r.entry_date),
           label(r),
@@ -124,7 +121,7 @@ export function DeliveryStatementPage() {
           r.kind === 'sale' ? (r.upi ?? '') : '',
           r.kind === 'sale' ? (r.online ?? '') : '',
           r.kind === 'repayment' ? (r.repaid ?? '') : '',
-          r.balance,
+          r.kind === 'repayment' ? '' : r.balance,
         ]),
         [
           'Total',
@@ -136,7 +133,7 @@ export function DeliveryStatementPage() {
           data.total_upi,
           data.total_online,
           data.total_repaid,
-          data.closing_balance,
+          data.total_balance,
         ],
       ],
     )
@@ -148,7 +145,7 @@ export function DeliveryStatementPage() {
         { label: 'Paid (cash + UPI)', value: n(data.total_cash) + n(data.total_upi) },
         { label: 'Online → company', value: n(data.total_online) },
         { label: 'Repaid', value: n(data.total_repaid) },
-        { label: 'Balance owed', value: n(data.closing_balance), bad: n(data.closing_balance) > 0 },
+        { label: 'Balance (these dates)', value: n(data.total_balance), bad: n(data.total_balance) > 0 },
       ]
     : []
 
@@ -164,7 +161,7 @@ export function DeliveryStatementPage() {
       <Card className="overflow-hidden">
         <CardHeader
           title={data ? `${data.delivery_name} · statement` : 'Statement'}
-          hint="Every sale and repayment in the range, with the running balance he owes"
+          hint="Every sale and repayment in the range; Balance is what was left unpaid on that sale"
           right={
             <div className="flex flex-wrap items-center gap-3">
               <Input type="date" value={start} onChange={(e) => setRange({ start: e.target.value })} className="h-9 w-[150px]" />

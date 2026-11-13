@@ -12,7 +12,6 @@ export interface DeliveryLedgerOut {
   delivery_name: string;
   start: string;
   end: string;
-  opening_balance: string;
   rows: DeliveryLedgerRow[];
   total_qty: number;
   total_empty_qty: number;
@@ -21,5 +20,5 @@ export interface DeliveryLedgerOut {
   total_upi: string;
   total_online: string;
   total_repaid: string;
-  closing_balance: string;
+  total_balance: string;
 }
