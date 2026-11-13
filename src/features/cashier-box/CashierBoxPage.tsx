@@ -5,8 +5,9 @@ import { AppShell } from '@/components/app/AppShell'
 import { Money } from '@/components/app/Money'
 import { Card, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { todayISO } from '@/lib/date'
 
-const today = () => new Date().toISOString().slice(0, 10)
+const today = todayISO
 
 function Line({ label, value, sign }: { label: string; value: number; sign?: '+' | '−' }) {
   return (
@@ -49,6 +50,7 @@ export function CashierBoxPage() {
             <div className="px-[18px] pb-4 pt-1">
               <Line label="Opening balance" value={Number(box.opening)} />
               <Line label="Collected (cash + UPI)" value={Number(box.collected)} sign="+" />
+              <Line label="Balance repaid" value={Number(box.repaid)} sign="+" />
               <Line label="Expenses" value={Number(box.expenses)} sign="−" />
               <Line label="Deposited out" value={Number(box.deposited)} sign="−" />
               <div className="flex items-center justify-between pt-3.5 mt-1.5 border-t-2 border-line">
@@ -68,6 +70,7 @@ export function CashierBoxPage() {
             <div className="px-[18px] pb-4 pt-1">
               <Line label="Opening hand cash" value={Number(box.hand_cash_opening)} />
               <Line label="Cash collected" value={Number(box.hand_cash_collected)} sign="+" />
+              <Line label="Cash repaid" value={Number(box.hand_cash_repaid)} sign="+" />
               <div className="flex items-center justify-between pt-3.5 mt-1.5 border-t-2 border-line">
                 <span className="inline-flex items-center gap-2 text-[14px] font-semibold text-ink">
                   <Banknote size={16} className="text-orange" /> Hand cash now

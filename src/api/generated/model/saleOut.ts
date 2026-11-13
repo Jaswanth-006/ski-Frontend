@@ -9,6 +9,7 @@ import type { SaleOutInvoiceNo } from './saleOutInvoiceNo';
 import type { SaleOutDeliveryId } from './saleOutDeliveryId';
 import type { SaleOutCustomerId } from './saleOutCustomerId';
 import type { SaleLineOut } from './saleLineOut';
+import type { SaleExpenseOut } from './saleExpenseOut';
 import type { DenominationIn } from './denominationIn';
 import type { SaleOutCancelledAt } from './saleOutCancelledAt';
 import type { SaleOutCancelReason } from './saleOutCancelReason';
@@ -31,6 +32,8 @@ export interface SaleOut {
   balance_total: string;
   revenue_total: string;
   settled_total: string;
+  expenses?: SaleExpenseOut[];
+  expenses_total?: string;
   denominations?: DenominationIn[];
   cancelled_at?: SaleOutCancelledAt;
   cancel_reason?: SaleOutCancelReason;

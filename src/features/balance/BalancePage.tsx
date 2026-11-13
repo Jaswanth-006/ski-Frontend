@@ -23,8 +23,10 @@ import { Card, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { cn } from '@/lib/cn'
+import { detailOf } from '@/lib/apiError'
+import { todayISO } from '@/lib/date'
 
-const today = () => new Date().toISOString().slice(0, 10)
+const today = todayISO
 
 type Tab = 'delivery' | 'customer'
 const TABS: { key: Tab; label: string }[] = [
@@ -41,17 +43,21 @@ interface PartyBalance {
   balance: number
 }
 
+type Method = 'cash' | 'upi'
+
 interface Entry {
   entry_date: string
   kind: string
   amount: string
   note?: string | null
+  method?: string | null
 }
 
 interface LedgerRow {
   entry_date: string
   charge: number
   repayment: number
+  method: string | null
   remaining: number
   note: string
 }
@@ -109,18 +115,18 @@ function DeliveryBalances() {
       entries={entriesQuery.data?.status === 200 ? entriesQuery.data.data : []}
       entriesLoading={entriesQuery.isLoading}
       pending={create.isPending}
-      onRepay={async (amount, date) => {
+      onRepay={async (amount, date, method) => {
         const res = await create.mutateAsync({
-          data: { delivery_id: partyId, amount, entry_date: date, kind: 'repayment' },
+          data: { delivery_id: partyId, amount, entry_date: date, kind: 'repayment', method },
         })
-        if (res.status !== 201) return false
+        if (res.status !== 201) return detailOf(res.data, 'Could not record the repayment.')
         await queryClient.invalidateQueries({
           queryKey: getBalanceSummaryV1DeliveryBalancesSummaryGetQueryKey(),
         })
         await queryClient.invalidateQueries({
           queryKey: getListBalanceEntriesV1DeliveryBalancesGetQueryKey({ delivery_id: partyId }),
         })
-        return true
+        return null
       }}
     />
   )
@@ -156,18 +162,18 @@ function CustomerBalances() {
       entries={entriesQuery.data?.status === 200 ? entriesQuery.data.data : []}
       entriesLoading={entriesQuery.isLoading}
       pending={create.isPending}
-      onRepay={async (amount, date) => {
+      onRepay={async (amount, date, method) => {
         const res = await create.mutateAsync({
-          data: { customer_id: partyId, amount, entry_date: date, kind: 'repayment' },
+          data: { customer_id: partyId, amount, entry_date: date, kind: 'repayment', method },
         })
-        if (res.status !== 201) return false
+        if (res.status !== 201) return detailOf(res.data, 'Could not record the repayment.')
         await queryClient.invalidateQueries({
           queryKey: getCustomerBalanceSummaryV1CustomerBalancesSummaryGetQueryKey(),
         })
         await queryClient.invalidateQueries({
           queryKey: getListCustomerBalanceEntriesV1CustomerBalancesGetQueryKey({ customer_id: partyId }),
         })
-        return true
+        return null
       }}
     />
   )
@@ -193,10 +199,12 @@ function BalancePanel({
   entries: Entry[]
   entriesLoading: boolean
   pending: boolean
-  onRepay: (amount: number, date: string) => Promise<boolean>
+  onRepay: (amount: number, date: string, method: Method) => Promise<string | null>
 }) {
   const [repayAmount, setRepayAmount] = useState('')
   const [repayDate, setRepayDate] = useState(today())
+  const [repayMethod, setRepayMethod] = useState<Method>('cash')
+  const [repayError, setRepayError] = useState<string | null>(null)
   const selected = summary.find((s) => s.id === partyId)
   const totalOutstanding = summary.reduce((s, r) => s + r.balance, 0)
 
@@ -208,13 +216,23 @@ function BalancePanel({
       const charge = e.kind === 'charge' ? Number(e.amount) : 0
       const repayment = e.kind === 'repayment' ? Number(e.amount) : 0
       remaining += charge - repayment
-      return { entry_date: e.entry_date, charge, repayment, remaining, note: e.note ?? '' }
+      return {
+        entry_date: e.entry_date,
+        charge,
+        repayment,
+        method: e.kind === 'repayment' ? (e.method ?? 'cash') : null,
+        remaining,
+        note: e.note ?? '',
+      }
     })
   }, [entries])
 
   const recordRepayment = async () => {
     if (!partyId || Number(repayAmount) <= 0) return
-    if (await onRepay(Number(repayAmount), repayDate)) setRepayAmount('')
+    setRepayError(null)
+    const error = await onRepay(Number(repayAmount), repayDate, repayMethod)
+    if (error) return setRepayError(error)
+    setRepayAmount('')
   }
 
   const columns: Column<LedgerRow>[] = [
@@ -230,7 +248,16 @@ function BalancePanel({
       header: 'Given back ₹',
       numeric: true,
       render: (r) =>
-        r.repayment ? <Money value={r.repayment} bare className="text-ok" /> : <span className="text-muted">—</span>,
+        r.repayment ? (
+          <span className="inline-flex items-center gap-1.5">
+            <Money value={r.repayment} bare className="text-ok" />
+            <span className="rounded-full bg-surface px-1.5 py-[1px] text-[10px] font-semibold uppercase text-muted">
+              {r.method}
+            </span>
+          </span>
+        ) : (
+          <span className="text-muted">—</span>
+        ),
     },
     { key: 'rem', header: 'Remaining ₹', numeric: true, render: (r) => <Money value={r.remaining} bare /> },
     { key: 'note', header: 'Note', render: (r) => <span className="text-muted">{r.note || '—'}</span> },
@@ -328,9 +355,25 @@ function BalancePanel({
                 <label className="block text-[12px] text-muted mb-1">On date</label>
                 <Input type="date" value={repayDate} onChange={(e) => setRepayDate(e.target.value)} className="h-9 w-[150px]" />
               </div>
+              <div>
+                <label className="block text-[12px] text-muted mb-1">Paid by</label>
+                <Select
+                  value={repayMethod}
+                  onChange={(e) => setRepayMethod(e.target.value as Method)}
+                  className="h-9 w-[110px]"
+                >
+                  <option value="cash">Cash</option>
+                  <option value="upi">UPI</option>
+                </Select>
+              </div>
               <Button variant="primary" className="h-9" onClick={recordRepayment} disabled={pending}>
                 <Plus size={16} /> Record repayment
               </Button>
+              {repayError ? (
+                <span className="text-[12.5px] text-bad" role="alert">
+                  {repayError}
+                </span>
+              ) : null}
             </div>
 
             {entriesLoading ? (

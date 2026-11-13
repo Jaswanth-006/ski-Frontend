@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { DeliveryBalanceEntryOutNote } from './deliveryBalanceEntryOutNote';
+import type { DeliveryBalanceEntryOutMethod } from './deliveryBalanceEntryOutMethod';
 
 export interface DeliveryBalanceEntryOut {
   id: string;
@@ -14,5 +15,6 @@ export interface DeliveryBalanceEntryOut {
   entry_date: string;
   kind: string;
   note: DeliveryBalanceEntryOutNote;
+  method?: DeliveryBalanceEntryOutMethod;
   created_at: string;
 }

@@ -16,8 +16,9 @@ import { Card, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { cn } from '@/lib/cn'
+import { todayISO } from '@/lib/date'
 
-const today = () => new Date().toISOString().slice(0, 10)
+const today = todayISO
 const num = (v: string | undefined) => Number(v) || 0
 
 /** A product choice in a dropdown. `id` encodes kind + condition so lines stay distinct. */

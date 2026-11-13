@@ -12,6 +12,7 @@ import type { DenominationIn } from './denominationIn';
 import type { SaleCreateUpiTotal } from './saleCreateUpiTotal';
 import type { SaleCreateOnlineTotal } from './saleCreateOnlineTotal';
 import type { SaleCreateBalanceTotal } from './saleCreateBalanceTotal';
+import type { SaleExpenseIn } from './saleExpenseIn';
 
 export interface SaleCreate {
   /**
@@ -28,4 +29,5 @@ export interface SaleCreate {
   upi_total?: SaleCreateUpiTotal;
   online_total?: SaleCreateOnlineTotal;
   balance_total?: SaleCreateBalanceTotal;
+  expenses?: SaleExpenseIn[];
 }

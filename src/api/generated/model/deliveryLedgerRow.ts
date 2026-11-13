@@ -23,6 +23,7 @@ export interface DeliveryLedgerRow {
   cash?: string;
   upi?: string;
   online?: string;
+  expenses?: string;
   repaid?: string;
   balance: string;
 }

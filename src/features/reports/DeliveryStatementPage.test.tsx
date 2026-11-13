@@ -54,6 +54,7 @@ const ledger = {
   total_cash: '8000.00',
   total_upi: '2000.00',
   total_online: '0.00',
+  total_expenses: '0.00',
   total_repaid: '5000.00',
   total_balance: '15000.00',
 }

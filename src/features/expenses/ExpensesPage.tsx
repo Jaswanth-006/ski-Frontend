@@ -15,8 +15,10 @@ import { Button } from '@/components/ui/button'
 import { Card, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
+import { detailOf } from '@/lib/apiError'
+import { todayISO } from '@/lib/date'
 
-const today = () => new Date().toISOString().slice(0, 10)
+const today = todayISO
 
 export function ExpensesPage() {
   const queryClient = useQueryClient()
@@ -57,7 +59,7 @@ export function ExpensesPage() {
       setNote('')
       setDeliveryId('')
     } else {
-      setError('Could not save the expense.')
+      setError(detailOf(res.data, 'Could not save the expense.'))
     }
   }
 

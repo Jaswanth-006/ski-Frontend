@@ -10,8 +10,9 @@ import { Card, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/cn'
 import { downloadCsv } from './csv'
+import { todayISO } from '@/lib/date'
 
-const today = () => new Date().toISOString().slice(0, 10)
+const today = todayISO
 const monthStart = () => today().slice(0, 8) + '01'
 const ddmmyyyy = (iso: string) => iso.split('-').reverse().join('.')
 
@@ -74,6 +75,12 @@ export function DeliveryStatementPage() {
     { key: 'upi', header: 'UPI ₹', numeric: true, render: (r) => <Amt v={r.upi} show={isSale(r)} /> },
     { key: 'online', header: 'Online ₹', numeric: true, render: (r) => <Amt v={r.online} show={isSale(r)} /> },
     {
+      key: 'expenses',
+      header: 'Route exp. ₹',
+      numeric: true,
+      render: (r) => (isSale(r) && n(r.expenses) ? <Money value={n(r.expenses)} bare /> : null),
+    },
+    {
       key: 'repaid',
       header: 'Repaid ₹',
       numeric: true,
@@ -98,6 +105,7 @@ export function DeliveryStatementPage() {
         <Money key="c" value={n(data.total_cash)} bare />,
         <Money key="u" value={n(data.total_upi)} bare />,
         <Money key="o" value={n(data.total_online)} bare />,
+        <Money key="e" value={n(data.total_expenses)} bare />,
         <Money key="r" value={n(data.total_repaid)} bare />,
         <Money key="b" value={n(data.total_balance)} bare className={owed(data.total_balance)} />,
       ]
@@ -109,7 +117,7 @@ export function DeliveryStatementPage() {
       r.kind === 'sale' ? (r.invoice_no ?? '') : `${r.kind === 'repayment' ? 'Repaid' : 'Charge'}${r.note ? ` - ${r.note}` : ''}`
     downloadCsv(
       `${data.delivery_name.replace(/\s+/g, '_')}_${start}_${end}`,
-      ['Date', 'Invoice', 'Sold', 'Empty', 'Amount', 'Cash', 'UPI', 'Online', 'Repaid', 'Balance'],
+      ['Date', 'Invoice', 'Sold', 'Empty', 'Amount', 'Cash', 'UPI', 'Online', 'Route expenses', 'Repaid', 'Balance'],
       [
         ...data.rows.map((r) => [
           ddmmyyyy(r.entry_date),
@@ -120,6 +128,7 @@ export function DeliveryStatementPage() {
           r.kind === 'sale' ? (r.cash ?? '') : '',
           r.kind === 'sale' ? (r.upi ?? '') : '',
           r.kind === 'sale' ? (r.online ?? '') : '',
+          r.kind === 'sale' ? (r.expenses ?? '') : '',
           r.kind === 'repayment' ? (r.repaid ?? '') : '',
           r.kind === 'repayment' ? '' : r.balance,
         ]),
@@ -132,6 +141,7 @@ export function DeliveryStatementPage() {
           data.total_cash,
           data.total_upi,
           data.total_online,
+          data.total_expenses,
           data.total_repaid,
           data.total_balance,
         ],

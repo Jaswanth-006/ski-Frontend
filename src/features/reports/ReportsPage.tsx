@@ -14,8 +14,9 @@ import { Card, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/cn'
 import { downloadCsv } from './csv'
+import { todayISO } from '@/lib/date'
 
-const today = () => new Date().toISOString().slice(0, 10)
+const today = todayISO
 const monthStart = () => today().slice(0, 8) + '01'
 
 type Tab = 'stock' | 'delivery' | 'expenses' | 'deposits'

@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { CustomerBalanceEntryOutNote } from './customerBalanceEntryOutNote';
+import type { CustomerBalanceEntryOutMethod } from './customerBalanceEntryOutMethod';
 
 export interface CustomerBalanceEntryOut {
   id: string;
@@ -14,5 +15,6 @@ export interface CustomerBalanceEntryOut {
   entry_date: string;
   kind: string;
   note: CustomerBalanceEntryOutNote;
+  method?: CustomerBalanceEntryOutMethod;
   created_at: string;
 }

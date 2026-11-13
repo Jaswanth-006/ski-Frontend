@@ -17,8 +17,10 @@ import { Button } from '@/components/ui/button'
 import { Card, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
+import { detailOf } from '@/lib/apiError'
+import { todayISO } from '@/lib/date'
 
-const today = () => new Date().toISOString().slice(0, 10)
+const today = todayISO
 const acctLabel = (a: BankAccountOut) =>
   `${a.bank_name} · ${a.account_type}${a.label ? ` (${a.label})` : ''}`
 
@@ -83,7 +85,7 @@ export function DepositsPage() {
       setNote('')
       setOk(true)
     } else {
-      setError('Could not record the deposit.')
+      setError(detailOf(res.data, 'Could not record the deposit.'))
     }
   }
 

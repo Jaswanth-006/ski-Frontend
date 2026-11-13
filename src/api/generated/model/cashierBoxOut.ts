@@ -10,10 +10,12 @@ export interface CashierBoxOut {
   business_date: string;
   opening: string;
   collected: string;
+  repaid: string;
   expenses: string;
   deposited: string;
   closing: string;
   hand_cash_opening: string;
   hand_cash_collected: string;
+  hand_cash_repaid: string;
   hand_cash_closing: string;
 }

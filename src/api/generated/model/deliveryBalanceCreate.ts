@@ -7,6 +7,7 @@
  */
 import type { DeliveryBalanceCreateAmount } from './deliveryBalanceCreateAmount';
 import type { DeliveryBalanceCreateNote } from './deliveryBalanceCreateNote';
+import type { DeliveryBalanceCreateMethod } from './deliveryBalanceCreateMethod';
 
 export interface DeliveryBalanceCreate {
   delivery_id: string;
@@ -14,4 +15,5 @@ export interface DeliveryBalanceCreate {
   entry_date: string;
   kind: string;
   note?: DeliveryBalanceCreateNote;
+  method?: DeliveryBalanceCreateMethod;
 }
