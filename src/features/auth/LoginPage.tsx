@@ -9,6 +9,22 @@ import { BrandMark } from '@/components/app/BrandMark'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuthStore } from '@/state/auth'
+import { AGENCY } from './landing/agency'
+import {
+  About,
+  Counters,
+  Cylinders,
+  FeatureCards,
+  Footer,
+  Gallery,
+  Hero,
+  NavBar,
+  Safety,
+  Services,
+  Team,
+  TopBar,
+  Updates,
+} from './landing/sections'
 
 const schema = z.object({
   phone: z.string().min(3, 'Enter your phone number'),
@@ -48,61 +64,84 @@ export function LoginPage() {
     }
   }
 
-  return (
-    <div className="min-h-screen grid place-items-center bg-sidebar px-4">
-      <div className="w-full max-w-[380px] bg-card border border-line rounded-xl shadow-card p-7">
-        <div className="flex flex-col items-center text-center mb-6">
-          <BrandMark size={44} />
-          <h1 className="text-[19px] font-bold text-ink mt-3">Sree Kamala Indane</h1>
-          <p className="text-[13px] text-muted mt-1">Sign in to the operations dashboard</p>
+  const loginCard = (
+    <div id="login" className="scroll-mt-28 rounded-xl border border-white/10 bg-card p-7 text-ink shadow-2xl">
+      <div className="mb-6 flex items-center gap-3">
+        <BrandMark size={44} />
+        <div>
+          <h2 className="text-[19px] font-bold text-navy">Staff sign in</h2>
+          <p className="text-[13px] text-muted">Operations dashboard · {AGENCY.name}</p>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4">
+        <div>
+          <label htmlFor="phone" className="block text-[13px] font-medium text-ink mb-1.5">
+            Phone
+          </label>
+          <Input
+            id="phone"
+            inputMode="tel"
+            autoComplete="username"
+            placeholder="9000000001"
+            aria-invalid={!!errors.phone}
+            {...register('phone')}
+          />
+          {errors.phone ? (
+            <p className="text-[12px] text-bad mt-1">{errors.phone.message}</p>
+          ) : null}
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4">
-          <div>
-            <label htmlFor="phone" className="block text-[13px] font-medium text-ink mb-1.5">
-              Phone
-            </label>
-            <Input
-              id="phone"
-              inputMode="tel"
-              autoComplete="username"
-              placeholder="9000000001"
-              aria-invalid={!!errors.phone}
-              {...register('phone')}
-            />
-            {errors.phone ? (
-              <p className="text-[12px] text-bad mt-1">{errors.phone.message}</p>
-            ) : null}
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block text-[13px] font-medium text-ink mb-1.5">
-              Password
-            </label>
-            <Input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              placeholder="••••••••"
-              aria-invalid={!!errors.password}
-              {...register('password')}
-            />
-            {errors.password ? (
-              <p className="text-[12px] text-bad mt-1">{errors.password.message}</p>
-            ) : null}
-          </div>
-
-          {authError ? (
-            <div className="text-[12.5px] text-bad bg-badbg rounded-lg px-3 py-2" role="alert">
-              {authError}
-            </div>
+        <div>
+          <label htmlFor="password" className="block text-[13px] font-medium text-ink mb-1.5">
+            Password
+          </label>
+          <Input
+            id="password"
+            type="password"
+            autoComplete="current-password"
+            placeholder="••••••••"
+            aria-invalid={!!errors.password}
+            {...register('password')}
+          />
+          {errors.password ? (
+            <p className="text-[12px] text-bad mt-1">{errors.password.message}</p>
           ) : null}
+        </div>
 
-          <Button type="submit" className="w-full mt-1" disabled={isSubmitting}>
-            {isSubmitting ? 'Signing in…' : 'Sign in'}
-          </Button>
-        </form>
-      </div>
+        {authError ? (
+          <div className="text-[12.5px] text-bad bg-badbg rounded-lg px-3 py-2" role="alert">
+            {authError}
+          </div>
+        ) : null}
+
+        <Button type="submit" className="w-full mt-1" disabled={isSubmitting}>
+          {isSubmitting ? 'Signing in…' : 'Sign in'}
+        </Button>
+      </form>
+      <p className="mt-5 border-t border-line pt-4 text-center text-[12px] text-muted">
+        Forgot your password? Ask the office admin to reset it.
+      </p>
+    </div>
+  )
+
+  return (
+    <div className="min-h-screen bg-surface">
+      <TopBar />
+      <NavBar />
+      <main>
+        <Hero loginCard={loginCard} />
+        <FeatureCards />
+        <About />
+        <Services />
+        <Counters />
+        <Cylinders />
+        <Gallery />
+        <Safety />
+        <Team />
+        <Updates />
+      </main>
+      <Footer />
     </div>
   )
 }
