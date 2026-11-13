@@ -244,15 +244,15 @@ export function Hero({ loginCard }: { loginCard: ReactNode }) {
             className="relative mx-auto w-full max-w-[400px] lg:mr-0"
           >
             <motion.div
-              className="absolute -left-52 top-52 hidden xl:block"
+              className="absolute -left-48 top-20 hidden xl:block"
               animate={reduceMotion ? undefined : { y: [0, -12, 0] }}
               transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
             >
-              <span className="absolute -inset-4 rounded-full border-2 border-dashed border-orange/50" />
+              <span className="absolute inset-x-[-30%] top-[15%] aspect-square rounded-full bg-orange/30 blur-3xl" />
               <img
-                src={PHOTOS.cylinderHero}
-                alt="Red Indane domestic LPG cylinder"
-                className="relative h-40 w-40 rounded-full object-cover object-[50%_45%] shadow-2xl ring-8 ring-white/15"
+                src={PHOTOS.cylinderCutout}
+                alt="Red Indane 14.2 kg domestic LPG cylinder"
+                className="relative h-72 w-auto drop-shadow-[0_24px_30px_rgba(0,0,0,.45)]"
               />
             </motion.div>
             {loginCard}
@@ -308,13 +308,28 @@ export function About() {
       <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-2">
         <InView>
           <div className="relative mx-auto aspect-square w-full max-w-[440px]">
-            <div className="absolute -left-4 -top-4 h-full w-full rounded-[28px] bg-navy" />
-            <img
-              src={PHOTOS.cylinderPair}
-              alt="Indane 14.2 kg and 5 kg cylinders side by side"
-              loading="lazy"
-              className="absolute inset-0 h-full w-full rounded-[28px] object-cover shadow-card"
-            />
+            <div className="absolute inset-0 overflow-hidden rounded-[28px] bg-navy">
+              <span
+                aria-hidden="true"
+                className="absolute inset-0"
+                style={{
+                  backgroundImage:
+                    'radial-gradient(60% 55% at 50% 45%, rgba(242,101,34,.45), transparent 70%), radial-gradient(rgba(255,255,255,.07) 1px, transparent 1px)',
+                  backgroundSize: 'auto, 22px 22px',
+                }}
+              />
+              <span className="absolute inset-x-10 bottom-10 h-6 rounded-[50%] bg-black/40 blur-xl" />
+            </div>
+            <div className="absolute inset-x-0 bottom-12 top-8 flex items-end justify-center">
+              <img src={PHOTOS.cylinderCutout} alt="" loading="lazy" className="-mr-8 h-[52%] w-auto drop-shadow-2xl" />
+              <img
+                src={PHOTOS.cylinderCutout}
+                alt="Red Indane LPG cylinders"
+                loading="lazy"
+                className="relative z-10 h-[72%] w-auto drop-shadow-2xl"
+              />
+              <img src={PHOTOS.cylinderCutout} alt="" loading="lazy" className="-ml-8 h-[60%] w-auto drop-shadow-2xl" />
+            </div>
             <div className="absolute -bottom-6 -right-2 rounded-xl bg-orange px-5 py-4 text-white shadow-primary sm:-right-6">
               <p className="font-display text-[26px] font-extrabold leading-none">Indane</p>
               <p className="mt-1 text-[12px] text-white/85">IndianOil LPG</p>
@@ -444,9 +459,9 @@ export function Counters() {
 /* ---------- cylinders ---------- */
 
 const CYLINDERS = [
-  { size: '14.2 kg', name: 'Domestic', use: 'The standard home kitchen refill, booked through Indane.', tag: 'Most booked', photo: PHOTOS.cylinderDomestic },
-  { size: '5 kg', name: 'FTL / Chhotu', use: 'Free-trade and easy to carry, for students and small homes.', tag: 'Portable', photo: PHOTOS.cylinder5kg },
-  { size: '19 · 47.5 kg', name: 'Commercial', use: 'Hotels, tea stalls, shops and large kitchens.', tag: 'Business', photo: PHOTOS.cylinderStack },
+  { size: '14.2 kg', name: 'Domestic', use: 'The standard home kitchen refill, booked through Indane.', tag: 'Most booked', heights: ['h-[82%]'] },
+  { size: '5 kg', name: 'FTL / Chhotu', use: 'Free-trade and easy to carry, for students and small homes.', tag: 'Portable', heights: ['h-[56%]'] },
+  { size: '19 · 47.5 kg', name: 'Commercial', use: 'Hotels, tea stalls, shops and large kitchens.', tag: 'Business', heights: ['h-[74%]', 'h-[88%]'] },
 ]
 
 export function Cylinders() {
@@ -458,13 +473,24 @@ export function Cylinders() {
           {CYLINDERS.map((c, i) => (
             <InView key={c.size} delay={i * 0.08}>
               <div className="group h-full overflow-hidden rounded-xl border border-line bg-white shadow-card">
-                <div className="relative h-60 overflow-hidden">
-                  <img
-                    src={c.photo}
-                    alt={`Indane ${c.size} ${c.name.toLowerCase()} cylinder`}
-                    loading="lazy"
-                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
+                <div className="relative h-64 overflow-hidden bg-gradient-to-b from-orange-50 via-white to-surface">
+                  <span className="absolute left-1/2 top-1/2 h-44 w-44 -translate-x-1/2 -translate-y-1/2 rounded-full bg-orange/10" />
+                  <span className="absolute inset-x-1/4 bottom-5 h-4 rounded-[50%] bg-navy/25 blur-md" />
+                  <div className="absolute inset-x-0 bottom-6 top-4 flex items-end justify-center">
+                    {c.heights.map((ht, k) => (
+                      <img
+                        key={ht}
+                        src={PHOTOS.cylinderCutout}
+                        alt={k === 0 ? `Indane ${c.size} ${c.name.toLowerCase()} cylinder` : ''}
+                        loading="lazy"
+                        className={cn(
+                          ht,
+                          'w-auto drop-shadow-xl transition-transform duration-500 group-hover:-translate-y-2',
+                          k > 0 && '-ml-6',
+                        )}
+                      />
+                    ))}
+                  </div>
                   <span className="absolute left-4 top-4 rounded-full bg-orange px-2.5 py-1 text-[11px] font-semibold text-white shadow-primary">
                     {c.tag}
                   </span>
@@ -740,7 +766,7 @@ export function Footer() {
                 <a href={c.licenseUrl} target="_blank" rel="noreferrer" className="underline hover:text-white">
                   {c.license}
                 </a>
-                , resized
+                , {c.note}
               </li>
             ))}
           </ul>
