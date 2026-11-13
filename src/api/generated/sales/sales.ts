@@ -27,7 +27,9 @@ import type {
 import type {
   HTTPValidationError,
   ListSalesV1SalesGetParams,
+  SaleCancel,
   SaleCreate,
+  SaleEdit,
   SaleOut
 } from '.././model';
 
@@ -254,6 +256,189 @@ export function useListSalesV1SalesGet<TData = Awaited<ReturnType<typeof listSal
 
 
 /**
+ * @summary Cancel Sale
+ */
+export type cancelSaleV1SalesSaleIdCancelPostResponse200 = {
+  data: SaleOut
+  status: 200
+}
+
+export type cancelSaleV1SalesSaleIdCancelPostResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+    
+export type cancelSaleV1SalesSaleIdCancelPostResponseSuccess = (cancelSaleV1SalesSaleIdCancelPostResponse200) & {
+  headers: Headers;
+};
+export type cancelSaleV1SalesSaleIdCancelPostResponseError = (cancelSaleV1SalesSaleIdCancelPostResponse422) & {
+  headers: Headers;
+};
+
+export type cancelSaleV1SalesSaleIdCancelPostResponse = (cancelSaleV1SalesSaleIdCancelPostResponseSuccess | cancelSaleV1SalesSaleIdCancelPostResponseError)
+
+export const getCancelSaleV1SalesSaleIdCancelPostUrl = (saleId: string,) => {
+
+
+  
+
+  return `/v1/sales/${saleId}/cancel`
+}
+
+export const cancelSaleV1SalesSaleIdCancelPost = async (saleId: string,
+    saleCancel: SaleCancel, options?: RequestInit): Promise<cancelSaleV1SalesSaleIdCancelPostResponse> => {
+  
+  return customFetch<cancelSaleV1SalesSaleIdCancelPostResponse>(getCancelSaleV1SalesSaleIdCancelPostUrl(saleId),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      saleCancel,)
+  }
+);}
+
+
+
+
+export const getCancelSaleV1SalesSaleIdCancelPostMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelSaleV1SalesSaleIdCancelPost>>, TError,{saleId: string;data: SaleCancel}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof cancelSaleV1SalesSaleIdCancelPost>>, TError,{saleId: string;data: SaleCancel}, TContext> => {
+
+const mutationKey = ['cancelSaleV1SalesSaleIdCancelPost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelSaleV1SalesSaleIdCancelPost>>, {saleId: string;data: SaleCancel}> = (props) => {
+          const {saleId,data} = props ?? {};
+
+          return  cancelSaleV1SalesSaleIdCancelPost(saleId,data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CancelSaleV1SalesSaleIdCancelPostMutationResult = NonNullable<Awaited<ReturnType<typeof cancelSaleV1SalesSaleIdCancelPost>>>
+    export type CancelSaleV1SalesSaleIdCancelPostMutationBody = SaleCancel
+    export type CancelSaleV1SalesSaleIdCancelPostMutationError = HTTPValidationError
+
+    /**
+ * @summary Cancel Sale
+ */
+export const useCancelSaleV1SalesSaleIdCancelPost = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelSaleV1SalesSaleIdCancelPost>>, TError,{saleId: string;data: SaleCancel}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof cancelSaleV1SalesSaleIdCancelPost>>,
+        TError,
+        {saleId: string;data: SaleCancel},
+        TContext
+      > => {
+
+      const mutationOptions = getCancelSaleV1SalesSaleIdCancelPostMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
+ * Replace a sale with a corrected one: the original is cancelled, the new one posted.
+ * @summary Edit Sale
+ */
+export type editSaleV1SalesSaleIdEditPostResponse201 = {
+  data: SaleOut
+  status: 201
+}
+
+export type editSaleV1SalesSaleIdEditPostResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+    
+export type editSaleV1SalesSaleIdEditPostResponseSuccess = (editSaleV1SalesSaleIdEditPostResponse201) & {
+  headers: Headers;
+};
+export type editSaleV1SalesSaleIdEditPostResponseError = (editSaleV1SalesSaleIdEditPostResponse422) & {
+  headers: Headers;
+};
+
+export type editSaleV1SalesSaleIdEditPostResponse = (editSaleV1SalesSaleIdEditPostResponseSuccess | editSaleV1SalesSaleIdEditPostResponseError)
+
+export const getEditSaleV1SalesSaleIdEditPostUrl = (saleId: string,) => {
+
+
+  
+
+  return `/v1/sales/${saleId}/edit`
+}
+
+export const editSaleV1SalesSaleIdEditPost = async (saleId: string,
+    saleEdit: SaleEdit, options?: RequestInit): Promise<editSaleV1SalesSaleIdEditPostResponse> => {
+  
+  return customFetch<editSaleV1SalesSaleIdEditPostResponse>(getEditSaleV1SalesSaleIdEditPostUrl(saleId),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      saleEdit,)
+  }
+);}
+
+
+
+
+export const getEditSaleV1SalesSaleIdEditPostMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof editSaleV1SalesSaleIdEditPost>>, TError,{saleId: string;data: SaleEdit}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof editSaleV1SalesSaleIdEditPost>>, TError,{saleId: string;data: SaleEdit}, TContext> => {
+
+const mutationKey = ['editSaleV1SalesSaleIdEditPost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof editSaleV1SalesSaleIdEditPost>>, {saleId: string;data: SaleEdit}> = (props) => {
+          const {saleId,data} = props ?? {};
+
+          return  editSaleV1SalesSaleIdEditPost(saleId,data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type EditSaleV1SalesSaleIdEditPostMutationResult = NonNullable<Awaited<ReturnType<typeof editSaleV1SalesSaleIdEditPost>>>
+    export type EditSaleV1SalesSaleIdEditPostMutationBody = SaleEdit
+    export type EditSaleV1SalesSaleIdEditPostMutationError = HTTPValidationError
+
+    /**
+ * @summary Edit Sale
+ */
+export const useEditSaleV1SalesSaleIdEditPost = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof editSaleV1SalesSaleIdEditPost>>, TError,{saleId: string;data: SaleEdit}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof editSaleV1SalesSaleIdEditPost>>,
+        TError,
+        {saleId: string;data: SaleEdit},
+        TContext
+      > => {
+
+      const mutationOptions = getEditSaleV1SalesSaleIdEditPostMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
  * @summary Get Sale
  */
 export type getSaleV1SalesSaleIdGetResponse200 = {
