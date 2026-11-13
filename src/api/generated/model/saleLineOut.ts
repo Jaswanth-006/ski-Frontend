@@ -12,6 +12,7 @@ export interface SaleLineOut {
   label: string;
   qty: number;
   empty_qty: number;
+  damaged_qty: number;
   unit_price: string;
   other_sales_per_unit: string;
   line_total: string;

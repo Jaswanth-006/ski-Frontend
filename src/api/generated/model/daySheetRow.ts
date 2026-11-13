@@ -13,6 +13,8 @@ export interface DaySheetRow {
   party_kind: string;
   cylinders: number;
   empties: number;
+  damaged: number;
+  amount: string;
   loaded: number;
   returned: number;
   cash: string;

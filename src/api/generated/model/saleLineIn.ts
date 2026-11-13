@@ -12,4 +12,6 @@ export interface SaleLineIn {
   /** @minimum 1 */
   qty: number;
   empty_qty?: SaleLineInEmptyQty;
+  /** @minimum 0 */
+  damaged_qty?: number;
 }

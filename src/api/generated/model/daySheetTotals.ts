@@ -9,6 +9,8 @@
 export interface DaySheetTotals {
   cylinders: number;
   empties: number;
+  damaged: number;
+  amount: string;
   cash: string;
   upi: string;
   online: string;
