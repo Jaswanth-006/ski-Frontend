@@ -328,7 +328,7 @@ export function About() {
                 loading="lazy"
                 className="relative z-10 h-[72%] w-auto drop-shadow-2xl"
               />
-              <img src={PHOTOS.cylinderCutout} alt="" loading="lazy" className="-ml-8 h-[60%] w-auto drop-shadow-2xl" />
+              <img src={PHOTOS.cylinder19kgXtratej} alt="" loading="lazy" className="-ml-6 h-[62%] w-auto drop-shadow-2xl" />
             </div>
             <div className="absolute -bottom-6 -right-2 rounded-xl bg-orange px-5 py-4 text-white shadow-primary sm:-right-6">
               <p className="font-display text-[26px] font-extrabold leading-none">Indane</p>
@@ -464,11 +464,11 @@ const CYLINDERS = [
   {
     size: '19 · 47.5 kg',
     name: 'Commercial',
-    use: 'Hotels, tea stalls, shops and large kitchens. Xtra Tej for high-flame use.',
+    use: 'Hotels, tea stalls, shops and large kitchens.',
     tag: 'Business',
     shots: [
-      { src: PHOTOS.cylinder19kgXtratej, h: 'h-[78%]' },
-      { src: PHOTOS.cylinder19kg, h: 'h-[88%]' },
+      { src: PHOTOS.cylinder19kg, h: 'h-[70%]' },
+      { src: PHOTOS.cylinder47kg, h: 'h-[92%]' },
     ],
   },
 ]
