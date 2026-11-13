@@ -321,7 +321,7 @@ export function About() {
               <span className="absolute inset-x-10 bottom-10 h-6 rounded-[50%] bg-black/40 blur-xl" />
             </div>
             <div className="absolute inset-x-0 bottom-12 top-8 flex items-end justify-center">
-              <img src={PHOTOS.cylinderCutout} alt="" loading="lazy" className="-mr-8 h-[52%] w-auto drop-shadow-2xl" />
+              <img src={PHOTOS.cylinder5kgFtl} alt="" loading="lazy" className="-mr-6 h-[40%] w-auto drop-shadow-2xl" />
               <img
                 src={PHOTOS.cylinderCutout}
                 alt="Red Indane LPG cylinders"
@@ -459,9 +459,9 @@ export function Counters() {
 /* ---------- cylinders ---------- */
 
 const CYLINDERS = [
-  { size: '14.2 kg', name: 'Domestic', use: 'The standard home kitchen refill, booked through Indane.', tag: 'Most booked', heights: ['h-[82%]'] },
-  { size: '5 kg', name: 'FTL / Chhotu', use: 'Free-trade and easy to carry, for students and small homes.', tag: 'Portable', heights: ['h-[56%]'] },
-  { size: '19 · 47.5 kg', name: 'Commercial', use: 'Hotels, tea stalls, shops and large kitchens.', tag: 'Business', heights: ['h-[74%]', 'h-[88%]'] },
+  { size: '14.2 kg', name: 'Domestic', use: 'The standard home kitchen refill, booked through Indane.', tag: 'Most booked', src: PHOTOS.cylinderCutout, heights: ['h-[82%]'] },
+  { size: '5 kg', name: 'FTL / Chhotu', use: 'Free-trade and easy to carry, for students and small homes.', tag: 'Portable', src: PHOTOS.cylinder5kgFtl, heights: ['h-[62%]'] },
+  { size: '19 · 47.5 kg', name: 'Commercial', use: 'Hotels, tea stalls, shops and large kitchens.', tag: 'Business', src: PHOTOS.cylinderCutout, heights: ['h-[74%]', 'h-[88%]'] },
 ]
 
 export function Cylinders() {
@@ -480,7 +480,7 @@ export function Cylinders() {
                     {c.heights.map((ht, k) => (
                       <img
                         key={ht}
-                        src={PHOTOS.cylinderCutout}
+                        src={c.src}
                         alt={k === 0 ? `Indane ${c.size} ${c.name.toLowerCase()} cylinder` : ''}
                         loading="lazy"
                         className={cn(
