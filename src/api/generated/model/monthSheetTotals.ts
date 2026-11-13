@@ -8,11 +8,11 @@
 
 export interface MonthSheetTotals {
   cylinders: number;
-  empty_returned: number;
-  cash: string;
+  empties: number;
+  damaged: number;
+  amount: string;
   upi: string;
+  cash: string;
   online: string;
-  total: string;
-  expenses: string;
-  net: string;
+  balance: string;
 }

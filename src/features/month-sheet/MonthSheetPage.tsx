@@ -6,7 +6,6 @@ import type { MonthSheetDay } from '@/api/generated/model'
 import { AppShell } from '@/components/app/AppShell'
 import { DataTable, type Column } from '@/components/app/DataTable'
 import { Money } from '@/components/app/Money'
-import { StatusPill } from '@/components/app/StatusPill'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader } from '@/components/ui/card'
 
@@ -43,6 +42,9 @@ export function MonthSheetPage() {
     setYear(y)
   }
 
+  const dash = <span className="text-muted">—</span>
+  const amount = (v: string) => (Number(v) ? <Money value={Number(v)} bare /> : dash)
+
   const columns: Column<MonthSheetDay>[] = [
     {
       key: 'date',
@@ -56,58 +58,27 @@ export function MonthSheetPage() {
         </button>
       ),
     },
-    { key: 'cyl', header: 'Sold', numeric: true, render: (r) => r.cylinders },
+    { key: 'cyl', header: 'Sold', numeric: true, render: (r) => r.cylinders || dash },
+    { key: 'empties', header: 'Empty', numeric: true, render: (r) => r.empties || dash },
+    { key: 'damaged', header: 'Return', numeric: true, render: (r) => r.damaged || dash },
+    { key: 'amount', header: 'Total amount ₹', numeric: true, render: (r) => amount(r.amount) },
+    { key: 'upi', header: 'UPI ₹', numeric: true, render: (r) => amount(r.upi) },
+    { key: 'cash', header: 'Cash ₹', numeric: true, render: (r) => amount(r.cash) },
+    { key: 'online', header: 'Online ₹', numeric: true, render: (r) => amount(r.online) },
     {
-      key: 'empty',
-      header: 'Empty ret.',
+      key: 'balance',
+      header: 'Balance ₹',
       numeric: true,
-      render: (r) => r.empty_returned || <span className="text-muted">—</span>,
-    },
-    { key: 'cash', header: 'Hand cash ₹', numeric: true, render: (r) => <Money value={Number(r.cash)} bare /> },
-    {
-      key: 'notes',
-      header: 'Notes',
-      render: (r) =>
-        r.denominations.length ? (
-          <span className="num text-[11.5px] text-muted whitespace-nowrap">
-            {r.denominations.map((d) => `₹${d.note_value}×${d.note_count}`).join('  ')}
-          </span>
-        ) : (
-          <span className="text-muted">—</span>
-        ),
-    },
-    { key: 'upi', header: 'UPI ₹', numeric: true, render: (r) => <Money value={Number(r.upi)} bare /> },
-    {
-      key: 'online',
-      header: 'Online ₹',
-      numeric: true,
-      render: (r) => Number(r.online) ? <Money value={Number(r.online)} bare /> : <span className="text-muted">—</span>,
-    },
-    { key: 'total', header: 'Total ₹', numeric: true, render: (r) => <Money value={Number(r.total)} bare /> },
-    { key: 'expenses', header: 'Expenses ₹', numeric: true, render: (r) => <Money value={Number(r.expenses)} bare /> },
-    { key: 'net', header: 'Net ₹', numeric: true, render: (r) => <Money value={Number(r.net)} bare /> },
-    {
-      key: 'status',
-      header: '',
-      render: (r) =>
-        r.is_closed ? (
-          <StatusPill variant="warn" size="sm">
-            Closed
-          </StatusPill>
-        ) : (
-          <StatusPill variant="open" size="sm" dot>
-            Open
-          </StatusPill>
-        ),
+      render: (r) => (Number(r.balance) ? <Money value={Number(r.balance)} bare className="text-bad" /> : dash),
     },
   ]
 
   return (
-    <AppShell title="Month Sheet" subtitle="Overall sales rolled up by day — click a date for its full day sheet">
+    <AppShell title="Month Sheet" subtitle="Each day sheet's final total — click a date for its full day sheet">
       <Card className="overflow-hidden">
         <CardHeader
           title={`${MONTH_NAMES[month - 1]} ${year}`}
-          hint="Per-day totals for the month"
+          hint="One row per day, same columns as the day sheet"
           right={
             <div className="flex items-center gap-2">
               <Button variant="ghost" className="h-9 px-3" onClick={() => shiftMonth(-1)}>
@@ -136,15 +107,18 @@ export function MonthSheetPage() {
                 ? [
                     'Total',
                     sheet.totals.cylinders,
-                    sheet.totals.empty_returned,
-                    <Money key="c" value={Number(sheet.totals.cash)} bare />,
-                    '',
+                    sheet.totals.empties,
+                    sheet.totals.damaged,
+                    <Money key="a" value={Number(sheet.totals.amount)} bare />,
                     <Money key="u" value={Number(sheet.totals.upi)} bare />,
+                    <Money key="c" value={Number(sheet.totals.cash)} bare />,
                     <Money key="o" value={Number(sheet.totals.online)} bare />,
-                    <Money key="t" value={Number(sheet.totals.total)} bare />,
-                    <Money key="e" value={Number(sheet.totals.expenses)} bare />,
-                    <Money key="n" value={Number(sheet.totals.net)} bare />,
-                    '',
+                    <Money
+                      key="b"
+                      value={Number(sheet.totals.balance)}
+                      bare
+                      className={Number(sheet.totals.balance) ? 'text-bad' : undefined}
+                    />,
                   ]
                 : undefined
             }
