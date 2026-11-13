@@ -5,10 +5,12 @@ import { useSearchParams } from 'react-router-dom'
 import {
   getGetDaySheetV1DaySheetOnDateGetQueryKey,
   useCloseDayV1DaySheetOnDateClosePost,
+  useReopenDayV1DaySheetOnDateReopenPost,
   useGetDaySheetV1DaySheetOnDateGet,
 } from '@/api/generated/day-sheet/day-sheet'
 import type { DaySheetRow } from '@/api/generated/model'
 import { useAuthStore } from '@/state/auth'
+import { useAuth } from '@/auth/useAuth'
 import { AppShell } from '@/components/app/AppShell'
 import { DataTable, type Column } from '@/components/app/DataTable'
 import { Money } from '@/components/app/Money'
@@ -16,8 +18,9 @@ import { StatusPill } from '@/components/app/StatusPill'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { todayISO } from '@/lib/date'
 
-const today = () => new Date().toISOString().slice(0, 10)
+const today = todayISO
 
 export function DaySheetPage() {
   const queryClient = useQueryClient()
@@ -28,6 +31,9 @@ export function DaySheetPage() {
 
   const sheetQuery = useGetDaySheetV1DaySheetOnDateGet(date)
   const closeMutation = useCloseDayV1DaySheetOnDateClosePost()
+  const reopenMutation = useReopenDayV1DaySheetOnDateReopenPost()
+  const { role } = useAuth()
+  const isOwner = role === 'super_admin'
 
   const envelope = sheetQuery.data
   const sheet = envelope && envelope.status === 200 ? envelope.data : null
@@ -36,6 +42,10 @@ export function DaySheetPage() {
   const invalidate = () =>
     queryClient.invalidateQueries({ queryKey: getGetDaySheetV1DaySheetOnDateGetQueryKey(date) })
 
+  const reopenDay = async () => {
+    const res = await reopenMutation.mutateAsync({ onDate: date })
+    if (res.status === 200) await invalidate()
+  }
   const closeDay = async () => {
     const res = await closeMutation.mutateAsync({ onDate: date })
     if (res.status === 200) await invalidate()
@@ -119,6 +129,10 @@ export function DaySheetPage() {
               {!sheet?.is_closed ? (
                 <Button variant="primary" className="h-9" onClick={closeDay} disabled={closeMutation.isPending}>
                   {closeMutation.isPending ? 'Closing…' : 'Close day'}
+                </Button>
+              ) : isOwner ? (
+                <Button variant="ghost" className="h-9" onClick={reopenDay} disabled={reopenMutation.isPending}>
+                  {reopenMutation.isPending ? 'Reopening…' : 'Reopen day'}
                 </Button>
               ) : null}
             </div>

@@ -17,8 +17,9 @@ import { StatusPill } from '@/components/app/StatusPill'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { todayISO } from '@/lib/date'
 
-const today = () => new Date().toISOString().slice(0, 10)
+const today = todayISO
 
 export function CreditsPage() {
   const queryClient = useQueryClient()

@@ -15,8 +15,9 @@ import { Card, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Modal } from '@/components/ui/modal'
 import { cn } from '@/lib/cn'
+import { todayISO } from '@/lib/date'
 
-const today = () => new Date().toISOString().slice(0, 10)
+const today = todayISO
 const n = (v: string | number | null | undefined) => Number(v ?? 0)
 const sum = (s: SaleOut, k: 'qty' | 'empty_qty' | 'damaged_qty') =>
   s.lines.reduce((t, l) => t + l[k], 0)

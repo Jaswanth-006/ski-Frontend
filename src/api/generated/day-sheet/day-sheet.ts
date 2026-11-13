@@ -245,6 +245,96 @@ export const useCloseDayV1DaySheetOnDateClosePost = <TError = HTTPValidationErro
       return useMutation(mutationOptions, queryClient);
     }
     /**
+ * Owner only: open a closed day again so it can be corrected.
+ * @summary Reopen Day
+ */
+export type reopenDayV1DaySheetOnDateReopenPostResponse200 = {
+  data: DaySheetOut
+  status: 200
+}
+
+export type reopenDayV1DaySheetOnDateReopenPostResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+    
+export type reopenDayV1DaySheetOnDateReopenPostResponseSuccess = (reopenDayV1DaySheetOnDateReopenPostResponse200) & {
+  headers: Headers;
+};
+export type reopenDayV1DaySheetOnDateReopenPostResponseError = (reopenDayV1DaySheetOnDateReopenPostResponse422) & {
+  headers: Headers;
+};
+
+export type reopenDayV1DaySheetOnDateReopenPostResponse = (reopenDayV1DaySheetOnDateReopenPostResponseSuccess | reopenDayV1DaySheetOnDateReopenPostResponseError)
+
+export const getReopenDayV1DaySheetOnDateReopenPostUrl = (onDate: string,) => {
+
+
+  
+
+  return `/v1/day-sheet/${onDate}/reopen`
+}
+
+export const reopenDayV1DaySheetOnDateReopenPost = async (onDate: string, options?: RequestInit): Promise<reopenDayV1DaySheetOnDateReopenPostResponse> => {
+  
+  return customFetch<reopenDayV1DaySheetOnDateReopenPostResponse>(getReopenDayV1DaySheetOnDateReopenPostUrl(onDate),
+  {      
+    ...options,
+    method: 'POST'
+    
+    
+  }
+);}
+
+
+
+
+export const getReopenDayV1DaySheetOnDateReopenPostMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reopenDayV1DaySheetOnDateReopenPost>>, TError,{onDate: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reopenDayV1DaySheetOnDateReopenPost>>, TError,{onDate: string}, TContext> => {
+
+const mutationKey = ['reopenDayV1DaySheetOnDateReopenPost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reopenDayV1DaySheetOnDateReopenPost>>, {onDate: string}> = (props) => {
+          const {onDate} = props ?? {};
+
+          return  reopenDayV1DaySheetOnDateReopenPost(onDate,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReopenDayV1DaySheetOnDateReopenPostMutationResult = NonNullable<Awaited<ReturnType<typeof reopenDayV1DaySheetOnDateReopenPost>>>
+    
+    export type ReopenDayV1DaySheetOnDateReopenPostMutationError = HTTPValidationError
+
+    /**
+ * @summary Reopen Day
+ */
+export const useReopenDayV1DaySheetOnDateReopenPost = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reopenDayV1DaySheetOnDateReopenPost>>, TError,{onDate: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reopenDayV1DaySheetOnDateReopenPost>>,
+        TError,
+        {onDate: string},
+        TContext
+      > => {
+
+      const mutationOptions = getReopenDayV1DaySheetOnDateReopenPostMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
  * Kick off an async Excel export; poll GET /v1/jobs/{id} for the download URL.
  * @summary Export Day Sheet
  */

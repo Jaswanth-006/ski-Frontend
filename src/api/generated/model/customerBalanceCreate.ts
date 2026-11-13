@@ -7,6 +7,7 @@
  */
 import type { CustomerBalanceCreateAmount } from './customerBalanceCreateAmount';
 import type { CustomerBalanceCreateNote } from './customerBalanceCreateNote';
+import type { CustomerBalanceCreateMethod } from './customerBalanceCreateMethod';
 
 export interface CustomerBalanceCreate {
   customer_id: string;
@@ -14,4 +15,5 @@ export interface CustomerBalanceCreate {
   entry_date: string;
   kind: string;
   note?: CustomerBalanceCreateNote;
+  method?: CustomerBalanceCreateMethod;
 }

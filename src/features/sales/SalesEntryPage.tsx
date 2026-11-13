@@ -9,7 +9,6 @@ import {
 } from '@/api/generated/sales/sales'
 import { useGetPricesV1PricesGet } from '@/api/generated/pricing/pricing'
 import { useListDeliveryOtherSalesV1DeliveryOtherSalesGet } from '@/api/generated/delivery-other-sales/delivery-other-sales'
-import { createExpenseV1ExpensesPost } from '@/api/generated/expenses/expenses'
 import { useListExpenseItemsV1ExpenseItemsGet } from '@/api/generated/catalog/catalog'
 import { useListCustomersV1CustomersGet } from '@/api/generated/customers/customers'
 import { useListUsersV1UsersGet } from '@/api/generated/users/users'
@@ -27,10 +26,13 @@ import { Card, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { cn } from '@/lib/cn'
+import { todayISO } from '@/lib/date'
 
 const NOTES = [500, 200, 100, 50, 20, 10, 1]
-const today = () => new Date().toISOString().slice(0, 10)
+const today = todayISO
 const num = (v: string | undefined) => Number(v ?? '') || 0
+// Whole paise, so browser floats (979.1 × 3 = 2937.2999…) match the server's sums.
+const paise = (n: number) => Math.round(n * 100) / 100
 
 type PartyKind = 'delivery' | 'customer'
 interface ExpenseRow {
@@ -113,8 +115,17 @@ export function SalesEntryPage() {
   )
   const settled = cashTotal + num(upi) // cash + upi handed in
   // Whatever isn't paid becomes the balance the boy / customer owes — worked out, not typed.
-  const balance = Math.max(0, Math.round((revenue - settled - onlineAmount) * 100) / 100)
-  const collected = settled + onlineAmount + balance // full sale = cash + upi + online + balance
+  // Route expenses (delivery sales): spent by the boy out of this collection.
+  const routeExpenses = isDelivery
+    ? expenseRows.filter((r) => r.itemId && num(r.amount) > 0)
+    : []
+  const expensesTotal = routeExpenses.reduce((s, r) => s + num(r.amount), 0)
+  const balance = Math.max(
+    0,
+    paise(revenue - settled - onlineAmount - expensesTotal),
+  )
+  // full sale = cash + upi + online + route expenses + balance
+  const collected = settled + onlineAmount + expensesTotal + balance
   const cylindersSold = lines.reduce((s, p) => s + num(qty[p.cylinder_type_id]), 0)
   // Only an overpayment can leave the sale unbalanced now.
   const reconciled = revenue > 0 && Math.abs(collected - revenue) < 0.005
@@ -164,7 +175,9 @@ export function SalesEntryPage() {
     setUpi(Number(editSale.upi_total) ? String(Number(editSale.upi_total)) : '')
     setOnlineQty({})
     setPendingOnline(Number(editSale.online_total))
-    setExpenseRows([])
+    setExpenseRows(
+      (editSale.expenses ?? []).map((e) => ({ itemId: e.item_id, amount: String(Number(e.amount)) })),
+    )
     setResult(null)
   }, [editSale, loadedEditId])
 
@@ -200,7 +213,6 @@ export function SalesEntryPage() {
     }
   }
 
-  const expensesTotal = expenseRows.reduce((s, r) => s + num(r.amount), 0)
 
   const createSale = useMutation({
     mutationFn: (body: object) =>
@@ -247,8 +259,9 @@ export function SalesEntryPage() {
       lines: saleLines,
       denominations,
       upi_total: num(upi),
-      online_total: onlineAmount,
+      online_total: paise(onlineAmount),
       balance_total: balance, // backend charges this to the boy's / customer's balance
+      expenses: routeExpenses.map((r) => ({ item_id: r.itemId, amount: num(r.amount) })),
     }
     const res = isEdit
       ? await saveEdit.mutateAsync({ reason: editReason.trim(), sale: body })
@@ -269,21 +282,6 @@ export function SalesEntryPage() {
       await queryClient.invalidateQueries()
       navigate(`/sales?date=${date}`, { state: { flash: `Invoice ${invoice} updated.` } })
       return
-    }
-
-    // Delivery-only follow-up: post the boy's route expenses (balance is handled by the sale).
-    if (isDelivery) {
-      for (const r of expenseRows) {
-        if (r.itemId && num(r.amount) > 0) {
-          await createExpenseV1ExpensesPost({
-            business_date: date,
-            item_id: r.itemId,
-            amount: num(r.amount),
-            method: 'cash',
-            delivery_id: driverId,
-          } as never)
-        }
-      }
     }
 
     setResult({ ok: true, message: `Sale ${invoice} moved to the day sheet.` })
@@ -323,8 +321,7 @@ export function SalesEntryPage() {
                   ) : null}
                 </div>
                 <div className="text-[12px] text-muted">
-                  Saving cancels the original and posts this one. Route expenses are not changed —
-                  fix those under Expenses.
+                  Saving cancels the original (with its route expenses) and posts this one.
                 </div>
               </div>
             </div>
@@ -567,11 +564,11 @@ export function SalesEntryPage() {
           </Card>
 
           {/* Expenses for this delivery boy (J) */}
-          {isDelivery && !isEdit ? (
+          {isDelivery ? (
             <Card>
               <CardHeader
                 title="Expenses (this delivery boy)"
-                hint="Fuel etc. spent on the route — reduces what he hands in"
+                hint="Fuel etc. paid from this collection — counts towards the sale, not his balance"
                 right={
                   <Button
                     variant="ghost"
@@ -662,6 +659,14 @@ export function SalesEntryPage() {
               </span>
               <Money value={onlineAmount} className="font-display font-bold text-ink" />
             </div>
+            {expensesTotal > 0 ? (
+              <div className="flex items-center justify-between gap-3 mt-1">
+                <span className="text-[13px] font-medium text-ink">
+                  Route expenses <span className="text-[11px] text-muted font-normal">→ paid from collection</span>
+                </span>
+                <Money value={expensesTotal} className="font-display font-bold text-ink" />
+              </div>
+            ) : null}
             <div className="flex items-center justify-between gap-3 mt-1">
               <span className="text-[13px] font-medium text-ink">
                 Balance{' '}
@@ -687,7 +692,7 @@ export function SalesEntryPage() {
               <Money value={revenue} className="font-display font-extrabold text-[18px] text-ink" />
             </div>
             <div>
-              <div className="text-[11.5px] text-muted">Accounted (cash+UPI+online+balance)</div>
+              <div className="text-[11.5px] text-muted">Accounted (cash+UPI+online+expenses+balance)</div>
               <Money value={collected} className="font-display font-extrabold text-[18px] text-ink" />
             </div>
             <div>

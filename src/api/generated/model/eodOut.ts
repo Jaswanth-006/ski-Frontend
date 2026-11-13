@@ -14,5 +14,7 @@ export interface EodOut {
   upi_total: string;
   online_total: string;
   expenses_total: string;
+  sales_total: string;
+  balance_total: string;
   net_profit: EodOutNetProfit;
 }

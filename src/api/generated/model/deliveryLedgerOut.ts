@@ -19,6 +19,7 @@ export interface DeliveryLedgerOut {
   total_cash: string;
   total_upi: string;
   total_online: string;
+  total_expenses: string;
   total_repaid: string;
   total_balance: string;
 }

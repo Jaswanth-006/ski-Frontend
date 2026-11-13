@@ -28,8 +28,9 @@ import { Reveal } from '@/components/app/Reveal'
 import { StatusPill } from '@/components/app/StatusPill'
 import { useAuthStore } from '@/state/auth'
 import { CollectionsChart } from './CollectionsChart'
+import { todayISO } from '@/lib/date'
 
-const isoToday = () => new Date().toISOString().slice(0, 10)
+const isoToday = todayISO
 
 // Deterministic avatar tint per delivery driver.
 const AVATAR_COLORS = ['#10295C', '#2E6F4E', '#7A4FB0', '#C0552A', '#B03A5B', '#2A6F8E']
@@ -80,6 +81,8 @@ export function DashboardPage() {
   const grossCash = Number(eod?.gross_cash ?? 0)
   const upi = Number(eod?.upi_total ?? 0)
   const netProfit = eod?.net_profit != null ? Number(eod.net_profit) : null
+  const salesTotal = Number(eod?.sales_total ?? 0)
+  const unpaid = Number(eod?.balance_total ?? 0)
 
   // Collections chart points: one per day, weekday label, last point = today.
   const chartPoints = trend.map((p, i) => ({
@@ -152,10 +155,18 @@ export function DashboardPage() {
           />
           <KpiCard
             icon={<CreditCard size={17} />}
-            label="Gross collection"
-            value={grossCash + upi}
+            label="Total sales"
+            value={salesTotal}
             prefix="₹"
-            sub={<span>cash + UPI</span>}
+            sub={
+              unpaid > 0 ? (
+                <span className="text-bad">
+                  <Money value={unpaid} /> unpaid
+                </span>
+              ) : (
+                <span>all paid</span>
+              )
+            }
           />
           <KpiCard
             icon={<Banknote size={17} />}
@@ -177,14 +188,14 @@ export function DashboardPage() {
           />
           <KpiCard
             icon={<TrendingUp size={17} />}
-            label="Net profit (today)"
+            label="Sales after expenses"
             value={netProfit ?? 0}
             prefix="₹"
             owner
             canViewValue={role === 'super_admin'}
             sub={
               <span>
-                after&nbsp;<Money value={Number(eod?.expenses_total ?? 0)} />&nbsp;expenses
+                sales −&nbsp;<Money value={Number(eod?.expenses_total ?? 0)} />&nbsp;expenses
               </span>
             }
           />
@@ -217,15 +228,15 @@ export function DashboardPage() {
             <Card>
               <CardHeader
                 title="Cylinder movement"
-                hint="Sold against morning load"
-                right={<span className="text-[11.5px] text-muted">Remaining in stock</span>}
+                hint="Sold today against full cylinders in the godown"
+                right={<span className="text-[11.5px] text-muted">Full left</span>}
               />
               <div className="px-[18px] pb-[18px] pt-1.5 flex flex-col gap-[15px]">
                 {movement.length === 0 ? (
                   <p className="text-[13px] text-muted py-3">No stock movement recorded today.</p>
                 ) : (
                   movement.map((g) => {
-                    const denom = g.loaded > 0 ? g.loaded : g.sold + g.left
+                    const denom = g.sold + g.left
                     const value = denom > 0 ? Math.round((g.sold / denom) * 100) : 0
                     return (
                       <Gauge
