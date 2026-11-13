@@ -1,14 +1,25 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { ArrowRight, Check, Loader2, Plus, X } from 'lucide-react'
-import { useMemo, useState } from 'react'
-import { createSaleV1SalesPost } from '@/api/generated/sales/sales'
+import { ArrowRight, Check, Loader2, Pencil, Plus, X } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import {
+  createSaleV1SalesPost,
+  editSaleV1SalesSaleIdEditPost,
+  useGetSaleV1SalesSaleIdGet,
+} from '@/api/generated/sales/sales'
 import { useGetPricesV1PricesGet } from '@/api/generated/pricing/pricing'
 import { useListDeliveryOtherSalesV1DeliveryOtherSalesGet } from '@/api/generated/delivery-other-sales/delivery-other-sales'
 import { createExpenseV1ExpensesPost } from '@/api/generated/expenses/expenses'
 import { useListExpenseItemsV1ExpenseItemsGet } from '@/api/generated/catalog/catalog'
 import { useListCustomersV1CustomersGet } from '@/api/generated/customers/customers'
 import { useListUsersV1UsersGet } from '@/api/generated/users/users'
-import type { CustomerOut, ExpenseItemOut, PriceOut, UserOut } from '@/api/generated/model'
+import type {
+  CustomerOut,
+  ExpenseItemOut,
+  PriceOut,
+  SaleLineOut,
+  UserOut,
+} from '@/api/generated/model'
 import { AppShell } from '@/components/app/AppShell'
 import { Money } from '@/components/app/Money'
 import { Button } from '@/components/ui/button'
@@ -29,6 +40,14 @@ interface ExpenseRow {
 
 export function SalesEntryPage() {
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
+  const [search] = useSearchParams()
+  // ?edit=<sale id> corrects a posted sale: the form is pre-filled and saving replaces it.
+  const editId = search.get('edit') ?? ''
+  const isEdit = !!editId
+  const [editReason, setEditReason] = useState('')
+  const [loadedEditId, setLoadedEditId] = useState('')
+  const [pendingOnline, setPendingOnline] = useState(0)
   const [date, setDate] = useState(today())
   const [partyKind, setPartyKind] = useState<PartyKind>('delivery')
   const [driverId, setDriverId] = useState('')
@@ -54,6 +73,9 @@ export function SalesEntryPage() {
   const customersQuery = useListCustomersV1CustomersGet()
   const otherSalesQuery = useListDeliveryOtherSalesV1DeliveryOtherSalesGet()
   const itemsQuery = useListExpenseItemsV1ExpenseItemsGet({ active: 'true' })
+
+  const saleQuery = useGetSaleV1SalesSaleIdGet(editId, { query: { enabled: isEdit } })
+  const editSale = saleQuery.data?.status === 200 ? saleQuery.data.data : null
 
   const otherSales = otherSalesQuery.data?.status === 200 ? otherSalesQuery.data.data : []
   const boyExtra = isDelivery
@@ -99,7 +121,9 @@ export function SalesEntryPage() {
   const difference = collected - revenue
   const invoice = invoiceNo.trim()
   const blocker =
-    cylindersSold === 0
+    isEdit && editSale?.status === 'cancelled'
+      ? 'This sale is already cancelled'
+      : cylindersSold === 0
       ? 'Add at least one cylinder'
       : isDelivery && !driverId
         ? 'Select a delivery person'
@@ -109,7 +133,51 @@ export function SalesEntryPage() {
             ? 'Enter the invoice number'
             : !reconciled
               ? 'Payment is more than the sale'
-              : null
+              : isEdit && editReason.trim().length < 3
+                ? 'Say why you are changing this sale'
+                : null
+
+  // Fill the form once from the sale being edited.
+  useEffect(() => {
+    if (!editSale || loadedEditId === editSale.id) return
+    setLoadedEditId(editSale.id)
+    setDate(editSale.business_date)
+    setPartyKind(editSale.party_kind === 'customer' ? 'customer' : 'delivery')
+    setDriverId(editSale.delivery_id ?? '')
+    setCustomerId(editSale.customer_id ?? '')
+    setInvoiceNo(editSale.invoice_no ?? '')
+    const perLine = (pick: (l: SaleLineOut) => number) =>
+      Object.fromEntries(
+        editSale.lines.filter((l) => pick(l) > 0).map((l) => [l.cylinder_type_id, String(pick(l))]),
+      )
+    setLineIds(editSale.lines.map((l) => l.cylinder_type_id))
+    setQty(perLine((l) => l.qty))
+    setEmpties(
+      Object.fromEntries(editSale.lines.map((l) => [l.cylinder_type_id, String(l.empty_qty)])),
+    )
+    setDamaged(perLine((l) => l.damaged_qty))
+    setNotes(
+      Object.fromEntries(
+        (editSale.denominations ?? []).map((d) => [d.note_value, String(d.note_count)]),
+      ),
+    )
+    setUpi(Number(editSale.upi_total) ? String(Number(editSale.upi_total)) : '')
+    setOnlineQty({})
+    setPendingOnline(Number(editSale.online_total))
+    setExpenseRows([])
+    setResult(null)
+  }, [editSale, loadedEditId])
+
+  // Online is stored as an amount; with one cylinder line it maps back to a cylinder count.
+  useEffect(() => {
+    if (!pendingOnline || lines.length !== 1 || otherSalesQuery.isLoading) return
+    const unit = Number(lines[0].unit_price) + boyExtra
+    const count = pendingOnline / unit
+    if (unit > 0 && Math.abs(count - Math.round(count)) < 1e-6) {
+      setOnlineQty({ [lines[0].cylinder_type_id]: String(Math.round(count)) })
+      setPendingOnline(0)
+    }
+  }, [pendingOnline, lines, boyExtra, otherSalesQuery.isLoading])
 
   // Blank "Empty back" means every cylinder sold came back as an empty, except the damaged / lost ones.
   const emptyDefault = (id: string) => Math.max(0, num(qty[id]) - num(damaged[id]))
@@ -139,6 +207,13 @@ export function SalesEntryPage() {
       createSaleV1SalesPost(body as never, { headers: { 'Idempotency-Key': crypto.randomUUID() } }),
   })
 
+  const saveEdit = useMutation({
+    mutationFn: (body: object) =>
+      editSaleV1SalesSaleIdEditPost(editId, body as never, {
+        headers: { 'Idempotency-Key': crypto.randomUUID() },
+      }),
+  })
+
   const setExpense = (i: number, patch: Partial<ExpenseRow>) =>
     setExpenseRows((rows) => rows.map((r, j) => (j === i ? { ...r, ...patch } : r)))
 
@@ -165,7 +240,7 @@ export function SalesEntryPage() {
       note_count: num(notes[n]),
     }))
 
-    const res = await createSale.mutateAsync({
+    const body = {
       invoice_no: invoice,
       ...(isDelivery ? { delivery_id: driverId } : { customer_id: customerId }),
       business_date: date,
@@ -174,7 +249,10 @@ export function SalesEntryPage() {
       upi_total: num(upi),
       online_total: onlineAmount,
       balance_total: balance, // backend charges this to the boy's / customer's balance
-    })
+    }
+    const res = isEdit
+      ? await saveEdit.mutateAsync({ reason: editReason.trim(), sale: body })
+      : await createSale.mutateAsync(body)
     const status = res.status as number
     if (status !== 201) {
       const detail = (res.data as { detail?: unknown })?.detail
@@ -185,6 +263,12 @@ export function SalesEntryPage() {
             ? detail
             : 'Could not post the sale.'
       return setResult({ ok: false, message: flags })
+    }
+
+    if (isEdit) {
+      await queryClient.invalidateQueries()
+      navigate(`/sales?date=${date}`, { state: { flash: `Invoice ${invoice} updated.` } })
+      return
     }
 
     // Delivery-only follow-up: post the boy's route expenses (balance is handled by the sale).
@@ -216,7 +300,58 @@ export function SalesEntryPage() {
   }
 
   return (
-    <AppShell title="Sales Entry" subtitle="Enter a sale and move it to the day sheet">
+    <AppShell
+      title={isEdit ? 'Edit sale' : 'Sales Entry'}
+      subtitle={
+        isEdit
+          ? 'Correct a posted sale — the original is cancelled when you save'
+          : 'Enter a sale and move it to the day sheet'
+      }
+    >
+      {isEdit ? (
+        <Card className="border-orange/40 bg-orange-50/60">
+          <div className="p-[18px] flex flex-wrap items-end gap-4">
+            <div className="flex items-center gap-3 mr-auto">
+              <span className="grid h-9 w-9 place-items-center rounded-lg bg-orange text-white">
+                <Pencil size={16} />
+              </span>
+              <div>
+                <div className="text-[14px] font-bold text-ink">
+                  Editing invoice {editSale?.invoice_no ?? '…'}
+                  {editSale ? (
+                    <span className="font-normal text-muted"> · {editSale.party_name}</span>
+                  ) : null}
+                </div>
+                <div className="text-[12px] text-muted">
+                  Saving cancels the original and posts this one. Route expenses are not changed —
+                  fix those under Expenses.
+                </div>
+              </div>
+            </div>
+            <div>
+              <label className="block text-[12px] font-medium text-ink mb-1">
+                Reason for the change <span className="text-bad">*</span>
+              </label>
+              <Input
+                value={editReason}
+                onChange={(e) => setEditReason(e.target.value)}
+                maxLength={280}
+                placeholder="e.g. wrong quantity"
+                className="w-[260px]"
+              />
+            </div>
+            <Link to="/sales" className="text-[13px] font-medium text-muted hover:text-ink pb-2">
+              Back to invoices
+            </Link>
+          </div>
+          {pendingOnline > 0 ? (
+            <p className="px-[18px] pb-3 text-[12px] text-warn">
+              This sale had <Money value={pendingOnline} /> billed online — enter the online
+              cylinders again on each line.
+            </p>
+          ) : null}
+        </Card>
+      ) : null}
       {/* Party + date */}
       <Card>
         <div className="p-[18px] flex flex-wrap items-end gap-5">
@@ -432,7 +567,7 @@ export function SalesEntryPage() {
           </Card>
 
           {/* Expenses for this delivery boy (J) */}
-          {isDelivery ? (
+          {isDelivery && !isEdit ? (
             <Card>
               <CardHeader
                 title="Expenses (this delivery boy)"
@@ -572,8 +707,16 @@ export function SalesEntryPage() {
           </div>
           <div className="flex items-center gap-3">
             {blocker ? <span className="text-[12.5px] text-bad">{blocker}</span> : null}
-            <Button variant="primary" onClick={submit} disabled={createSale.isPending || blocker !== null}>
-              {createSale.isPending ? 'Posting…' : 'Move to Day Sheet'}
+            <Button
+              variant="primary"
+              onClick={submit}
+              disabled={createSale.isPending || saveEdit.isPending || blocker !== null}
+            >
+              {createSale.isPending || saveEdit.isPending
+                ? 'Saving…'
+                : isEdit
+                  ? 'Save changes'
+                  : 'Move to Day Sheet'}
               <ArrowRight size={16} />
             </Button>
           </div>
