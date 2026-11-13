@@ -18,7 +18,6 @@ const ledger = {
   delivery_name: 'Bala Subramanyam V',
   start: '2026-09-01',
   end: '2026-09-30',
-  opening_balance: '500.00',
   rows: [
     {
       entry_date: '2026-09-02',
@@ -32,7 +31,7 @@ const ledger = {
       upi: '2000.00',
       online: '0.00',
       repaid: '0',
-      balance: '20500.00',
+      balance: '20000.00',
     },
     {
       entry_date: '2026-09-10',
@@ -46,7 +45,7 @@ const ledger = {
       upi: '0',
       online: '0',
       repaid: '5000.00',
-      balance: '15500.00',
+      balance: '0',
     },
   ],
   total_qty: 10,
@@ -56,7 +55,7 @@ const ledger = {
   total_upi: '2000.00',
   total_online: '0.00',
   total_repaid: '5000.00',
-  closing_balance: '15500.00',
+  total_balance: '15000.00',
 }
 
 describe('DeliveryStatementPage', () => {
@@ -71,7 +70,7 @@ describe('DeliveryStatementPage', () => {
   })
   afterEach(() => vi.unstubAllGlobals())
 
-  it('lists sales and repayments with the running balance and totals', async () => {
+  it('lists each sale with its own balance, repayments and totals', async () => {
     render(
       <QueryClientProvider client={new QueryClient()}>
         <MemoryRouter initialEntries={['/reports/delivery/b1?start=2026-09-01&end=2026-09-30']}>
@@ -84,16 +83,16 @@ describe('DeliveryStatementPage', () => {
 
     expect(await screen.findByRole('heading', { name: 'Bala Subramanyam V' })).toBeInTheDocument()
     const rows = screen.getAllByRole('row')
-    // header, brought forward, sale, repayment, totals
-    expect(rows).toHaveLength(5)
-    expect(within(rows[1]).getByText('Balance brought forward')).toBeInTheDocument()
-    expect(within(rows[2]).getByText('02.09.2026')).toBeInTheDocument()
-    expect(within(rows[2]).getByText('SK000100')).toBeInTheDocument()
-    expect(within(rows[2]).getByText('30,000')).toBeInTheDocument()
-    expect(within(rows[2]).getByText('20,500')).toBeInTheDocument()
-    expect(within(rows[3]).getByText('Repaid')).toBeInTheDocument()
-    expect(within(rows[3]).getByText('paid at office')).toBeInTheDocument()
-    expect(within(rows[4]).getByText('Total')).toBeInTheDocument()
-    expect(within(rows[4]).getByText('15,500')).toBeInTheDocument()
+    // header, sale, repayment, totals — nothing brought forward
+    expect(rows).toHaveLength(4)
+    expect(screen.queryByText('Balance brought forward')).toBeNull()
+    expect(within(rows[1]).getByText('02.09.2026')).toBeInTheDocument()
+    expect(within(rows[1]).getByText('SK000100')).toBeInTheDocument()
+    expect(within(rows[1]).getByText('30,000')).toBeInTheDocument()
+    expect(within(rows[1]).getByText('20,000')).toBeInTheDocument()
+    expect(within(rows[2]).getByText('Repaid')).toBeInTheDocument()
+    expect(within(rows[2]).getByText('paid at office')).toBeInTheDocument()
+    expect(within(rows[3]).getByText('Total')).toBeInTheDocument()
+    expect(within(rows[3]).getByText('15,000')).toBeInTheDocument()
   })
 })
