@@ -61,10 +61,8 @@ export function DaySheetPage() {
     }
   }
 
-  // Note values that appear anywhere today (high → low) become inline columns.
-  const noteValues = (sheet?.denomination_totals ?? []).map((d) => d.note_value)
-  const noteCount = (r: DaySheetRow, value: number) =>
-    r.denominations.find((x) => x.note_value === value)?.note_count ?? 0
+  const dash = <span className="text-muted">—</span>
+  const amount = (v: string) => (Number(v) ? <Money value={Number(v)} bare /> : dash)
 
   const columns: Column<DaySheetRow>[] = [
     {
@@ -81,46 +79,19 @@ export function DaySheetPage() {
         </span>
       ),
     },
-    { key: 'cyl', header: 'Sold', numeric: true, render: (r) => r.cylinders },
-    { key: 'empties', header: 'Empty back', numeric: true, render: (r) => r.empties || <span className="text-muted">—</span> },
-    ...noteValues.map(
-      (v): Column<DaySheetRow> => ({
-        key: `n${v}`,
-        header: `₹${v}`,
-        numeric: true,
-        render: (r) => noteCount(r, v) || <span className="text-muted">—</span>,
-      }),
-    ),
-    { key: 'cash', header: 'Cash ₹', numeric: true, render: (r) => <Money value={Number(r.cash)} bare /> },
-    { key: 'upi', header: 'UPI ₹', numeric: true, render: (r) => <Money value={Number(r.upi)} bare /> },
-    {
-      key: 'online',
-      header: 'Online ₹',
-      numeric: true,
-      render: (r) =>
-        Number(r.online) ? <Money value={Number(r.online)} bare /> : <span className="text-muted">—</span>,
-    },
-    { key: 'total', header: 'Settled ₹', numeric: true, render: (r) => <Money value={Number(r.total)} bare /> },
-    {
-      key: 'expense',
-      header: 'Expense ₹',
-      numeric: true,
-      render: (r) =>
-        Number(r.expense) ? <Money value={Number(r.expense)} bare /> : <span className="text-muted">—</span>,
-    },
-    { key: 'net', header: 'Net ₹', numeric: true, render: (r) => <Money value={Number(r.net)} bare /> },
+    { key: 'cyl', header: 'Sold', numeric: true, render: (r) => r.cylinders || dash },
+    { key: 'empties', header: 'Empty', numeric: true, render: (r) => r.empties || dash },
+    { key: 'damaged', header: 'Return', numeric: true, render: (r) => r.damaged || dash },
+    { key: 'amount', header: 'Total amount ₹', numeric: true, render: (r) => amount(r.amount) },
+    { key: 'upi', header: 'UPI ₹', numeric: true, render: (r) => amount(r.upi) },
+    { key: 'cash', header: 'Cash ₹', numeric: true, render: (r) => amount(r.cash) },
+    { key: 'online', header: 'Online ₹', numeric: true, render: (r) => amount(r.online) },
     {
       key: 'balance',
       header: 'Balance ₹',
       numeric: true,
-      render: (r) =>
-        Number(r.balance) ? (
-          <Money value={Number(r.balance)} bare className="text-bad" />
-        ) : (
-          <span className="text-muted">—</span>
-        ),
+      render: (r) => (Number(r.balance) ? <Money value={Number(r.balance)} bare className="text-bad" /> : dash),
     },
-    { key: 'handed', header: 'Handed ₹', numeric: true, render: (r) => <Money value={Number(r.handed)} bare /> },
   ]
 
   return (
@@ -169,71 +140,22 @@ export function DaySheetPage() {
                     'Total',
                     sheet.totals.cylinders,
                     sheet.totals.empties,
-                    ...sheet.denomination_totals.map((d) => d.note_count),
-                    <Money key="c" value={Number(sheet.totals.cash)} bare />,
+                    sheet.totals.damaged,
+                    <Money key="a" value={Number(sheet.totals.amount)} bare />,
                     <Money key="u" value={Number(sheet.totals.upi)} bare />,
+                    <Money key="c" value={Number(sheet.totals.cash)} bare />,
                     <Money key="o" value={Number(sheet.totals.online)} bare />,
-                    <Money key="t" value={Number(sheet.totals.total)} bare />,
-                    <Money key="e" value={Number(sheet.totals.expense)} bare />,
-                    <Money key="n" value={Number(sheet.totals.net)} bare />,
-                    <Money key="b" value={Number(sheet.totals.balance)} bare />,
-                    <Money key="h" value={Number(sheet.totals.handed)} bare />,
+                    <Money
+                      key="b"
+                      value={Number(sheet.totals.balance)}
+                      bare
+                      className={Number(sheet.totals.balance) ? 'text-bad' : undefined}
+                    />,
                   ]
                 : undefined
             }
           />
         )}
-
-        {sheet ? (
-          <div className="px-[18px] py-3 border-t border-line flex flex-wrap items-center justify-end gap-x-8 gap-y-2 text-[13px]">
-            <span className="text-muted">Warehouse stock</span>
-            <div className="flex items-center gap-2">
-              <span className="text-muted">Opening</span>
-              <span className="num font-medium text-ink">{sheet.stock.opening}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-muted">Loaded</span>
-              <span className="num font-medium text-ink">{sheet.stock.loaded}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-muted">Returned</span>
-              <span className="num font-medium text-ink">{sheet.stock.returned}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-ink font-semibold">Closing</span>
-              <span className="num font-display font-bold text-ink">{sheet.stock.closing}</span>
-            </div>
-          </div>
-        ) : null}
-
-        {sheet ? (
-          <div className="px-[18px] py-3 border-t border-line flex flex-wrap items-center justify-end gap-x-8 gap-y-2 text-[13px]">
-            <div className="flex items-center gap-2">
-              <span className="text-muted">Opening cash</span>
-              <Money value={Number(sheet.cashier_opening)} className="font-medium text-ink" />
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-muted">Total cash</span>
-              <Money value={Number(sheet.totals.cash)} className="font-medium text-ink" />
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-muted">Total UPI</span>
-              <Money value={Number(sheet.totals.upi)} className="font-medium text-ink" />
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-muted">Expenses</span>
-              <Money value={-Number(sheet.expenses_total)} className="font-medium text-bad" />
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-ink font-semibold">Net</span>
-              <Money value={Number(sheet.net)} className="font-display font-bold text-ink" />
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-ink font-semibold">Closing cash</span>
-              <Money value={Number(sheet.cashier_closing)} className="font-display font-bold text-ink" />
-            </div>
-          </div>
-        ) : null}
       </Card>
     </AppShell>
   )
