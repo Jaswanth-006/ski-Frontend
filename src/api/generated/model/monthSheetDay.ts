@@ -5,18 +5,16 @@
  * System of record for an LPG distributorship. See 01-BACKEND-PRD.
  * OpenAPI spec version: 0.1.0
  */
-import type { Denomination } from './denomination';
 
 export interface MonthSheetDay {
   business_date: string;
   cylinders: number;
-  empty_returned: number;
-  cash: string;
+  empties: number;
+  damaged: number;
+  amount: string;
   upi: string;
+  cash: string;
   online: string;
-  total: string;
-  expenses: string;
-  net: string;
-  denominations: Denomination[];
+  balance: string;
   is_closed: boolean;
 }
