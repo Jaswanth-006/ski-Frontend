@@ -12,7 +12,6 @@ import type { TransferOutNote } from './transferOutNote';
 export interface TransferOut {
   id: string;
   business_date: string;
-  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   amount: string;
   source_kind: TransferOutSourceKind;
   source_label: string;

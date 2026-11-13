@@ -9,10 +9,7 @@
 export interface CustomerBalanceSummaryOut {
   customer_id: string;
   customer_name: string;
-  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   charged: string;
-  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   repaid: string;
-  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   balance: string;
 }

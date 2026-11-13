@@ -21,6 +21,8 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  DeliveryLedgerOut,
+  DeliveryLedgerV1ReportsDeliveryDeliveryIdGetParams,
   DeliveryReportRow,
   DeliveryReportV1ReportsDeliveryGetParams,
   DepositReportRow,
@@ -279,6 +281,139 @@ export function useDeliveryReportV1ReportsDeliveryGet<TData = Awaited<ReturnType
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getDeliveryReportV1ReportsDeliveryGetQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+/**
+ * @summary Delivery Ledger
+ */
+export type deliveryLedgerV1ReportsDeliveryDeliveryIdGetResponse200 = {
+  data: DeliveryLedgerOut
+  status: 200
+}
+
+export type deliveryLedgerV1ReportsDeliveryDeliveryIdGetResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+    
+export type deliveryLedgerV1ReportsDeliveryDeliveryIdGetResponseSuccess = (deliveryLedgerV1ReportsDeliveryDeliveryIdGetResponse200) & {
+  headers: Headers;
+};
+export type deliveryLedgerV1ReportsDeliveryDeliveryIdGetResponseError = (deliveryLedgerV1ReportsDeliveryDeliveryIdGetResponse422) & {
+  headers: Headers;
+};
+
+export type deliveryLedgerV1ReportsDeliveryDeliveryIdGetResponse = (deliveryLedgerV1ReportsDeliveryDeliveryIdGetResponseSuccess | deliveryLedgerV1ReportsDeliveryDeliveryIdGetResponseError)
+
+export const getDeliveryLedgerV1ReportsDeliveryDeliveryIdGetUrl = (deliveryId: string,
+    params: DeliveryLedgerV1ReportsDeliveryDeliveryIdGetParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/v1/reports/delivery/${deliveryId}?${stringifiedParams}` : `/v1/reports/delivery/${deliveryId}`
+}
+
+export const deliveryLedgerV1ReportsDeliveryDeliveryIdGet = async (deliveryId: string,
+    params: DeliveryLedgerV1ReportsDeliveryDeliveryIdGetParams, options?: RequestInit): Promise<deliveryLedgerV1ReportsDeliveryDeliveryIdGetResponse> => {
+  
+  return customFetch<deliveryLedgerV1ReportsDeliveryDeliveryIdGetResponse>(getDeliveryLedgerV1ReportsDeliveryDeliveryIdGetUrl(deliveryId,params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getDeliveryLedgerV1ReportsDeliveryDeliveryIdGetQueryKey = (deliveryId?: string,
+    params?: DeliveryLedgerV1ReportsDeliveryDeliveryIdGetParams,) => {
+    return [
+    `/v1/reports/delivery/${deliveryId}`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getDeliveryLedgerV1ReportsDeliveryDeliveryIdGetQueryOptions = <TData = Awaited<ReturnType<typeof deliveryLedgerV1ReportsDeliveryDeliveryIdGet>>, TError = HTTPValidationError>(deliveryId: string,
+    params: DeliveryLedgerV1ReportsDeliveryDeliveryIdGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof deliveryLedgerV1ReportsDeliveryDeliveryIdGet>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDeliveryLedgerV1ReportsDeliveryDeliveryIdGetQueryKey(deliveryId,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof deliveryLedgerV1ReportsDeliveryDeliveryIdGet>>> = ({ signal }) => deliveryLedgerV1ReportsDeliveryDeliveryIdGet(deliveryId,params, { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(deliveryId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof deliveryLedgerV1ReportsDeliveryDeliveryIdGet>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DeliveryLedgerV1ReportsDeliveryDeliveryIdGetQueryResult = NonNullable<Awaited<ReturnType<typeof deliveryLedgerV1ReportsDeliveryDeliveryIdGet>>>
+export type DeliveryLedgerV1ReportsDeliveryDeliveryIdGetQueryError = HTTPValidationError
+
+
+export function useDeliveryLedgerV1ReportsDeliveryDeliveryIdGet<TData = Awaited<ReturnType<typeof deliveryLedgerV1ReportsDeliveryDeliveryIdGet>>, TError = HTTPValidationError>(
+ deliveryId: string,
+    params: DeliveryLedgerV1ReportsDeliveryDeliveryIdGetParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof deliveryLedgerV1ReportsDeliveryDeliveryIdGet>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof deliveryLedgerV1ReportsDeliveryDeliveryIdGet>>,
+          TError,
+          Awaited<ReturnType<typeof deliveryLedgerV1ReportsDeliveryDeliveryIdGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDeliveryLedgerV1ReportsDeliveryDeliveryIdGet<TData = Awaited<ReturnType<typeof deliveryLedgerV1ReportsDeliveryDeliveryIdGet>>, TError = HTTPValidationError>(
+ deliveryId: string,
+    params: DeliveryLedgerV1ReportsDeliveryDeliveryIdGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof deliveryLedgerV1ReportsDeliveryDeliveryIdGet>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof deliveryLedgerV1ReportsDeliveryDeliveryIdGet>>,
+          TError,
+          Awaited<ReturnType<typeof deliveryLedgerV1ReportsDeliveryDeliveryIdGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDeliveryLedgerV1ReportsDeliveryDeliveryIdGet<TData = Awaited<ReturnType<typeof deliveryLedgerV1ReportsDeliveryDeliveryIdGet>>, TError = HTTPValidationError>(
+ deliveryId: string,
+    params: DeliveryLedgerV1ReportsDeliveryDeliveryIdGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof deliveryLedgerV1ReportsDeliveryDeliveryIdGet>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Delivery Ledger
+ */
+
+export function useDeliveryLedgerV1ReportsDeliveryDeliveryIdGet<TData = Awaited<ReturnType<typeof deliveryLedgerV1ReportsDeliveryDeliveryIdGet>>, TError = HTTPValidationError>(
+ deliveryId: string,
+    params: DeliveryLedgerV1ReportsDeliveryDeliveryIdGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof deliveryLedgerV1ReportsDeliveryDeliveryIdGet>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDeliveryLedgerV1ReportsDeliveryDeliveryIdGetQueryOptions(deliveryId,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

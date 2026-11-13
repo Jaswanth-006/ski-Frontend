@@ -22,16 +22,10 @@ export interface SaleOut {
   submitted_via: string;
   created_at: string;
   lines: SaleLineOut[];
-  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   cash_total: string;
-  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   upi_total: string;
-  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   online_total: string;
-  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   balance_total: string;
-  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   revenue_total: string;
-  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   settled_total: string;
 }

@@ -9,7 +9,6 @@
 export interface DepositReportRow {
   kind: string;
   recipient: string;
-  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   total: string;
   count: number;
 }

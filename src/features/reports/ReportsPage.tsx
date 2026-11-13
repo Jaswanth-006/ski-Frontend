@@ -1,5 +1,5 @@
-import { Download, Loader2 } from 'lucide-react'
-import { useState } from 'react'
+import { ChevronRight, Download, Loader2 } from 'lucide-react'
+import { Link, useSearchParams } from 'react-router-dom'
 import {
   useDeliveryReportV1ReportsDeliveryGet,
   useDepositReportV1ReportsDepositsGet,
@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/cn'
+import { downloadCsv } from './csv'
 
 const today = () => new Date().toISOString().slice(0, 10)
 const monthStart = () => today().slice(0, 8) + '01'
@@ -25,21 +26,17 @@ const TABS: { key: Tab; label: string }[] = [
   { key: 'deposits', label: 'Deposits' },
 ]
 
-function downloadCsv(name: string, headers: string[], rows: (string | number)[][]) {
-  const esc = (v: string | number) => `"${String(v).replace(/"/g, '""')}"`
-  const csv = [headers, ...rows].map((r) => r.map(esc).join(',')).join('\n')
-  const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }))
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `${name}.csv`
-  a.click()
-  URL.revokeObjectURL(url)
-}
-
 export function ReportsPage() {
-  const [tab, setTab] = useState<Tab>('stock')
-  const [start, setStart] = useState(monthStart())
-  const [end, setEnd] = useState(today())
+  const [search, setSearch] = useSearchParams()
+  const tabParam = search.get('tab')
+  const tab: Tab = TABS.some((t) => t.key === tabParam) ? (tabParam as Tab) : 'stock'
+  const start = search.get('start') ?? monthStart()
+  const end = search.get('end') ?? today()
+  const update = (patch: Partial<{ tab: Tab; start: string; end: string }>) =>
+    setSearch({ tab, start, end, ...patch }, { replace: true })
+  const setTab = (t: Tab) => update({ tab: t })
+  const setStart = (v: string) => update({ start: v })
+  const setEnd = (v: string) => update({ end: v })
   const params = { start, end }
 
   const stockQ = useStockReportV1ReportsStockGet(params, { query: { enabled: tab === 'stock' } })
@@ -85,7 +82,19 @@ export function ReportsPage() {
         ]
       : tab === 'delivery'
         ? [
-            { key: 'name', header: 'Delivery staff', render: (r) => r.delivery_name as string },
+            {
+              key: 'name',
+              header: 'Delivery staff',
+              render: (r) => (
+                <Link
+                  to={`/reports/delivery/${r.delivery_id as string}?start=${start}&end=${end}`}
+                  className="group inline-flex items-center gap-1 font-medium text-navy hover:text-orange"
+                >
+                  {r.delivery_name as string}
+                  <ChevronRight size={14} className="text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-orange" />
+                </Link>
+              ),
+            },
             { key: 'sales', header: 'Sales ₹', numeric: true, render: (r) => <Money value={Number(r.sales)} bare /> },
             { key: 'full', header: 'Full cylinders', numeric: true, render: (r) => r.full_cylinders as number },
             { key: 'empty', header: 'Empty cylinders', numeric: true, render: (r) => r.empty_cylinders as number },

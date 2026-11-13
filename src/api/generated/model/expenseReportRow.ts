@@ -9,7 +9,6 @@
 export interface ExpenseReportRow {
   item_id: string;
   item_name: string;
-  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   total: string;
   count: number;
 }

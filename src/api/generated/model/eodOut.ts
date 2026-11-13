@@ -10,13 +10,9 @@ import type { EodOutNetProfit } from './eodOutNetProfit';
 export interface EodOut {
   business_date: string;
   cylinders_sold: number;
-  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   gross_cash: string;
-  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   upi_total: string;
-  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   online_total: string;
-  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   expenses_total: string;
   net_profit: EodOutNetProfit;
 }

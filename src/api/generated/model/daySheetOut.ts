@@ -17,14 +17,10 @@ export interface DaySheetOut {
   closed_at: DaySheetOutClosedAt;
   rows: DaySheetRow[];
   totals: DaySheetTotals;
-  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   expenses_total: string;
-  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   net: string;
   denomination_totals: Denomination[];
-  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   cashier_opening: string;
-  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   cashier_closing: string;
   stock: StockSummary;
 }

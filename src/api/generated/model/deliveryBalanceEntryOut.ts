@@ -10,7 +10,6 @@ import type { DeliveryBalanceEntryOutNote } from './deliveryBalanceEntryOutNote'
 export interface DeliveryBalanceEntryOut {
   id: string;
   delivery_id: string;
-  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   amount: string;
   entry_date: string;
   kind: string;
