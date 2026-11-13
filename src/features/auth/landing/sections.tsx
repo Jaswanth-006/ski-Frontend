@@ -459,9 +459,18 @@ export function Counters() {
 /* ---------- cylinders ---------- */
 
 const CYLINDERS = [
-  { size: '14.2 kg', name: 'Domestic', use: 'The standard home kitchen refill, booked through Indane.', tag: 'Most booked', src: PHOTOS.cylinderCutout, heights: ['h-[82%]'] },
-  { size: '5 kg', name: 'FTL / Chhotu', use: 'Free-trade and easy to carry, for students and small homes.', tag: 'Portable', src: PHOTOS.cylinder5kgFtl, heights: ['h-[62%]'] },
-  { size: '19 · 47.5 kg', name: 'Commercial', use: 'Hotels, tea stalls, shops and large kitchens.', tag: 'Business', src: PHOTOS.cylinderCutout, heights: ['h-[74%]', 'h-[88%]'] },
+  { size: '14.2 kg', name: 'Domestic', use: 'The standard home kitchen refill, booked through Indane.', tag: 'Most booked', shots: [{ src: PHOTOS.cylinderCutout, h: 'h-[82%]' }] },
+  { size: '5 kg', name: 'FTL / Chhotu', use: 'Free-trade and easy to carry, for students and small homes.', tag: 'Portable', shots: [{ src: PHOTOS.cylinder5kgFtl, h: 'h-[62%]' }] },
+  {
+    size: '19 · 47.5 kg',
+    name: 'Commercial',
+    use: 'Hotels, tea stalls, shops and large kitchens. Xtra Tej for high-flame use.',
+    tag: 'Business',
+    shots: [
+      { src: PHOTOS.cylinder19kgXtratej, h: 'h-[78%]' },
+      { src: PHOTOS.cylinder19kg, h: 'h-[88%]' },
+    ],
+  },
 ]
 
 export function Cylinders() {
@@ -477,16 +486,16 @@ export function Cylinders() {
                   <span className="absolute left-1/2 top-1/2 h-44 w-44 -translate-x-1/2 -translate-y-1/2 rounded-full bg-orange/10" />
                   <span className="absolute inset-x-1/4 bottom-5 h-4 rounded-[50%] bg-navy/25 blur-md" />
                   <div className="absolute inset-x-0 bottom-6 top-4 flex items-end justify-center">
-                    {c.heights.map((ht, k) => (
+                    {c.shots.map(({ src, h: ht }, k) => (
                       <img
-                        key={ht}
-                        src={c.src}
+                        key={src}
+                        src={src}
                         alt={k === 0 ? `Indane ${c.size} ${c.name.toLowerCase()} cylinder` : ''}
                         loading="lazy"
                         className={cn(
                           ht,
                           'w-auto drop-shadow-xl transition-transform duration-500 group-hover:-translate-y-2',
-                          k > 0 && '-ml-6',
+                          k > 0 && '-ml-2',
                         )}
                       />
                     ))}

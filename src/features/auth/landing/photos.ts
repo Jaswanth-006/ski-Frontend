@@ -1,5 +1,7 @@
 // Wikimedia Commons photos (resized to WebP). CC licences require the credits shown in the footer.
-// cylinder-5kg-ftl is an IndiaMART seller's product photo (background removed); swap for an own photo when available.
+// cylinder-5kg-ftl and cylinder-19kg* are IndiaMART sellers' product photos (background removed); swap for own photos when available.
+import cylinder19kg from '@/assets/landing/cylinder-19kg.webp'
+import cylinder19kgXtratej from '@/assets/landing/cylinder-19kg-xtratej.webp'
 import cylinder5kgFtl from '@/assets/landing/cylinder-5kg-ftl.webp'
 import cylinderCutout from '@/assets/landing/cylinder-cutout.webp'
 import cylinderStack from '@/assets/landing/cylinder-stack.webp'
@@ -8,6 +10,8 @@ import distribution from '@/assets/landing/distribution.webp'
 import shopfront from '@/assets/landing/shopfront.webp'
 
 export const PHOTOS = {
+  cylinder19kg,
+  cylinder19kgXtratej,
   cylinder5kgFtl,
   cylinderCutout,
   cylinderStack,
