@@ -8,6 +8,5 @@
 
 export interface CollectionPoint {
   business_date: string;
-  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   total: string;
 }

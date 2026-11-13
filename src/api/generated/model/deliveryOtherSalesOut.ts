@@ -9,6 +9,5 @@
 export interface DeliveryOtherSalesOut {
   delivery_id: string;
   delivery_name: string;
-  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   amount_per_cylinder: string;
 }

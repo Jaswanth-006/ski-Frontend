@@ -14,7 +14,6 @@ export interface ExpenseOut {
   business_date: string;
   item_id: string;
   item_name: string;
-  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   amount: string;
   method: string;
   note: ExpenseOutNote;

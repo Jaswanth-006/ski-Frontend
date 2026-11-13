@@ -9,10 +9,7 @@
 export interface DeliveryBalanceSummaryOut {
   delivery_id: string;
   delivery_name: string;
-  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   charged: string;
-  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   repaid: string;
-  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   balance: string;
 }

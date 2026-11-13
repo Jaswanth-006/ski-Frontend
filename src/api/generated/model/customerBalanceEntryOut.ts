@@ -10,7 +10,6 @@ import type { CustomerBalanceEntryOutNote } from './customerBalanceEntryOutNote'
 export interface CustomerBalanceEntryOut {
   id: string;
   customer_id: string;
-  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   amount: string;
   entry_date: string;
   kind: string;

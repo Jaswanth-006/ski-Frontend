@@ -11,7 +11,6 @@ import type { CreditOutSettledDate } from './creditOutSettledDate';
 export interface CreditOut {
   id: string;
   person_name: string;
-  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   amount: string;
   given_date: string;
   note: CreditOutNote;

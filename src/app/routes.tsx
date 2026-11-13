@@ -13,6 +13,7 @@ import { ExpensesPage } from '@/features/expenses/ExpensesPage'
 import { LoginPage } from '@/features/auth/LoginPage'
 import { MonthSheetPage } from '@/features/month-sheet/MonthSheetPage'
 import { PurchasePage } from '@/features/purchase/PurchasePage'
+import { DeliveryStatementPage } from '@/features/reports/DeliveryStatementPage'
 import { ReportsPage } from '@/features/reports/ReportsPage'
 import { SalesEntryPage } from '@/features/sales/SalesEntryPage'
 import { UsersPage } from '@/features/users/UsersPage'
@@ -133,6 +134,14 @@ export function AppRoutes() {
         element={
           <RoleGuard allow={OFFICE_AND_OWNER}>
             <ReportsPage />
+          </RoleGuard>
+        }
+      />
+      <Route
+        path="/reports/delivery/:deliveryId"
+        element={
+          <RoleGuard allow={OFFICE_AND_OWNER}>
+            <DeliveryStatementPage />
           </RoleGuard>
         }
       />
