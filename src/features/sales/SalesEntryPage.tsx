@@ -475,10 +475,11 @@ export function SalesEntryPage() {
                 ) : (
                   <>
                     <div className="flex items-center justify-end gap-3 pb-1 pt-2 border-t border-line text-[10.5px] uppercase tracking-[.05em] text-muted font-semibold">
+                      <span className="w-[72px] text-center">Qty</span>
+                      <span className="w-[72px] text-center">Online</span>
                       <span className="w-[72px] text-center">Sold</span>
                       <span className="w-[72px] text-center">Empty back</span>
                       <span className="w-[72px] text-center">Return</span>
-                      <span className="w-[72px] text-center">Online</span>
                       <span className="w-[90px] text-right">Total</span>
                       <span className="w-8" />
                     </div>
@@ -487,6 +488,11 @@ export function SalesEntryPage() {
                       const lineTotal = num(qty[p.cylinder_type_id]) * unit
                       const onlineOver =
                         num(onlineQty[p.cylinder_type_id]) > num(qty[p.cylinder_type_id])
+                      // Sold here = the line's quantity less the ones billed online.
+                      const soldOffline = Math.max(
+                        0,
+                        num(qty[p.cylinder_type_id]) - num(onlineQty[p.cylinder_type_id]),
+                      )
                       return (
                         <div
                           key={p.cylinder_type_id}
@@ -505,12 +511,33 @@ export function SalesEntryPage() {
                             <Input
                               type="number"
                               min={0}
-                              aria-label={`${p.label} sold`}
+                              aria-label={`${p.label} quantity`}
                               className="h-9 w-[72px] num text-right"
                               placeholder="0"
                               value={qty[p.cylinder_type_id] ?? ''}
                               onChange={(e) => setQty((s) => ({ ...s, [p.cylinder_type_id]: e.target.value }))}
                             />
+                            <Input
+                              type="number"
+                              min={0}
+                              aria-label={`${p.label} online`}
+                              className={cn(
+                                'h-9 w-[72px] num text-right',
+                                onlineOver ? 'border-bad text-bad' : '',
+                              )}
+                              placeholder="0"
+                              value={onlineQty[p.cylinder_type_id] ?? ''}
+                              onChange={(e) =>
+                                setOnlineQty((s) => ({ ...s, [p.cylinder_type_id]: e.target.value }))
+                              }
+                            />
+                            <div
+                              aria-label={`${p.label} sold`}
+                              title="Quantity minus online"
+                              className="h-9 w-[72px] flex items-center justify-end px-3 rounded-lg bg-surface num font-semibold text-ink"
+                            >
+                              {soldOffline}
+                            </div>
                             <Input
                               type="number"
                               min={0}
@@ -530,20 +557,6 @@ export function SalesEntryPage() {
                               value={damaged[p.cylinder_type_id] ?? ''}
                               onChange={(e) => setDamaged((s) => ({ ...s, [p.cylinder_type_id]: e.target.value }))}
                             />
-                            <Input
-                              type="number"
-                              min={0}
-                              aria-label={`${p.label} online`}
-                              className={cn(
-                                'h-9 w-[72px] num text-right',
-                                onlineOver ? 'border-bad text-bad' : '',
-                              )}
-                              placeholder="0"
-                              value={onlineQty[p.cylinder_type_id] ?? ''}
-                              onChange={(e) =>
-                                setOnlineQty((s) => ({ ...s, [p.cylinder_type_id]: e.target.value }))
-                              }
-                            />
                             <Money value={lineTotal} className="w-[90px] text-right font-display font-semibold text-ink" />
                             <Button
                               variant="ghost"
@@ -558,9 +571,9 @@ export function SalesEntryPage() {
                       )
                     })}
                     <p className="text-[11px] text-muted pt-2">
-                      Return = cylinders that came back damaged or were lost. Empty back defaults to sold
-                      minus return. Online = how many of those cylinders were billed online — the amount
-                      is worked out for you.
+                      Qty = all cylinders on this line. Online = how many of them were billed online (the
+                      amount is worked out for you). Sold = qty minus online. Return = cylinders that came
+                      back damaged or were lost. Empty back defaults to qty minus return.
                     </p>
                   </>
                 )}
