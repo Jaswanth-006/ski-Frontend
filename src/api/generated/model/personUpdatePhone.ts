@@ -6,4 +6,4 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type CreditCreateAmount = number | string;
+export type PersonUpdatePhone = string | null;

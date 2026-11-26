@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { BankAccountCreateLabel } from './bankAccountCreateLabel';
+import type { BankAccountCreateOpeningBalance } from './bankAccountCreateOpeningBalance';
 
 export interface BankAccountCreate {
   bank_id: string;
@@ -15,4 +16,5 @@ export interface BankAccountCreate {
    */
   account_type: string;
   label?: BankAccountCreateLabel;
+  opening_balance?: BankAccountCreateOpeningBalance;
 }

@@ -13,6 +13,7 @@ export interface CashierBoxOut {
   repaid: string;
   expenses: string;
   deposited: string;
+  received?: string;
   closing: string;
   hand_cash_opening: string;
   hand_cash_collected: string;

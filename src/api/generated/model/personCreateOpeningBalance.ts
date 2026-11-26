@@ -6,6 +6,4 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type SettleCreditV1CreditsCreditIdSettlePostParams = {
-settled?: boolean;
-};
+export type PersonCreateOpeningBalance = number | string;

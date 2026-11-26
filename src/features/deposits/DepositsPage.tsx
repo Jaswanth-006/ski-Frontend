@@ -3,6 +3,7 @@ import { Send } from 'lucide-react'
 import { useState } from 'react'
 import {
   useListBankAccountsV1BankAccountsGet,
+  useListPeopleV1PeopleGet,
   useListVendorsV1VendorsGet,
 } from '@/api/generated/banking/banking'
 import {
@@ -10,7 +11,7 @@ import {
   useCreateTransferV1TransfersPost,
   useListTransfersV1TransfersGet,
 } from '@/api/generated/transfers/transfers'
-import type { BankAccountOut, TransferOut, VendorOut } from '@/api/generated/model'
+import type { BankAccountOut, PersonOut, TransferOut, VendorOut } from '@/api/generated/model'
 import { AppShell } from '@/components/app/AppShell'
 import { Money } from '@/components/app/Money'
 import { Button } from '@/components/ui/button'
@@ -23,13 +24,19 @@ import { todayISO } from '@/lib/date'
 const today = todayISO
 const acctLabel = (a: BankAccountOut) =>
   `${a.bank_name} · ${a.account_type}${a.label ? ` (${a.label})` : ''}`
+const inr = (v: string | number) => `₹${Number(v).toLocaleString('en-IN')}`
+const personLabel = (p: PersonOut) =>
+  `${p.name} — ${p.kind === 'debtor' ? 'owes us' : 'we owe'} ${inr(p.balance)}`
+
+type DestKind = 'vendor' | 'person' | 'bank_account' | 'cashier_box'
 
 export function DepositsPage() {
   const qc = useQueryClient()
   const [date, setDate] = useState(today())
   const [amount, setAmount] = useState('')
-  const [source, setSource] = useState('box') // 'box' | account id
-  const [destKind, setDestKind] = useState<'vendor' | 'person' | 'bank_account'>('vendor')
+  // 'box' | 'acc:<id>' | 'person:<id>'
+  const [source, setSource] = useState('box')
+  const [destKind, setDestKind] = useState<DestKind>('vendor')
   const [destVendor, setDestVendor] = useState('')
   const [destAccount, setDestAccount] = useState('')
   const [destPerson, setDestPerson] = useState('')
@@ -40,6 +47,7 @@ export function DepositsPage() {
 
   const accountsQuery = useListBankAccountsV1BankAccountsGet({ active: 'true' })
   const vendorsQuery = useListVendorsV1VendorsGet({ active: 'true' })
+  const peopleQuery = useListPeopleV1PeopleGet({ active: 'true' })
   const listQuery = useListTransfersV1TransfersGet()
   const createMutation = useCreateTransferV1TransfersPost()
 
@@ -47,9 +55,29 @@ export function DepositsPage() {
     accountsQuery.data?.status === 200 ? accountsQuery.data.data : []
   const vendors: VendorOut[] = vendorsQuery.data?.status === 200 ? vendorsQuery.data.data : []
   const transfers: TransferOut[] = listQuery.data?.status === 200 ? listQuery.data.data : []
+  const people: PersonOut[] = peopleQuery.data?.status === 200 ? peopleQuery.data.data : []
+  const debtors = people.filter((p) => p.kind === 'debtor')
+  const creditors = people.filter((p) => p.kind === 'creditor')
+
+  const [sourceKind, sourceId] = source === 'box' ? ['box', ''] : source.split(':')
+  const fromPerson = sourceKind === 'person'
+  // Money from a person comes into the box or a bank account.
+  const destKinds: { value: DestKind; label: string }[] = fromPerson
+    ? [
+        { value: 'cashier_box', label: 'Cashier box' },
+        { value: 'bank_account', label: 'Own account' },
+      ]
+    : [
+        { value: 'vendor', label: 'Vendor' },
+        { value: 'person', label: 'Person' },
+        { value: 'bank_account', label: 'Own account' },
+        ...(sourceKind === 'acc' ? [{ value: 'cashier_box' as const, label: 'Cashier box' }] : []),
+      ]
+  const dest = destKinds.some((d) => d.value === destKind) ? destKind : destKinds[0].value
 
   // Warn if a bank-account source lacks the balance for this deposit.
-  const sourceBalance = source === 'box' ? null : accounts.find((a) => a.id === source)?.balance
+  const sourceBalance =
+    sourceKind === 'acc' ? accounts.find((a) => a.id === sourceId)?.balance : null
   const insufficient =
     sourceBalance != null && Number(amount) > 0 && Number(amount) > Number(sourceBalance)
 
@@ -62,25 +90,28 @@ export function DepositsPage() {
       amount: Number(amount),
       method,
       note: note || undefined,
-      source_kind: source === 'box' ? 'cashier_box' : 'bank_account',
-      source_bank_account_id: source === 'box' ? undefined : source,
-      dest_kind: destKind,
+      source_kind: sourceKind === 'box' ? 'cashier_box' : sourceKind === 'acc' ? 'bank_account' : 'person',
+      source_bank_account_id: sourceKind === 'acc' ? sourceId : undefined,
+      source_person_id: fromPerson ? sourceId : undefined,
+      dest_kind: dest,
     }
-    if (destKind === 'vendor') {
+    if (dest === 'vendor') {
       if (!destVendor) return setError('Pick a vendor.')
       body.dest_vendor_id = destVendor
-    } else if (destKind === 'bank_account') {
+    } else if (dest === 'bank_account') {
       if (!destAccount) return setError('Pick a destination account.')
-      if (destAccount === source) return setError('Source and destination must differ.')
+      if (sourceKind === 'acc' && destAccount === sourceId)
+        return setError('Source and destination must differ.')
       body.dest_bank_account_id = destAccount
-    } else {
-      if (!destPerson.trim()) return setError('Enter a person name.')
-      body.dest_person_name = destPerson
+    } else if (dest === 'person') {
+      if (!destPerson) return setError('Pick a person (add them under Debtors / Creditors).')
+      body.dest_person_id = destPerson
     }
     const res = await createMutation.mutateAsync({ data: body as never })
     if (res.status === 201) {
       await qc.invalidateQueries({ queryKey: getListTransfersV1TransfersGetQueryKey() })
       await accountsQuery.refetch()
+      await peopleQuery.refetch()
       setAmount('')
       setNote('')
       setOk(true)
@@ -90,7 +121,7 @@ export function DepositsPage() {
   }
 
   return (
-    <AppShell title="Deposits" subtitle="Move money out of the cashier box or between accounts">
+    <AppShell title="Deposits" subtitle="Money between the cashier box, bank accounts, vendors and people">
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.1fr] gap-5 items-start">
         <Card>
           <CardHeader title="New deposit" hint="Pick a source and a destination" />
@@ -110,11 +141,29 @@ export function DepositsPage() {
               <label className="block text-[12.5px] text-muted mb-1">From (source)</label>
               <Select value={source} onChange={(e) => setSource(e.target.value)} className="h-9">
                 <option value="box">Cashier box (day-sheet money)</option>
-                {accounts.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {acctLabel(a)} — ₹{Number(a.balance).toLocaleString('en-IN')}
-                  </option>
-                ))}
+                {accounts.length > 0 ? (
+                  <optgroup label="Bank accounts">
+                    {accounts.map((a) => (
+                      <option key={a.id} value={`acc:${a.id}`}>
+                        {acctLabel(a)} — {inr(a.balance)}
+                      </option>
+                    ))}
+                  </optgroup>
+                ) : null}
+                {debtors.length > 0 ? (
+                  <optgroup label="Debtor paying back">
+                    {debtors.map((p) => (
+                      <option key={p.id} value={`person:${p.id}`}>{personLabel(p)}</option>
+                    ))}
+                  </optgroup>
+                ) : null}
+                {creditors.length > 0 ? (
+                  <optgroup label="Creditor lending us">
+                    {creditors.map((p) => (
+                      <option key={p.id} value={`person:${p.id}`}>{personLabel(p)}</option>
+                    ))}
+                  </optgroup>
+                ) : null}
               </Select>
               {insufficient ? (
                 <p className="text-[11.5px] text-bad mt-1">
@@ -127,29 +176,45 @@ export function DepositsPage() {
               <div className="w-[140px]">
                 <label className="block text-[12.5px] text-muted mb-1">To (type)</label>
                 <Select
-                  value={destKind}
-                  onChange={(e) => setDestKind(e.target.value as typeof destKind)}
+                  value={dest}
+                  onChange={(e) => setDestKind(e.target.value as DestKind)}
                   className="h-9"
                 >
-                  <option value="vendor">Vendor</option>
-                  <option value="person">Person</option>
-                  <option value="bank_account">Own account</option>
+                  {destKinds.map((d) => (
+                    <option key={d.value} value={d.value}>{d.label}</option>
+                  ))}
                 </Select>
               </div>
               <div className="flex-1">
                 <label className="block text-[12.5px] text-muted mb-1">Destination</label>
-                {destKind === 'vendor' ? (
+                {dest === 'vendor' ? (
                   <Select value={destVendor} onChange={(e) => setDestVendor(e.target.value)} className="h-9">
                     <option value="">Select vendor…</option>
                     {vendors.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
                   </Select>
-                ) : destKind === 'bank_account' ? (
+                ) : dest === 'bank_account' ? (
                   <Select value={destAccount} onChange={(e) => setDestAccount(e.target.value)} className="h-9">
                     <option value="">Select account…</option>
                     {accounts.map((a) => <option key={a.id} value={a.id}>{acctLabel(a)}</option>)}
                   </Select>
+                ) : dest === 'person' ? (
+                  <Select value={destPerson} onChange={(e) => setDestPerson(e.target.value)} className="h-9">
+                    <option value="">Select person…</option>
+                    {debtors.length > 0 ? (
+                      <optgroup label="Debtor — give money">
+                        {debtors.map((p) => <option key={p.id} value={p.id}>{personLabel(p)}</option>)}
+                      </optgroup>
+                    ) : null}
+                    {creditors.length > 0 ? (
+                      <optgroup label="Creditor — pay back">
+                        {creditors.map((p) => <option key={p.id} value={p.id}>{personLabel(p)}</option>)}
+                      </optgroup>
+                    ) : null}
+                  </Select>
                 ) : (
-                  <Input value={destPerson} placeholder="Person name" onChange={(e) => setDestPerson(e.target.value)} className="h-9" />
+                  <div className="h-9 flex items-center text-[13px] text-muted">
+                    Adds to the cashier box
+                  </div>
                 )}
               </div>
             </div>
@@ -170,7 +235,7 @@ export function DepositsPage() {
             </div>
 
             {error ? <div className="text-[12.5px] text-bad bg-badbg rounded-lg px-3 py-2">{error}</div> : null}
-            {ok ? <div className="text-[12.5px] text-ok bg-okbg rounded-lg px-3 py-2">Deposit recorded.</div> : null}
+            {ok ? <div className="text-[12.5px] text-ok bg-okbg rounded-lg px-3 py-2">Recorded.</div> : null}
             <Button variant="primary" className="h-9" onClick={submit} disabled={createMutation.isPending}>
               <Send size={16} /> Record deposit
             </Button>

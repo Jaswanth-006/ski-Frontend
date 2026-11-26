@@ -14,4 +14,5 @@ export const TransferOutDestKind = {
   vendor: 'vendor',
   person: 'person',
   bank_account: 'bank_account',
+  cashier_box: 'cashier_box',
 } as const;

@@ -34,7 +34,11 @@ import type {
   HTTPValidationError,
   ListBankAccountsV1BankAccountsGetParams,
   ListBanksV1BanksGetParams,
+  ListPeopleV1PeopleGetParams,
   ListVendorsV1VendorsGetParams,
+  PersonCreate,
+  PersonOut,
+  PersonUpdate,
   VendorCreate,
   VendorOut,
   VendorUpdate
@@ -962,6 +966,312 @@ export const useUpdateVendorV1VendorsVendorIdPatch = <TError = HTTPValidationErr
       > => {
 
       const mutationOptions = getUpdateVendorV1VendorsVendorIdPatchMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
+ * @summary List People
+ */
+export type listPeopleV1PeopleGetResponse200 = {
+  data: PersonOut[]
+  status: 200
+}
+
+export type listPeopleV1PeopleGetResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+    
+export type listPeopleV1PeopleGetResponseSuccess = (listPeopleV1PeopleGetResponse200) & {
+  headers: Headers;
+};
+export type listPeopleV1PeopleGetResponseError = (listPeopleV1PeopleGetResponse422) & {
+  headers: Headers;
+};
+
+export type listPeopleV1PeopleGetResponse = (listPeopleV1PeopleGetResponseSuccess | listPeopleV1PeopleGetResponseError)
+
+export const getListPeopleV1PeopleGetUrl = (params?: ListPeopleV1PeopleGetParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/v1/people?${stringifiedParams}` : `/v1/people`
+}
+
+export const listPeopleV1PeopleGet = async (params?: ListPeopleV1PeopleGetParams, options?: RequestInit): Promise<listPeopleV1PeopleGetResponse> => {
+  
+  return customFetch<listPeopleV1PeopleGetResponse>(getListPeopleV1PeopleGetUrl(params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getListPeopleV1PeopleGetQueryKey = (params?: ListPeopleV1PeopleGetParams,) => {
+    return [
+    `/v1/people`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getListPeopleV1PeopleGetQueryOptions = <TData = Awaited<ReturnType<typeof listPeopleV1PeopleGet>>, TError = HTTPValidationError>(params?: ListPeopleV1PeopleGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPeopleV1PeopleGet>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListPeopleV1PeopleGetQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPeopleV1PeopleGet>>> = ({ signal }) => listPeopleV1PeopleGet(params, { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listPeopleV1PeopleGet>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListPeopleV1PeopleGetQueryResult = NonNullable<Awaited<ReturnType<typeof listPeopleV1PeopleGet>>>
+export type ListPeopleV1PeopleGetQueryError = HTTPValidationError
+
+
+export function useListPeopleV1PeopleGet<TData = Awaited<ReturnType<typeof listPeopleV1PeopleGet>>, TError = HTTPValidationError>(
+ params: undefined |  ListPeopleV1PeopleGetParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPeopleV1PeopleGet>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPeopleV1PeopleGet>>,
+          TError,
+          Awaited<ReturnType<typeof listPeopleV1PeopleGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPeopleV1PeopleGet<TData = Awaited<ReturnType<typeof listPeopleV1PeopleGet>>, TError = HTTPValidationError>(
+ params?: ListPeopleV1PeopleGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPeopleV1PeopleGet>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPeopleV1PeopleGet>>,
+          TError,
+          Awaited<ReturnType<typeof listPeopleV1PeopleGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPeopleV1PeopleGet<TData = Awaited<ReturnType<typeof listPeopleV1PeopleGet>>, TError = HTTPValidationError>(
+ params?: ListPeopleV1PeopleGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPeopleV1PeopleGet>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List People
+ */
+
+export function useListPeopleV1PeopleGet<TData = Awaited<ReturnType<typeof listPeopleV1PeopleGet>>, TError = HTTPValidationError>(
+ params?: ListPeopleV1PeopleGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPeopleV1PeopleGet>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListPeopleV1PeopleGetQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+/**
+ * @summary Create Person
+ */
+export type createPersonV1PeoplePostResponse201 = {
+  data: PersonOut
+  status: 201
+}
+
+export type createPersonV1PeoplePostResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+    
+export type createPersonV1PeoplePostResponseSuccess = (createPersonV1PeoplePostResponse201) & {
+  headers: Headers;
+};
+export type createPersonV1PeoplePostResponseError = (createPersonV1PeoplePostResponse422) & {
+  headers: Headers;
+};
+
+export type createPersonV1PeoplePostResponse = (createPersonV1PeoplePostResponseSuccess | createPersonV1PeoplePostResponseError)
+
+export const getCreatePersonV1PeoplePostUrl = () => {
+
+
+  
+
+  return `/v1/people`
+}
+
+export const createPersonV1PeoplePost = async (personCreate: PersonCreate, options?: RequestInit): Promise<createPersonV1PeoplePostResponse> => {
+  
+  return customFetch<createPersonV1PeoplePostResponse>(getCreatePersonV1PeoplePostUrl(),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      personCreate,)
+  }
+);}
+
+
+
+
+export const getCreatePersonV1PeoplePostMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPersonV1PeoplePost>>, TError,{data: PersonCreate}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createPersonV1PeoplePost>>, TError,{data: PersonCreate}, TContext> => {
+
+const mutationKey = ['createPersonV1PeoplePost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createPersonV1PeoplePost>>, {data: PersonCreate}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createPersonV1PeoplePost(data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreatePersonV1PeoplePostMutationResult = NonNullable<Awaited<ReturnType<typeof createPersonV1PeoplePost>>>
+    export type CreatePersonV1PeoplePostMutationBody = PersonCreate
+    export type CreatePersonV1PeoplePostMutationError = HTTPValidationError
+
+    /**
+ * @summary Create Person
+ */
+export const useCreatePersonV1PeoplePost = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPersonV1PeoplePost>>, TError,{data: PersonCreate}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createPersonV1PeoplePost>>,
+        TError,
+        {data: PersonCreate},
+        TContext
+      > => {
+
+      const mutationOptions = getCreatePersonV1PeoplePostMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
+ * @summary Update Person
+ */
+export type updatePersonV1PeoplePersonIdPatchResponse200 = {
+  data: PersonOut
+  status: 200
+}
+
+export type updatePersonV1PeoplePersonIdPatchResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+    
+export type updatePersonV1PeoplePersonIdPatchResponseSuccess = (updatePersonV1PeoplePersonIdPatchResponse200) & {
+  headers: Headers;
+};
+export type updatePersonV1PeoplePersonIdPatchResponseError = (updatePersonV1PeoplePersonIdPatchResponse422) & {
+  headers: Headers;
+};
+
+export type updatePersonV1PeoplePersonIdPatchResponse = (updatePersonV1PeoplePersonIdPatchResponseSuccess | updatePersonV1PeoplePersonIdPatchResponseError)
+
+export const getUpdatePersonV1PeoplePersonIdPatchUrl = (personId: string,) => {
+
+
+  
+
+  return `/v1/people/${personId}`
+}
+
+export const updatePersonV1PeoplePersonIdPatch = async (personId: string,
+    personUpdate: PersonUpdate, options?: RequestInit): Promise<updatePersonV1PeoplePersonIdPatchResponse> => {
+  
+  return customFetch<updatePersonV1PeoplePersonIdPatchResponse>(getUpdatePersonV1PeoplePersonIdPatchUrl(personId),
+  {      
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      personUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdatePersonV1PeoplePersonIdPatchMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePersonV1PeoplePersonIdPatch>>, TError,{personId: string;data: PersonUpdate}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updatePersonV1PeoplePersonIdPatch>>, TError,{personId: string;data: PersonUpdate}, TContext> => {
+
+const mutationKey = ['updatePersonV1PeoplePersonIdPatch'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updatePersonV1PeoplePersonIdPatch>>, {personId: string;data: PersonUpdate}> = (props) => {
+          const {personId,data} = props ?? {};
+
+          return  updatePersonV1PeoplePersonIdPatch(personId,data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdatePersonV1PeoplePersonIdPatchMutationResult = NonNullable<Awaited<ReturnType<typeof updatePersonV1PeoplePersonIdPatch>>>
+    export type UpdatePersonV1PeoplePersonIdPatchMutationBody = PersonUpdate
+    export type UpdatePersonV1PeoplePersonIdPatchMutationError = HTTPValidationError
+
+    /**
+ * @summary Update Person
+ */
+export const useUpdatePersonV1PeoplePersonIdPatch = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePersonV1PeoplePersonIdPatch>>, TError,{personId: string;data: PersonUpdate}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updatePersonV1PeoplePersonIdPatch>>,
+        TError,
+        {personId: string;data: PersonUpdate},
+        TContext
+      > => {
+
+      const mutationOptions = getUpdatePersonV1PeoplePersonIdPatchMutationOptions(options);
 
       return useMutation(mutationOptions, queryClient);
     }

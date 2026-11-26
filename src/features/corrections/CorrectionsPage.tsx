@@ -3,13 +3,11 @@ import { Check, Loader2 } from 'lucide-react'
 import { useState } from 'react'
 import { useLocation, useSearchParams } from 'react-router-dom'
 import {
-  deleteCreditV1CreditsCreditIdDeletePost,
   deleteCustomerBalanceV1CustomerBalancesEntryIdDeletePost,
   deleteDeliveryBalanceV1DeliveryBalancesEntryIdDeletePost,
   deleteExpenseV1ExpensesExpenseIdDeletePost,
   deleteStockEntryV1StockEntriesEntryIdDeletePost,
   deleteTransferV1TransfersTransferIdDeletePost,
-  editCreditV1CreditsCreditIdPut,
   editCustomerBalanceV1CustomerBalancesEntryIdPut,
   editDeliveryBalanceV1DeliveryBalancesEntryIdPut,
   editExpenseV1ExpensesExpenseIdPut,
@@ -19,11 +17,9 @@ import {
   useListStockEntriesV1StockEntriesGet,
 } from '@/api/generated/corrections/corrections'
 import { useListExpenseItemsV1ExpenseItemsGet } from '@/api/generated/catalog/catalog'
-import { useListCreditsV1CreditsGet } from '@/api/generated/credits/credits'
 import { useListExpensesV1ExpensesGet } from '@/api/generated/expenses/expenses'
 import type {
   BalanceEntryOut,
-  CreditOut,
   ExpenseOut,
   StockEntryOut,
   TransferOut,
@@ -41,19 +37,17 @@ import { todayISO } from '@/lib/date'
 import { InvoicesTab } from './InvoicesTab'
 import { DeleteDialog, EditDialog, Field, RowActions, type ApiResult } from './shared'
 
-type Tab = 'invoices' | 'purchase' | 'expenses' | 'deposits' | 'balance' | 'credits'
+type Tab = 'invoices' | 'purchase' | 'expenses' | 'deposits' | 'balance'
 const TABS: { key: Tab; label: string }[] = [
   { key: 'invoices', label: 'Invoices' },
   { key: 'purchase', label: 'Purchase' },
   { key: 'expenses', label: 'Expenses' },
   { key: 'deposits', label: 'Deposits' },
   { key: 'balance', label: 'Balance' },
-  { key: 'credits', label: 'Credits' },
 ]
 
 const n = (v: string | number | null | undefined) => Number(v ?? 0)
 const dash = <span className="text-muted">—</span>
-const ddmmyyyy = (iso: string) => iso.split('-').reverse().join('.')
 
 /** One place to correct any recorded entry. Every change needs a reason and is audited. */
 export function CorrectionsPage() {
@@ -83,14 +77,12 @@ export function CorrectionsPage() {
           title="Entries"
           hint="Closed days can only be changed by the owner"
           right={
-            tab === 'credits' ? null : (
-              <Input
-                type="date"
-                value={date}
-                onChange={(e) => go({ date: e.target.value })}
-                className="h-9 w-[150px]"
-              />
-            )
+            <Input
+              type="date"
+              value={date}
+              onChange={(e) => go({ date: e.target.value })}
+              className="h-9 w-[150px]"
+            />
           }
         />
         <div className="px-[18px] pt-1 pb-3 flex flex-wrap gap-2">
@@ -112,7 +104,6 @@ export function CorrectionsPage() {
         {tab === 'expenses' ? <ExpensesTab date={date} /> : null}
         {tab === 'deposits' ? <DepositsTab date={date} /> : null}
         {tab === 'balance' ? <BalanceTab date={date} /> : null}
-        {tab === 'credits' ? <CreditsTab /> : null}
       </Card>
     </AppShell>
   )
@@ -708,103 +699,6 @@ function BalanceEditDialog({
           </Select>
         </Field>
       ) : null}
-      <Field label="Note">
-        <Input value={note} onChange={(e) => setNote(e.target.value)} maxLength={280} />
-      </Field>
-    </EditDialog>
-  )
-}
-
-// ------------------------------------------------------------------ credits
-
-function CreditsTab() {
-  const refresh = useRefresh()
-  const q = useListCreditsV1CreditsGet()
-  const rows: CreditOut[] = q.data?.status === 200 ? q.data.data : []
-  const [editing, setEditing] = useState<CreditOut | null>(null)
-  const [deleting, setDeleting] = useState<CreditOut | null>(null)
-
-  const columns: Column<CreditOut>[] = [
-    { key: 'person', header: 'Person', render: (c) => <span className="font-medium">{c.person_name}</span> },
-    { key: 'amount', header: 'Amount ₹', numeric: true, render: (c) => <Money value={n(c.amount)} bare /> },
-    { key: 'given', header: 'Given on', render: (c) => <span className="num">{ddmmyyyy(c.given_date)}</span> },
-    {
-      key: 'status',
-      header: 'Status',
-      render: (c) =>
-        c.is_settled ? <span className="text-ok font-medium">Settled</span> : <span className="text-bad font-medium">Open</span>,
-    },
-    { key: 'note', header: 'Note', render: (c) => <span className="text-muted">{c.note || '—'}</span> },
-    {
-      key: 'actions',
-      header: '',
-      render: (c) => <RowActions onEdit={() => setEditing(c)} onDelete={() => setDeleting(c)} />,
-    },
-  ]
-
-  return (
-    <>
-      <Listing loading={q.isLoading} rows={rows} columns={columns} rowKey={(c) => c.id} empty="No credits yet." />
-      {editing ? <CreditEditDialog key={editing.id} credit={editing} onClose={() => setEditing(null)} onDone={refresh} /> : null}
-      <DeleteDialog
-        open={!!deleting}
-        title="Delete credit"
-        what={deleting ? `${deleting.person_name} · ₹${n(deleting.amount)}.` : ''}
-        onClose={() => setDeleting(null)}
-        onDelete={async (reason) => {
-          const res = await asResult(deleteCreditV1CreditsCreditIdDeletePost(deleting!.id, { reason }))
-          if (res.status === 204) await refresh()
-          return res
-        }}
-      />
-    </>
-  )
-}
-
-function CreditEditDialog({
-  credit,
-  onClose,
-  onDone,
-}: {
-  credit: CreditOut
-  onClose: () => void
-  onDone: () => Promise<unknown>
-}) {
-  const [person, setPerson] = useState(credit.person_name)
-  const [amount, setAmount] = useState(String(n(credit.amount)))
-  const [given, setGiven] = useState(credit.given_date)
-  const [note, setNote] = useState(credit.note ?? '')
-
-  return (
-    <EditDialog
-      open
-      title="Edit credit"
-      onClose={onClose}
-      onSave={async (reason) => {
-        const res = await asResult(
-          editCreditV1CreditsCreditIdPut(credit.id, {
-            reason,
-            person_name: person.trim(),
-            amount: Number(amount),
-            given_date: given,
-            note: note.trim() || null,
-          }),
-        )
-        if (res.status === 204) await onDone()
-        return res
-      }}
-    >
-      <Field label="Person">
-        <Input value={person} onChange={(e) => setPerson(e.target.value)} maxLength={120} />
-      </Field>
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Amount ₹">
-          <Input type="number" min={0} className="num text-right" value={amount} onChange={(e) => setAmount(e.target.value)} />
-        </Field>
-        <Field label="Given on">
-          <Input type="date" value={given} onChange={(e) => setGiven(e.target.value)} />
-        </Field>
-      </div>
       <Field label="Note">
         <Input value={note} onChange={(e) => setNote(e.target.value)} maxLength={280} />
       </Field>

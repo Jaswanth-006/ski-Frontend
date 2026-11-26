@@ -6,7 +6,9 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { TransferOutSourceKind } from './transferOutSourceKind';
+import type { TransferOutSourcePersonId } from './transferOutSourcePersonId';
 import type { TransferOutDestKind } from './transferOutDestKind';
+import type { TransferOutDestPersonId } from './transferOutDestPersonId';
 import type { TransferOutNote } from './transferOutNote';
 
 export interface TransferOut {
@@ -15,8 +17,10 @@ export interface TransferOut {
   amount: string;
   source_kind: TransferOutSourceKind;
   source_label: string;
+  source_person_id?: TransferOutSourcePersonId;
   dest_kind: TransferOutDestKind;
   dest_label: string;
+  dest_person_id?: TransferOutDestPersonId;
   method: string;
   note: TransferOutNote;
   created_at: string;

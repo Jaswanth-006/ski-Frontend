@@ -6,4 +6,4 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type CreditCreateNote = string | null;
+export type PersonUpdateNote = string | null;
