@@ -84,6 +84,12 @@ describe('PurchasePage', () => {
     expect(
       await screen.findByRole('option', { name: '14.2 kg Domestic — opening stock 100 · received today 50' }),
     ).toBeInTheDocument()
+    // The erv dropdown shows empties: opening (A) + from customers (B) − to plant (C).
+    expect(
+      screen.getByRole('option', {
+        name: '14.2 kg Domestic — opening 0 + 30 from customers − 0 to plant = 30 empties',
+      }),
+    ).toBeInTheDocument()
 
     // Recorded purchases are listed under their invoice, with what was paid.
     expect(await screen.findByText(/Invoice IOC-111/)).toBeInTheDocument()

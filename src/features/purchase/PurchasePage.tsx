@@ -121,6 +121,22 @@ export function PurchasePage() {
       accessoryId: a.id,
     })),
   ]
+  // erv: empties for the date — opening (A) + back from customers (B) − sent to plant (C).
+  const ervProducts: Product[] = cylinders.map((c) => {
+    const left = c.empty_opening + c.empty_returned_by_customers - c.empty_sent_to_plant
+    const other = c.empty_closing - left // damaged / lost empties written off
+    return {
+      id: `empty:${c.cylinder_type_id}`,
+      label: c.label,
+      inStock: c.empty_closing,
+      stockText:
+        `opening ${c.empty_opening} + ${c.empty_returned_by_customers} from customers` +
+        ` − ${c.empty_sent_to_plant} to plant = ${c.empty_closing} empties` +
+        (other ? ` (${other < 0 ? other : `+${other}`} damaged / other)` : ''),
+      cylinderTypeId: c.cylinder_type_id,
+      condition: 'empty' as const,
+    }
+  })
 
   // Stock figures, purchase list and sheets all move after an entry.
   const invalidate = () => queryClient.invalidateQueries()
@@ -249,10 +265,10 @@ export function PurchasePage() {
       />
       <EntryCard
         title="erv · Empty return"
-        hint="Empty cylinders sent back to the plant — reduces empty stock"
+        hint="Empties = opening (A) + back from customers (B) − sent to plant (C)"
         icon={RotateCcw}
         action="Record erv"
-        products={emptyCylinders}
+        products={ervProducts}
         pending={ervMutation.isPending}
         onRecord={recordErv}
       />
