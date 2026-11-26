@@ -50,7 +50,7 @@ const NAV: NavGroup[] = [
       { label: 'Month Sheet', icon: CalendarRange, to: '/month-sheet', roles: ALL },
       { label: 'Expenses', icon: Wallet, to: '/expenses', roles: ALL },
       { label: 'Deposits', icon: Send, to: '/deposits', roles: ALL },
-      { label: 'Credit', icon: HandCoins, to: '/credit', roles: ALL },
+      { label: 'Debtors / Creditors', icon: HandCoins, to: '/people', roles: ALL },
       { label: 'Balance', icon: Scale, to: '/balance', roles: ALL },
       { label: 'Cashier Box', icon: Banknote, to: '/cashier-box', roles: ALL },
     ],

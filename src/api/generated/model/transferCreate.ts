@@ -8,10 +8,11 @@
 import type { TransferCreateAmount } from './transferCreateAmount';
 import type { TransferCreateSourceKind } from './transferCreateSourceKind';
 import type { TransferCreateSourceBankAccountId } from './transferCreateSourceBankAccountId';
+import type { TransferCreateSourcePersonId } from './transferCreateSourcePersonId';
 import type { TransferCreateDestKind } from './transferCreateDestKind';
 import type { TransferCreateDestVendorId } from './transferCreateDestVendorId';
 import type { TransferCreateDestBankAccountId } from './transferCreateDestBankAccountId';
-import type { TransferCreateDestPersonName } from './transferCreateDestPersonName';
+import type { TransferCreateDestPersonId } from './transferCreateDestPersonId';
 import type { TransferCreateNote } from './transferCreateNote';
 
 export interface TransferCreate {
@@ -19,10 +20,11 @@ export interface TransferCreate {
   amount: TransferCreateAmount;
   source_kind: TransferCreateSourceKind;
   source_bank_account_id?: TransferCreateSourceBankAccountId;
+  source_person_id?: TransferCreateSourcePersonId;
   dest_kind: TransferCreateDestKind;
   dest_vendor_id?: TransferCreateDestVendorId;
   dest_bank_account_id?: TransferCreateDestBankAccountId;
-  dest_person_name?: TransferCreateDestPersonName;
+  dest_person_id?: TransferCreateDestPersonId;
   /**
    * @minLength 1
    * @maxLength 40

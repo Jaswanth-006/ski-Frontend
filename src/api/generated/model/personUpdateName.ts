@@ -6,6 +6,4 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type ListCreditsV1CreditsGetParams = {
-settled?: boolean | null;
-};
+export type PersonUpdateName = string | null;

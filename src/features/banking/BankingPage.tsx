@@ -18,6 +18,7 @@ import {
 import type { BankAccountOut, BankOut, VendorOut } from '@/api/generated/model'
 import { AppShell } from '@/components/app/AppShell'
 import { DataTable, type Column } from '@/components/app/DataTable'
+import { Money } from '@/components/app/Money'
 import { StatusPill } from '@/components/app/StatusPill'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader } from '@/components/ui/card'
@@ -41,7 +42,7 @@ function ActivePill({ active }: { active: boolean }) {
 
 export function BankingPage() {
   return (
-    <AppShell title="Banking" subtitle="Banks, accounts & vendors (accounting only)">
+    <AppShell title="Banking" subtitle="Banks, accounts & vendors — each starts from its opening balance">
       <BanksSection />
       <BankAccountsSection />
       <VendorsSection />
@@ -148,22 +149,25 @@ function BankAccountsSection() {
   const [bankId, setBankId] = useState('')
   const [accountType, setAccountType] = useState('')
   const [label, setLabel] = useState('')
+  const [opening, setOpening] = useState('')
   const [error, setError] = useState<string | null>(null)
 
   const accounts: BankAccountOut[] = listQuery.data?.status === 200 ? listQuery.data.data : []
   const banks: BankOut[] = banksQuery.data?.status === 200 ? banksQuery.data.data : []
   const invalidate = () => qc.invalidateQueries({ queryKey: getListBankAccountsV1BankAccountsGetQueryKey() })
 
-  const startAdd = () => { setEditing(null); setBankId(''); setAccountType(''); setLabel(''); setError(null); setOpen(true) }
-  const startEdit = (a: BankAccountOut) => { setEditing(a); setBankId(a.bank_id); setAccountType(a.account_type); setLabel(a.label ?? ''); setError(null); setOpen(true) }
+  const startAdd = () => { setEditing(null); setBankId(''); setAccountType(''); setLabel(''); setOpening(''); setError(null); setOpen(true) }
+  const startEdit = (a: BankAccountOut) => { setEditing(a); setBankId(a.bank_id); setAccountType(a.account_type); setLabel(a.label ?? ''); setOpening(String(Number(a.opening_balance))); setError(null); setOpen(true) }
 
   const submit = async () => {
     setError(null)
     if (!accountType.trim()) return setError('Enter an account type.')
     if (!editing && !bankId) return setError('Pick a bank.')
+    const openingValue = opening.trim() === '' ? 0 : Number(opening)
+    if (Number.isNaN(openingValue)) return setError('Enter a valid opening balance.')
     const res = editing
-      ? await patchMutation.mutateAsync({ accountId: editing.id, data: { account_type: accountType, label: label || undefined } })
-      : await createMutation.mutateAsync({ data: { bank_id: bankId, account_type: accountType, label: label || undefined } })
+      ? await patchMutation.mutateAsync({ accountId: editing.id, data: { account_type: accountType, label: label || undefined, opening_balance: openingValue } })
+      : await createMutation.mutateAsync({ data: { bank_id: bankId, account_type: accountType, label: label || undefined, opening_balance: openingValue } })
     if (res.status === 200 || res.status === 201) {
       await invalidate()
       setOpen(false)
@@ -179,6 +183,13 @@ function BankAccountsSection() {
     { key: 'bank', header: 'Bank', render: (a) => a.bank_name },
     { key: 'type', header: 'Account type', render: (a) => a.account_type },
     { key: 'label', header: 'Label', render: (a) => a.label ?? <span className="text-muted">—</span> },
+    { key: 'opening', header: 'Opening ₹', numeric: true, render: (a) => <Money value={Number(a.opening_balance)} bare /> },
+    {
+      key: 'balance',
+      header: 'Balance ₹',
+      numeric: true,
+      render: (a) => <Money value={Number(a.balance)} bare className={Number(a.balance) < 0 ? 'font-display font-bold text-bad' : 'font-display font-bold text-ink'} />,
+    },
     { key: 'status', header: 'Status', render: (a) => <ActivePill active={a.is_active} /> },
     {
       key: 'actions',
@@ -198,7 +209,7 @@ function BankAccountsSection() {
     <Card>
       <CardHeader
         title="Bank accounts"
-        hint="Each account carries its own balance (deposits)"
+        hint="Balance = opening + money in − money out"
         right={<Button variant="primary" className="h-9" onClick={startAdd}><Plus size={16} /> Add account</Button>}
       />
       {accounts.length === 0 ? (
@@ -223,6 +234,11 @@ function BankAccountsSection() {
             <label className="block text-[13px] font-medium text-ink mb-1.5">Label (optional)</label>
             <Input value={label} placeholder="Main / last 4 digits" onChange={(e) => setLabel(e.target.value)} />
           </div>
+          <div>
+            <label className="block text-[13px] font-medium text-ink mb-1.5">Opening balance ₹</label>
+            <Input type="number" value={opening} placeholder="0" onChange={(e) => setOpening(e.target.value)} className="num text-right" />
+            <p className="text-[11.5px] text-muted mt-1">Money in the account when you start using it here.</p>
+          </div>
           {error ? <div className="text-[12.5px] text-bad bg-badbg rounded-lg px-3 py-2">{error}</div> : null}
           <Button className="w-full" onClick={submit} disabled={createMutation.isPending || patchMutation.isPending}>
             {editing ? 'Save' : 'Add account'}
@@ -242,6 +258,7 @@ function VendorsSection() {
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<VendorOut | null>(null)
   const [name, setName] = useState('')
+  const [opening, setOpening] = useState('')
   const [error, setError] = useState<string | null>(null)
 
   const vendors: VendorOut[] = listQuery.data?.status === 200 ? listQuery.data.data : []
@@ -250,9 +267,11 @@ function VendorsSection() {
   const submit = async () => {
     setError(null)
     if (!name.trim()) return setError('Enter a vendor name.')
+    const openingValue = opening.trim() === '' ? 0 : Number(opening)
+    if (!(openingValue >= 0)) return setError('Amount paid so far cannot be negative.')
     const res = editing
-      ? await patchMutation.mutateAsync({ vendorId: editing.id, data: { name } })
-      : await createMutation.mutateAsync({ data: { name } })
+      ? await patchMutation.mutateAsync({ vendorId: editing.id, data: { name, opening_balance: openingValue } })
+      : await createMutation.mutateAsync({ data: { name, opening_balance: openingValue } })
     const status = res.status as number
     if (status === 200 || status === 201) {
       await invalidate()
@@ -270,13 +289,16 @@ function VendorsSection() {
 
   const columns: Column<VendorOut>[] = [
     { key: 'name', header: 'Vendor', render: (v) => v.name },
+    { key: 'opening', header: 'Paid before ₹', numeric: true, render: (v) => <Money value={Number(v.opening_balance)} bare /> },
+    { key: 'paid', header: 'Paid here ₹', numeric: true, render: (v) => <Money value={Number(v.paid)} bare /> },
+    { key: 'total', header: 'Total paid ₹', numeric: true, render: (v) => <Money value={Number(v.total_paid)} bare className="font-display font-bold text-ink" /> },
     { key: 'status', header: 'Status', render: (v) => <ActivePill active={v.is_active} /> },
     {
       key: 'actions',
       header: '',
       render: (v) => (
         <div className="flex justify-end gap-2">
-          <Button variant="ghost" className="h-8 px-3 text-[12px]" onClick={() => { setEditing(v); setName(v.name); setError(null); setOpen(true) }}>Edit</Button>
+          <Button variant="ghost" className="h-8 px-3 text-[12px]" onClick={() => { setEditing(v); setName(v.name); setOpening(String(Number(v.opening_balance))); setError(null); setOpen(true) }}>Edit</Button>
           <Button variant="ghost" className="h-8 px-3 text-[12px]" onClick={() => toggle(v)}>
             {v.is_active ? 'Deactivate' : 'Reactivate'}
           </Button>
@@ -289,8 +311,8 @@ function VendorsSection() {
     <Card>
       <CardHeader
         title="Vendors"
-        hint="IOC, pipe supplier, … — who you pay"
-        right={<Button variant="primary" className="h-9" onClick={() => { setEditing(null); setName(''); setError(null); setOpen(true) }}><Plus size={16} /> Add vendor</Button>}
+        hint="IOC, pipe supplier, … — total paid = paid before + paid here"
+        right={<Button variant="primary" className="h-9" onClick={() => { setEditing(null); setName(''); setOpening(''); setError(null); setOpen(true) }}><Plus size={16} /> Add vendor</Button>}
       />
       {vendors.length === 0 ? (
         <div className="py-12 text-center text-[13px] text-muted">No vendors yet.</div>
@@ -302,6 +324,11 @@ function VendorsSection() {
           <div>
             <label className="block text-[13px] font-medium text-ink mb-1.5">Name</label>
             <Input value={name} placeholder="IOC" onChange={(e) => setName(e.target.value)} />
+          </div>
+          <div>
+            <label className="block text-[13px] font-medium text-ink mb-1.5">Paid so far ₹ (opening)</label>
+            <Input type="number" value={opening} placeholder="0" onChange={(e) => setOpening(e.target.value)} className="num text-right" />
+            <p className="text-[11.5px] text-muted mt-1">Amount already paid to this vendor before using the app.</p>
           </div>
           {error ? <div className="text-[12.5px] text-bad bg-badbg rounded-lg px-3 py-2">{error}</div> : null}
           <Button className="w-full" onClick={submit} disabled={createMutation.isPending || patchMutation.isPending}>

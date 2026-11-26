@@ -5,6 +5,7 @@
  * System of record for an LPG distributorship. See 01-BACKEND-PRD.
  * OpenAPI spec version: 0.1.0
  */
+import type { VendorCreateOpeningBalance } from './vendorCreateOpeningBalance';
 
 export interface VendorCreate {
   /**
@@ -12,4 +13,5 @@ export interface VendorCreate {
    * @maxLength 120
    */
   name: string;
+  opening_balance?: VendorCreateOpeningBalance;
 }

@@ -10,4 +10,7 @@ export interface VendorOut {
   id: string;
   name: string;
   is_active: boolean;
+  opening_balance: string;
+  paid: string;
+  total_paid: string;
 }

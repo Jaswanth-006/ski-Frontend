@@ -13,4 +13,5 @@ export type TransferOutSourceKind = typeof TransferOutSourceKind[keyof typeof Tr
 export const TransferOutSourceKind = {
   cashier_box: 'cashier_box',
   bank_account: 'bank_account',
+  person: 'person',
 } as const;

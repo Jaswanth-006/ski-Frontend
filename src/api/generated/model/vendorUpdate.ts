@@ -6,9 +6,11 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { VendorUpdateName } from './vendorUpdateName';
+import type { VendorUpdateOpeningBalance } from './vendorUpdateOpeningBalance';
 import type { VendorUpdateIsActive } from './vendorUpdateIsActive';
 
 export interface VendorUpdate {
   name?: VendorUpdateName;
+  opening_balance?: VendorUpdateOpeningBalance;
   is_active?: VendorUpdateIsActive;
 }

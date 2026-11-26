@@ -51,6 +51,7 @@ export function CashierBoxPage() {
               <Line label="Opening balance" value={Number(box.opening)} />
               <Line label="Collected (cash + UPI)" value={Number(box.collected)} sign="+" />
               <Line label="Balance repaid" value={Number(box.repaid)} sign="+" />
+              <Line label="Put in (debtors, creditors, bank)" value={Number(box.received ?? 0)} sign="+" />
               <Line label="Expenses" value={Number(box.expenses)} sign="−" />
               <Line label="Deposited out" value={Number(box.deposited)} sign="−" />
               <div className="flex items-center justify-between pt-3.5 mt-1.5 border-t-2 border-line">

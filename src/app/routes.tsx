@@ -7,12 +7,12 @@ import { BankingPage } from '@/features/banking/BankingPage'
 import { CashierBoxPage } from '@/features/cashier-box/CashierBoxPage'
 import { CatalogPage } from '@/features/catalog/CatalogPage'
 import { CorrectionsPage } from '@/features/corrections/CorrectionsPage'
-import { CreditsPage } from '@/features/credits/CreditsPage'
 import { DaySheetPage } from '@/features/day-sheet/DaySheetPage'
 import { DepositsPage } from '@/features/deposits/DepositsPage'
 import { ExpensesPage } from '@/features/expenses/ExpensesPage'
 import { LoginPage } from '@/features/auth/LoginPage'
 import { MonthSheetPage } from '@/features/month-sheet/MonthSheetPage'
+import { PeoplePage } from '@/features/people/PeoplePage'
 import { PurchasePage } from '@/features/purchase/PurchasePage'
 import { DeliveryStatementPage } from '@/features/reports/DeliveryStatementPage'
 import { ReportsPage } from '@/features/reports/ReportsPage'
@@ -89,13 +89,14 @@ export function AppRoutes() {
         }
       />
       <Route
-        path="/credit"
+        path="/people"
         element={
           <RoleGuard allow={OFFICE_AND_OWNER}>
-            <CreditsPage />
+            <PeoplePage />
           </RoleGuard>
         }
       />
+      <Route path="/credit" element={<Navigate to="/people" replace />} />
       <Route
         path="/balance"
         element={

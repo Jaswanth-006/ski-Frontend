@@ -14,5 +14,6 @@ export interface BankAccountOut {
   account_type: string;
   label: BankAccountOutLabel;
   is_active: boolean;
+  opening_balance: string;
   balance: string;
 }

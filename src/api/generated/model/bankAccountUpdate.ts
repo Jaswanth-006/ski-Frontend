@@ -7,10 +7,12 @@
  */
 import type { BankAccountUpdateAccountType } from './bankAccountUpdateAccountType';
 import type { BankAccountUpdateLabel } from './bankAccountUpdateLabel';
+import type { BankAccountUpdateOpeningBalance } from './bankAccountUpdateOpeningBalance';
 import type { BankAccountUpdateIsActive } from './bankAccountUpdateIsActive';
 
 export interface BankAccountUpdate {
   account_type?: BankAccountUpdateAccountType;
   label?: BankAccountUpdateLabel;
+  opening_balance?: BankAccountUpdateOpeningBalance;
   is_active?: BankAccountUpdateIsActive;
 }
