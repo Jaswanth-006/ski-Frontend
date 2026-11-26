@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { MemoryRouter } from 'react-router-dom'
 import { PurchasePage } from './PurchasePage'
@@ -41,7 +41,14 @@ const ac4Entry = {
   lines: [{ cylinder_type_id: 't14', qty: 50, label: '14.2 kg Domestic', condition: 'full' }],
   created_at: '2026-11-26T04:00:00Z',
   created_by_name: 'Office',
+  payment_amount: '8500',
+  payment_label: 'Cashier box → IOC',
 }
+
+const vendors = [
+  { id: 'v0', name: 'Pipe supplier', is_active: true, opening_balance: '0', paid: '0', total_paid: '0' },
+  { id: 'v1', name: 'IOC', is_active: true, opening_balance: '0', paid: '0', total_paid: '0' },
+]
 
 describe('PurchasePage', () => {
   let posted: unknown[]
@@ -57,13 +64,14 @@ describe('PurchasePage', () => {
         }
         if (url.includes('/v1/stock/overview')) return new Response(JSON.stringify(overview), { status: 200 })
         if (url.includes('/v1/stock/entries')) return new Response(JSON.stringify([ac4Entry]), { status: 200 })
+        if (url.includes('/v1/vendors')) return new Response(JSON.stringify(vendors), { status: 200 })
         return new Response('[]', { status: 200 })
       }),
     )
   })
   afterEach(() => vi.unstubAllGlobals())
 
-  it('shows opening + ac4 − sold, and needs the IOC invoice to record', async () => {
+  it('shows opening stock in the dropdown, needs the invoice, and records the payment', async () => {
     render(
       <QueryClientProvider client={new QueryClient()}>
         <MemoryRouter>
@@ -72,14 +80,14 @@ describe('PurchasePage', () => {
       </QueryClientProvider>,
     )
 
-    // Opening stock table: A 100, B +50, A+B 150, C −30, left 118 with 2 written off.
-    const table = await screen.findByRole('table')
-    const row = within(table).getAllByRole('row')[1]
-    for (const text of ['100', '+50', '150', '−30']) expect(within(row).getByText(text)).toBeInTheDocument()
-    expect(within(row).getByText('-2 damaged / other')).toBeInTheDocument()
+    // The ac4 dropdown shows each product's opening stock (A).
+    expect(
+      await screen.findByRole('option', { name: '14.2 kg Domestic — opening stock 100 · received today 50' }),
+    ).toBeInTheDocument()
 
-    // Recorded purchases are listed under their invoice.
+    // Recorded purchases are listed under their invoice, with what was paid.
     expect(await screen.findByText(/Invoice IOC-111/)).toBeInTheDocument()
+    expect(screen.getByText(/Paid ₹8,500 · Cashier box → IOC/)).toBeInTheDocument()
 
     // Add a line; Record stays off until the invoice is typed.
     const [product] = screen.getAllByRole('combobox')
@@ -92,12 +100,18 @@ describe('PurchasePage', () => {
 
     fireEvent.change(screen.getByPlaceholderText('e.g. 9012345678'), { target: { value: ' IOC-222 ' } })
     expect(record).toBeEnabled()
+
+    // Pay IOC (picked by default) from the cashier box.
+    await screen.findByRole('option', { name: 'IOC' })
+    fireEvent.change(screen.getByLabelText('Amount paid'), { target: { value: '12000' } })
+    expect(screen.getByText('Record ac4 will also record ₹12,000 from Cashier box to IOC.')).toBeInTheDocument()
     fireEvent.click(record)
 
     await waitFor(() =>
       expect(posted[0]).toMatchObject({
         invoice_no: 'IOC-222',
         cylinders: [{ cylinder_type_id: 't14', qty: 20 }],
+        payment: { amount: 12000, vendor_id: 'v1', source_kind: 'cashier_box', method: 'cash' },
       }),
     )
   })

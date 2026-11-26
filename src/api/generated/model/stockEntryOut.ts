@@ -8,6 +8,8 @@
 import type { StockEntryOutKind } from './stockEntryOutKind';
 import type { StockEntryOutInvoiceNo } from './stockEntryOutInvoiceNo';
 import type { StockEntryLineOut } from './stockEntryLineOut';
+import type { StockEntryOutPaymentAmount } from './stockEntryOutPaymentAmount';
+import type { StockEntryOutPaymentLabel } from './stockEntryOutPaymentLabel';
 import type { StockEntryOutCreatedByName } from './stockEntryOutCreatedByName';
 
 export interface StockEntryOut {
@@ -16,6 +18,8 @@ export interface StockEntryOut {
   business_date: string;
   invoice_no: StockEntryOutInvoiceNo;
   lines: StockEntryLineOut[];
+  payment_amount?: StockEntryOutPaymentAmount;
+  payment_label?: StockEntryOutPaymentLabel;
   created_at: string;
   created_by_name: StockEntryOutCreatedByName;
 }

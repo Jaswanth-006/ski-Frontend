@@ -8,8 +8,13 @@
 
 export * from './ac4AccessoryLine';
 export * from './ac4CylinderLine';
+export * from './ac4Payment';
+export * from './ac4PaymentAmount';
+export * from './ac4PaymentSourceBankAccountId';
+export * from './ac4PaymentSourceKind';
 export * from './ac4Request';
 export * from './ac4RequestBusinessDate';
+export * from './ac4RequestPayment';
 export * from './accessoryCreate';
 export * from './accessoryOut';
 export * from './accessoryStockRow';
@@ -234,6 +239,8 @@ export * from './stockEntryOut';
 export * from './stockEntryOutCreatedByName';
 export * from './stockEntryOutInvoiceNo';
 export * from './stockEntryOutKind';
+export * from './stockEntryOutPaymentAmount';
+export * from './stockEntryOutPaymentLabel';
 export * from './stockIntake';
 export * from './stockIntakeBusinessDate';
 export * from './stockIntakeLine';
