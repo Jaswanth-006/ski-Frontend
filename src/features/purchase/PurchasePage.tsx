@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { Check, FileText, PackagePlus, PackageX, Plus, RotateCcw, X, type LucideIcon } from 'lucide-react'
+import { Check, FileText, PackagePlus, PackageX, Plus, RotateCcw, Wallet, X, type LucideIcon } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { useListStockEntriesV1StockEntriesGet } from '@/api/generated/corrections/corrections'
 import {
@@ -9,7 +9,17 @@ import {
   useStockReturnV1StockReturnPost,
 } from '@/api/generated/stock/stock'
 import { useListAccessoriesV1AccessoriesGet } from '@/api/generated/accessories/accessories'
-import type { AccessoryOut, CylinderStockRow, StockEntryOut } from '@/api/generated/model'
+import {
+  useListBankAccountsV1BankAccountsGet,
+  useListVendorsV1VendorsGet,
+} from '@/api/generated/banking/banking'
+import type {
+  AccessoryOut,
+  BankAccountOut,
+  CylinderStockRow,
+  StockEntryOut,
+  VendorOut,
+} from '@/api/generated/model'
 import { AppShell } from '@/components/app/AppShell'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader } from '@/components/ui/card'
@@ -20,12 +30,15 @@ import { todayISO } from '@/lib/date'
 
 const today = todayISO
 const num = (v: string | undefined) => Number(v) || 0
+const rupees = (v: string | number) => `₹${Number(v).toLocaleString('en-IN')}`
 
 /** A product choice in a dropdown. `id` encodes kind + condition so lines stay distinct. */
 interface Product {
   id: string
   label: string
   inStock: number
+  /** What the dropdown shows after the name, e.g. "opening stock 341". */
+  stockText?: string
   cylinderTypeId?: string
   accessoryId?: string
   condition?: 'full' | 'empty'
@@ -42,6 +55,19 @@ export function PurchasePage() {
   const [date, setDate] = useState(today())
   // The IOC invoice the next ac4 entry belongs to.
   const [invoice, setInvoice] = useState('')
+  // Paid to the vendor with this purchase (blank amount = nothing paid now).
+  const [payAmount, setPayAmount] = useState('')
+  const [payVendor, setPayVendor] = useState('')
+  const [paySource, setPaySource] = useState('box') // 'box' | bank account id
+  const [payMethod, setPayMethod] = useState('cash')
+  const vendorsQuery = useListVendorsV1VendorsGet({ active: 'true' })
+  const accountsQuery = useListBankAccountsV1BankAccountsGet({ active: 'true' })
+  const vendors: VendorOut[] = vendorsQuery.data?.status === 200 ? vendorsQuery.data.data : []
+  const accounts: BankAccountOut[] =
+    accountsQuery.data?.status === 200 ? accountsQuery.data.data : []
+  // Default to the IOC vendor when there is one.
+  const vendorId =
+    payVendor || (vendors.find((v) => /\bioc\b|indian oil/i.test(v.name)) ?? vendors[0])?.id || ''
 
   const overviewQuery = useStockOverviewV1StockOverviewGet({ date })
   const accessoriesQuery = useListAccessoriesV1AccessoriesGet()
@@ -54,8 +80,8 @@ export function PurchasePage() {
   const accessories: AccessoryOut[] = (
     accessoriesQuery.data?.status === 200 ? accessoriesQuery.data.data : []
   ).filter((a) => a.is_active)
-  const accClosing = (id: string) =>
-    overview?.accessories.find((a) => a.accessory_id === id)?.closing ?? 0
+  const accRow = (id: string) => overview?.accessories.find((a) => a.accessory_id === id)
+  const accClosing = (id: string) => accRow(id)?.closing ?? 0
 
   const fullCylinders: Product[] = cylinders.map((c) => ({
     id: `full:${c.cylinder_type_id}`,
@@ -77,6 +103,24 @@ export function PurchasePage() {
     inStock: accClosing(a.id),
     accessoryId: a.id,
   }))
+  // ac4: show the opening stock (A) for the date next to each product.
+  const ac4Products: Product[] = [
+    ...cylinders.map((c) => ({
+      id: `full:${c.cylinder_type_id}`,
+      label: c.label,
+      inStock: c.full_closing,
+      stockText: `opening stock ${c.full_opening}${c.full_received ? ` · received today ${c.full_received}` : ''}`,
+      cylinderTypeId: c.cylinder_type_id,
+      condition: 'full' as const,
+    })),
+    ...accessories.map((a) => ({
+      id: `acc:${a.id}`,
+      label: a.name,
+      inStock: accClosing(a.id),
+      stockText: `opening stock ${accRow(a.id)?.opening ?? 0}`,
+      accessoryId: a.id,
+    })),
+  ]
 
   // Stock figures, purchase list and sheets all move after an entry.
   const invalidate = () => queryClient.invalidateQueries()
@@ -86,11 +130,23 @@ export function PurchasePage() {
     return typeof detail === 'string' ? detail : 'Could not record — check the entries.'
   }
 
+  const paying = num(payAmount) > 0
+  const payBlocked = paying && !vendorId ? 'Pick the vendor you paid' : null
+
   const recordAc4 = async (lines: Line[]) => {
     const res = await ac4Mutation.mutateAsync({
       data: {
         invoice_no: invoice.trim(),
         business_date: date,
+        payment: paying
+          ? {
+              amount: num(payAmount),
+              vendor_id: vendorId,
+              source_kind: paySource === 'box' ? 'cashier_box' : 'bank_account',
+              source_bank_account_id: paySource === 'box' ? undefined : paySource,
+              method: payMethod,
+            }
+          : undefined,
         cylinders: lines
           .filter((l) => l.product.cylinderTypeId)
           .map((l) => ({ cylinder_type_id: l.product.cylinderTypeId!, qty: l.qty })),
@@ -101,6 +157,7 @@ export function PurchasePage() {
     })
     if (res.status !== 201) return errorOf(res.data)
     setInvoice('')
+    setPayAmount('')
     await invalidate()
     return null
   }
@@ -153,27 +210,40 @@ export function PurchasePage() {
         hint="Full cylinders and accessories received from the plant — adds to stock"
         icon={PackagePlus}
         action="Record ac4"
-        products={[...fullCylinders, ...accessoryProducts]}
+        products={ac4Products}
         pending={ac4Mutation.isPending}
         onRecord={recordAc4}
-        blocked={invoice.trim() ? null : 'Enter the IOC invoice number first'}
+        blocked={invoice.trim() ? payBlocked : 'Enter the IOC invoice number first'}
         before={
-          <div className="grid gap-4 lg:grid-cols-[220px_1fr] items-start pb-1">
-            <div>
-              <label className="block text-[12px] font-medium text-ink mb-1">
-                IOC invoice no. <span className="text-bad">*</span>
-              </label>
-              <Input
-                value={invoice}
-                onChange={(e) => setInvoice(e.target.value)}
-                maxLength={50}
-                placeholder="e.g. 9012345678"
-                className="h-9"
-              />
-              <p className="text-[11.5px] text-muted mt-1">One invoice per delivery from the plant.</p>
-            </div>
-            <OpeningStock cylinders={cylinders} loading={overviewQuery.isLoading} />
+          <div className="max-w-[260px]">
+            <label className="block text-[12px] font-medium text-ink mb-1">
+              IOC invoice no. <span className="text-bad">*</span>
+            </label>
+            <Input
+              value={invoice}
+              onChange={(e) => setInvoice(e.target.value)}
+              maxLength={50}
+              placeholder="e.g. 9012345678"
+              className="h-9"
+            />
           </div>
+        }
+        beforeRecord={
+          <PaymentBox
+            amount={payAmount}
+            onAmount={setPayAmount}
+            vendorId={vendorId}
+            onVendor={setPayVendor}
+            source={paySource}
+            onSource={(v) => {
+              setPaySource(v)
+              setPayMethod(v === 'box' ? 'cash' : 'transfer')
+            }}
+            method={payMethod}
+            onMethod={setPayMethod}
+            vendors={vendors}
+            accounts={accounts}
+          />
         }
         after={<PurchasesOnDate date={date} />}
       />
@@ -215,6 +285,7 @@ function EntryCard({
   onRecord,
   blocked = null,
   before,
+  beforeRecord,
   after,
 }: {
   title: string
@@ -228,6 +299,8 @@ function EntryCard({
   /** Why Record can't run yet (e.g. the invoice is missing), or null. */
   blocked?: string | null
   before?: ReactNode
+  /** Shown between the lines and the Record button (ac4: the payment). */
+  beforeRecord?: ReactNode
   after?: ReactNode
 }) {
   const [productId, setProductId] = useState('')
@@ -276,10 +349,16 @@ function EntryCard({
               <option value="">Select product…</option>
               {products.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.label} — in stock {p.inStock}
+                  {p.label} — {p.stockText ?? `in stock ${p.inStock}`}
                 </option>
               ))}
             </Select>
+            {selected ? (
+              <p className="text-[12px] text-ink mt-1">
+                <span className="text-muted">{selected.label}:</span>{' '}
+                <span className="font-semibold num">{selected.stockText ?? `in stock ${selected.inStock}`}</span>
+              </p>
+            ) : null}
           </div>
           <div>
             <label className="block text-[12px] font-medium text-muted mb-1">Quantity</label>
@@ -348,6 +427,8 @@ function EntryCard({
           </div>
         )}
 
+        {beforeRecord}
+
         <div className="flex items-center justify-between gap-3">
           <div className="text-[12.5px]">
             {status ? (
@@ -385,79 +466,6 @@ function EntryCard({
   )
 }
 
-/**
- * Full cylinders for the chosen date: opening (A) + received from IOC (B) − sold (C) = left.
- * Anything else that moved full stock (damaged / lost write-offs) is shown so "Left" adds up.
- */
-function OpeningStock({ cylinders, loading }: { cylinders: CylinderStockRow[]; loading: boolean }) {
-  const rows = cylinders.map((c) => {
-    const total = c.full_opening + c.full_received
-    const other = c.full_closing - (total - c.full_sold)
-    return { ...c, total, other }
-  })
-  const sum = (k: 'full_opening' | 'full_received' | 'total' | 'full_sold' | 'full_closing') =>
-    rows.reduce((t, r) => t + r[k], 0)
-  const th = 'px-3 py-2 text-[10.5px] uppercase tracking-[.05em] text-muted font-semibold text-right'
-  const td = 'px-3 py-2 text-right num'
-
-  return (
-    <div className="rounded-xl border border-line overflow-x-auto">
-      <div className="px-3 pt-2.5 pb-1 text-[12.5px] font-semibold text-ink">Full cylinders in the warehouse</div>
-      {loading ? (
-        <p className="px-3 pb-3 text-[12.5px] text-muted">Loading…</p>
-      ) : rows.length === 0 ? (
-        <p className="px-3 pb-3 text-[12.5px] text-muted">No cylinder types yet.</p>
-      ) : (
-        <table className="w-full text-[13px]">
-          <thead className="bg-surface">
-            <tr>
-              <th className={cn(th, 'text-left')}>Cylinder</th>
-              <th className={th}>Opening (A)</th>
-              <th className={th}>+ ac4 (B)</th>
-              <th className={th}>= A + B</th>
-              <th className={th}>− Sold (C)</th>
-              <th className={th}>= Left</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.cylinder_type_id} className="border-t border-line">
-                <td className="px-3 py-2 text-left">{r.label}</td>
-                <td className={td}>{r.full_opening}</td>
-                <td className={cn(td, r.full_received ? 'text-ok font-semibold' : 'text-muted')}>
-                  {r.full_received ? `+${r.full_received}` : '—'}
-                </td>
-                <td className={cn(td, 'font-semibold')}>{r.total}</td>
-                <td className={cn(td, r.full_sold ? '' : 'text-muted')}>
-                  {r.full_sold ? `−${r.full_sold}` : '—'}
-                </td>
-                <td className={cn(td, 'font-display font-bold text-ink')}>
-                  {r.full_closing}
-                  {r.other ? (
-                    <span className="block text-[10.5px] font-normal text-warn">
-                      {r.other < 0 ? `${r.other} damaged / other` : `+${r.other} other`}
-                    </span>
-                  ) : null}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-          <tfoot>
-            <tr className="border-t border-line bg-surface font-display font-bold">
-              <td className="px-3 py-2 text-left">Total</td>
-              <td className={td}>{sum('full_opening')}</td>
-              <td className={td}>{sum('full_received')}</td>
-              <td className={td}>{sum('total')}</td>
-              <td className={td}>{sum('full_sold')}</td>
-              <td className={td}>{sum('full_closing')}</td>
-            </tr>
-          </tfoot>
-        </table>
-      )}
-    </div>
-  )
-}
-
 /** The ac4 entries recorded for the date, grouped under their IOC invoice. */
 function PurchasesOnDate({ date }: { date: string }) {
   const q = useListStockEntriesV1StockEntriesGet({ date })
@@ -476,12 +484,105 @@ function PurchasesOnDate({ date }: { date: string }) {
           <span className="text-[13px] text-ink num">
             {e.lines.map((l) => `${l.label} × ${l.qty}`).join(' · ')}
           </span>
+          {e.payment_amount != null ? (
+            <span className="inline-flex items-center gap-1 text-[12.5px] text-ok font-medium num">
+              <Wallet size={13} /> Paid {rupees(e.payment_amount)} · {e.payment_label}
+            </span>
+          ) : (
+            <span className="text-[12.5px] text-muted">Not paid</span>
+          )}
           <span className="text-[11.5px] text-muted ml-auto">
             {e.created_by_name ?? ''} ·{' '}
             {new Date(e.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
           </span>
         </div>
       ))}
+    </div>
+  )
+}
+
+/** ac4: what was paid to the vendor for this purchase — saved as a deposit with it. */
+function PaymentBox({
+  amount,
+  onAmount,
+  vendorId,
+  onVendor,
+  source,
+  onSource,
+  method,
+  onMethod,
+  vendors,
+  accounts,
+}: {
+  amount: string
+  onAmount: (v: string) => void
+  vendorId: string
+  onVendor: (v: string) => void
+  source: string
+  onSource: (v: string) => void
+  method: string
+  onMethod: (v: string) => void
+  vendors: VendorOut[]
+  accounts: BankAccountOut[]
+}) {
+  const paying = num(amount) > 0
+  const from = source === 'box' ? 'Cashier box' : accounts.find((a) => a.id === source)
+  const fromLabel =
+    typeof from === 'string' ? from : from ? `${from.bank_name} · ${from.account_type}` : '—'
+  const to = vendors.find((v) => v.id === vendorId)?.name ?? '—'
+  const label = 'block text-[12px] font-medium text-muted mb-1'
+  return (
+    <div className="rounded-xl border border-line bg-surface/60 p-3">
+      <div className="flex items-center gap-1.5 text-[12.5px] font-semibold text-ink mb-2">
+        <Wallet size={14} className="text-orange" /> Payment to vendor
+      </div>
+      <div className="flex flex-wrap items-end gap-2">
+        <div>
+          <label className={label}>Amount paid ₹</label>
+          <Input
+            type="number"
+            min={0}
+            className="h-9 w-[140px] num text-right"
+            placeholder="0"
+            aria-label="Amount paid"
+            value={amount}
+            onChange={(e) => onAmount(e.target.value)}
+          />
+        </div>
+        <div className="flex-1 min-w-[160px]">
+          <label className={label}>Paid to</label>
+          <Select value={vendorId} onChange={(e) => onVendor(e.target.value)} className="h-9" aria-label="Paid to">
+            {vendors.length === 0 ? <option value="">No vendors — add one in Banking</option> : null}
+            {vendors.map((v) => (
+              <option key={v.id} value={v.id}>{v.name}</option>
+            ))}
+          </Select>
+        </div>
+        <div className="flex-1 min-w-[200px]">
+          <label className={label}>Paid from</label>
+          <Select value={source} onChange={(e) => onSource(e.target.value)} className="h-9" aria-label="Paid from">
+            <option value="box">Cashier box</option>
+            {accounts.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.bank_name} · {a.account_type}{a.label ? ` (${a.label})` : ''} — {rupees(a.balance)}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <div>
+          <label className={label}>Method</label>
+          <Select value={method} onChange={(e) => onMethod(e.target.value)} className="h-9 w-[120px]" aria-label="Method">
+            <option value="cash">Cash</option>
+            <option value="upi">UPI</option>
+            <option value="transfer">Transfer</option>
+          </Select>
+        </div>
+      </div>
+      <p className={cn('text-[11.5px] mt-2', paying ? 'text-ink' : 'text-muted')}>
+        {paying
+          ? `Record ac4 will also record ${rupees(num(amount))} from ${fromLabel} to ${to}.`
+          : 'Leave blank if nothing is paid now — only the stock is recorded.'}
+      </p>
     </div>
   )
 }

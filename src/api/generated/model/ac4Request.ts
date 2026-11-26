@@ -8,6 +8,7 @@
 import type { Ac4RequestBusinessDate } from './ac4RequestBusinessDate';
 import type { Ac4CylinderLine } from './ac4CylinderLine';
 import type { Ac4AccessoryLine } from './ac4AccessoryLine';
+import type { Ac4RequestPayment } from './ac4RequestPayment';
 
 /**
  * Stock received from the plant: full cylinders and/or accessories added to stock.
@@ -21,4 +22,5 @@ export interface Ac4Request {
   business_date?: Ac4RequestBusinessDate;
   cylinders?: Ac4CylinderLine[];
   accessories?: Ac4AccessoryLine[];
+  payment?: Ac4RequestPayment;
 }
