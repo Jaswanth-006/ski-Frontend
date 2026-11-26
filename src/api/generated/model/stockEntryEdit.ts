@@ -5,6 +5,7 @@
  * System of record for an LPG distributorship. See 01-BACKEND-PRD.
  * OpenAPI spec version: 0.1.0
  */
+import type { StockEntryEditInvoiceNo } from './stockEntryEditInvoiceNo';
 import type { StockEntryLine } from './stockEntryLine';
 
 export interface StockEntryEdit {
@@ -14,6 +15,7 @@ export interface StockEntryEdit {
    */
   reason: string;
   business_date: string;
+  invoice_no?: StockEntryEditInvoiceNo;
   /** @minItems 1 */
   lines: StockEntryLine[];
 }

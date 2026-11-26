@@ -175,7 +175,14 @@ function PurchaseTab({ date }: { date: string }) {
     {
       key: 'kind',
       header: 'Entry',
-      render: (e) => <span className="font-medium whitespace-nowrap">{KIND_LABEL[e.kind] ?? e.kind}</span>,
+      render: (e) => (
+        <div className="whitespace-nowrap">
+          <span className="font-medium">{KIND_LABEL[e.kind] ?? e.kind}</span>
+          {e.invoice_no ? (
+            <div className="text-[11.5px] text-muted num">Invoice {e.invoice_no}</div>
+          ) : null}
+        </div>
+      ),
     },
     {
       key: 'lines',
@@ -252,6 +259,7 @@ function PurchaseEdit({
   onDone: () => Promise<unknown>
 }) {
   const [date, setDate] = useState(entry.business_date)
+  const [invoice, setInvoice] = useState(entry.invoice_no ?? '')
   const [qty, setQty] = useState(entry.lines.map((l) => String(l.qty)))
   const [notes, setNotes] = useState(entry.lines.map((l) => l.note ?? ''))
 
@@ -276,6 +284,7 @@ function PurchaseEdit({
           editStockEntryV1StockEntriesEntryIdPut(entry.entry_id, {
             reason,
             business_date: date,
+            invoice_no: entry.kind === 'ac4' ? invoice.trim() || null : null,
             lines,
           } as never),
         )
@@ -283,9 +292,16 @@ function PurchaseEdit({
         return res
       }}
     >
-      <Field label="Date">
-        <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-      </Field>
+      <div className={cn('grid gap-3', entry.kind === 'ac4' && 'grid-cols-2')}>
+        <Field label="Date">
+          <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+        </Field>
+        {entry.kind === 'ac4' ? (
+          <Field label="IOC invoice no.">
+            <Input value={invoice} onChange={(e) => setInvoice(e.target.value)} maxLength={50} />
+          </Field>
+        ) : null}
+      </div>
       {entry.lines.map((l, i) => (
         <div key={i} className="grid grid-cols-[1fr_90px] gap-2 items-end">
           <Field label={`${l.label}${l.condition ? ` (${l.condition})` : ''}`}>

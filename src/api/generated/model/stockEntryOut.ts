@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { StockEntryOutKind } from './stockEntryOutKind';
+import type { StockEntryOutInvoiceNo } from './stockEntryOutInvoiceNo';
 import type { StockEntryLineOut } from './stockEntryLineOut';
 import type { StockEntryOutCreatedByName } from './stockEntryOutCreatedByName';
 
@@ -13,6 +14,7 @@ export interface StockEntryOut {
   entry_id: string;
   kind: StockEntryOutKind;
   business_date: string;
+  invoice_no: StockEntryOutInvoiceNo;
   lines: StockEntryLineOut[];
   created_at: string;
   created_by_name: StockEntryOutCreatedByName;

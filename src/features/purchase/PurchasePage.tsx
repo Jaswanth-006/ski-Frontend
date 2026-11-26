@@ -1,15 +1,15 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { Check, PackagePlus, PackageX, Plus, RotateCcw, X, type LucideIcon } from 'lucide-react'
-import { useState } from 'react'
+import { Check, FileText, PackagePlus, PackageX, Plus, RotateCcw, X, type LucideIcon } from 'lucide-react'
+import { useState, type ReactNode } from 'react'
+import { useListStockEntriesV1StockEntriesGet } from '@/api/generated/corrections/corrections'
 import {
-  getStockOverviewV1StockOverviewGetQueryKey,
   useStockAc4V1StockAc4Post,
   useStockErvV1StockErvPost,
   useStockOverviewV1StockOverviewGet,
   useStockReturnV1StockReturnPost,
 } from '@/api/generated/stock/stock'
 import { useListAccessoriesV1AccessoriesGet } from '@/api/generated/accessories/accessories'
-import type { AccessoryOut, CylinderStockRow } from '@/api/generated/model'
+import type { AccessoryOut, CylinderStockRow, StockEntryOut } from '@/api/generated/model'
 import { AppShell } from '@/components/app/AppShell'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader } from '@/components/ui/card'
@@ -40,6 +40,8 @@ interface Line {
 export function PurchasePage() {
   const queryClient = useQueryClient()
   const [date, setDate] = useState(today())
+  // The IOC invoice the next ac4 entry belongs to.
+  const [invoice, setInvoice] = useState('')
 
   const overviewQuery = useStockOverviewV1StockOverviewGet({ date })
   const accessoriesQuery = useListAccessoriesV1AccessoriesGet()
@@ -76,8 +78,8 @@ export function PurchasePage() {
     accessoryId: a.id,
   }))
 
-  const invalidate = () =>
-    queryClient.invalidateQueries({ queryKey: getStockOverviewV1StockOverviewGetQueryKey() })
+  // Stock figures, purchase list and sheets all move after an entry.
+  const invalidate = () => queryClient.invalidateQueries()
 
   const errorOf = (data: unknown) => {
     const detail = (data as { detail?: unknown })?.detail
@@ -87,6 +89,7 @@ export function PurchasePage() {
   const recordAc4 = async (lines: Line[]) => {
     const res = await ac4Mutation.mutateAsync({
       data: {
+        invoice_no: invoice.trim(),
         business_date: date,
         cylinders: lines
           .filter((l) => l.product.cylinderTypeId)
@@ -97,6 +100,7 @@ export function PurchasePage() {
       },
     })
     if (res.status !== 201) return errorOf(res.data)
+    setInvoice('')
     await invalidate()
     return null
   }
@@ -152,6 +156,26 @@ export function PurchasePage() {
         products={[...fullCylinders, ...accessoryProducts]}
         pending={ac4Mutation.isPending}
         onRecord={recordAc4}
+        blocked={invoice.trim() ? null : 'Enter the IOC invoice number first'}
+        before={
+          <div className="grid gap-4 lg:grid-cols-[220px_1fr] items-start pb-1">
+            <div>
+              <label className="block text-[12px] font-medium text-ink mb-1">
+                IOC invoice no. <span className="text-bad">*</span>
+              </label>
+              <Input
+                value={invoice}
+                onChange={(e) => setInvoice(e.target.value)}
+                maxLength={50}
+                placeholder="e.g. 9012345678"
+                className="h-9"
+              />
+              <p className="text-[11.5px] text-muted mt-1">One invoice per delivery from the plant.</p>
+            </div>
+            <OpeningStock cylinders={cylinders} loading={overviewQuery.isLoading} />
+          </div>
+        }
+        after={<PurchasesOnDate date={date} />}
       />
       <EntryCard
         title="erv · Empty return"
@@ -189,6 +213,9 @@ function EntryCard({
   withNote = false,
   pending,
   onRecord,
+  blocked = null,
+  before,
+  after,
 }: {
   title: string
   hint: string
@@ -198,6 +225,10 @@ function EntryCard({
   withNote?: boolean
   pending: boolean
   onRecord: (lines: Line[]) => Promise<string | null>
+  /** Why Record can't run yet (e.g. the invoice is missing), or null. */
+  blocked?: string | null
+  before?: ReactNode
+  after?: ReactNode
 }) {
   const [productId, setProductId] = useState('')
   const [qty, setQty] = useState('')
@@ -224,7 +255,7 @@ function EntryCard({
   }
 
   const record = async () => {
-    if (lines.length === 0) return
+    if (lines.length === 0 || blocked) return
     const error = await onRecord(lines)
     if (error) return setStatus({ ok: false, message: error })
     setLines([])
@@ -237,6 +268,7 @@ function EntryCard({
     <Card>
       <CardHeader title={title} hint={hint} />
       <div className="px-[18px] pb-5 pt-3 flex flex-col gap-3">
+        {before}
         <div className="flex flex-wrap items-end gap-2">
           <div className="flex-1 min-w-[220px]">
             <label className="block text-[12px] font-medium text-muted mb-1">Product</label>
@@ -332,17 +364,124 @@ function EntryCard({
               </span>
             ) : null}
           </div>
-          <Button
-            variant="primary"
-            className="h-9"
-            onClick={record}
-            disabled={pending || lines.length === 0}
-          >
-            <Icon size={16} />
-            {pending ? 'Recording…' : action}
-          </Button>
+          <div className="flex items-center gap-3">
+            {blocked && lines.length > 0 ? (
+              <span className="text-[12.5px] text-bad">{blocked}</span>
+            ) : null}
+            <Button
+              variant="primary"
+              className="h-9"
+              onClick={record}
+              disabled={pending || lines.length === 0 || !!blocked}
+            >
+              <Icon size={16} />
+              {pending ? 'Recording…' : action}
+            </Button>
+          </div>
         </div>
+        {after}
       </div>
     </Card>
+  )
+}
+
+/**
+ * Full cylinders for the chosen date: opening (A) + received from IOC (B) − sold (C) = left.
+ * Anything else that moved full stock (damaged / lost write-offs) is shown so "Left" adds up.
+ */
+function OpeningStock({ cylinders, loading }: { cylinders: CylinderStockRow[]; loading: boolean }) {
+  const rows = cylinders.map((c) => {
+    const total = c.full_opening + c.full_received
+    const other = c.full_closing - (total - c.full_sold)
+    return { ...c, total, other }
+  })
+  const sum = (k: 'full_opening' | 'full_received' | 'total' | 'full_sold' | 'full_closing') =>
+    rows.reduce((t, r) => t + r[k], 0)
+  const th = 'px-3 py-2 text-[10.5px] uppercase tracking-[.05em] text-muted font-semibold text-right'
+  const td = 'px-3 py-2 text-right num'
+
+  return (
+    <div className="rounded-xl border border-line overflow-x-auto">
+      <div className="px-3 pt-2.5 pb-1 text-[12.5px] font-semibold text-ink">Full cylinders in the warehouse</div>
+      {loading ? (
+        <p className="px-3 pb-3 text-[12.5px] text-muted">Loading…</p>
+      ) : rows.length === 0 ? (
+        <p className="px-3 pb-3 text-[12.5px] text-muted">No cylinder types yet.</p>
+      ) : (
+        <table className="w-full text-[13px]">
+          <thead className="bg-surface">
+            <tr>
+              <th className={cn(th, 'text-left')}>Cylinder</th>
+              <th className={th}>Opening (A)</th>
+              <th className={th}>+ ac4 (B)</th>
+              <th className={th}>= A + B</th>
+              <th className={th}>− Sold (C)</th>
+              <th className={th}>= Left</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.cylinder_type_id} className="border-t border-line">
+                <td className="px-3 py-2 text-left">{r.label}</td>
+                <td className={td}>{r.full_opening}</td>
+                <td className={cn(td, r.full_received ? 'text-ok font-semibold' : 'text-muted')}>
+                  {r.full_received ? `+${r.full_received}` : '—'}
+                </td>
+                <td className={cn(td, 'font-semibold')}>{r.total}</td>
+                <td className={cn(td, r.full_sold ? '' : 'text-muted')}>
+                  {r.full_sold ? `−${r.full_sold}` : '—'}
+                </td>
+                <td className={cn(td, 'font-display font-bold text-ink')}>
+                  {r.full_closing}
+                  {r.other ? (
+                    <span className="block text-[10.5px] font-normal text-warn">
+                      {r.other < 0 ? `${r.other} damaged / other` : `+${r.other} other`}
+                    </span>
+                  ) : null}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot>
+            <tr className="border-t border-line bg-surface font-display font-bold">
+              <td className="px-3 py-2 text-left">Total</td>
+              <td className={td}>{sum('full_opening')}</td>
+              <td className={td}>{sum('full_received')}</td>
+              <td className={td}>{sum('total')}</td>
+              <td className={td}>{sum('full_sold')}</td>
+              <td className={td}>{sum('full_closing')}</td>
+            </tr>
+          </tfoot>
+        </table>
+      )}
+    </div>
+  )
+}
+
+/** The ac4 entries recorded for the date, grouped under their IOC invoice. */
+function PurchasesOnDate({ date }: { date: string }) {
+  const q = useListStockEntriesV1StockEntriesGet({ date })
+  const entries: StockEntryOut[] = (q.data?.status === 200 ? q.data.data : []).filter(
+    (e) => e.kind === 'ac4',
+  )
+  if (entries.length === 0) return null
+  return (
+    <div className="rounded-xl border border-line">
+      <div className="px-3 pt-2.5 pb-1 text-[12.5px] font-semibold text-ink">Purchases on this date</div>
+      {entries.map((e) => (
+        <div key={e.entry_id} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-3 py-2 border-t border-line">
+          <span className="inline-flex items-center gap-1.5 font-semibold text-navy text-[13px]">
+            <FileText size={14} /> Invoice {e.invoice_no ?? '—'}
+          </span>
+          <span className="text-[13px] text-ink num">
+            {e.lines.map((l) => `${l.label} × ${l.qty}`).join(' · ')}
+          </span>
+          <span className="text-[11.5px] text-muted ml-auto">
+            {e.created_by_name ?? ''} ·{' '}
+            {new Date(e.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+          </span>
+        </div>
+      ))}
+    </div>
   )
 }

@@ -13,6 +13,11 @@ import type { Ac4AccessoryLine } from './ac4AccessoryLine';
  * Stock received from the plant: full cylinders and/or accessories added to stock.
  */
 export interface Ac4Request {
+  /**
+   * @minLength 1
+   * @maxLength 50
+   */
+  invoice_no: string;
   business_date?: Ac4RequestBusinessDate;
   cylinders?: Ac4CylinderLine[];
   accessories?: Ac4AccessoryLine[];
