@@ -55,7 +55,7 @@ export function CashierBoxPage() {
               <Line label="Expenses" value={Number(box.expenses)} sign="−" />
               <Line label="Deposited out" value={Number(box.deposited)} sign="−" />
               {Number(box.upi_to_bank ?? 0) ? (
-                <Line label="Sales' UPI sent to bank" value={Number(box.upi_to_bank)} sign="−" />
+                <Line label="UPI sent to bank (sales, repayments)" value={Number(box.upi_to_bank)} sign="−" />
               ) : null}
               <div className="flex items-center justify-between pt-3.5 mt-1.5 border-t-2 border-line">
                 <span className="inline-flex items-center gap-2 text-[14px] font-semibold text-ink">

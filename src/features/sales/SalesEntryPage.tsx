@@ -108,7 +108,21 @@ export function SalesEntryPage() {
   const lines: PriceOut[] = lineIds
     .map((id) => priced.find((p) => p.cylinder_type_id === id))
     .filter((p): p is PriceOut => p !== undefined)
-  const drivers: UserOut[] = driversQuery.data?.status === 200 ? driversQuery.data.data : []
+  const activeDrivers: UserOut[] = driversQuery.data?.status === 200 ? driversQuery.data.data : []
+  // A sale being edited keeps its delivery boy in the list even if he has been deactivated.
+  const drivers: UserOut[] =
+    editSale?.delivery_id && !activeDrivers.some((d) => d.id === editSale.delivery_id)
+      ? [
+          ...activeDrivers,
+          {
+            id: editSale.delivery_id,
+            name: `${editSale.party_name} (inactive)`,
+            phone: '',
+            role: 'delivery',
+            is_active: false,
+          } as UserOut,
+        ]
+      : activeDrivers
   const customers: CustomerOut[] = customersQuery.data?.status === 200 ? customersQuery.data.data : []
   const items: ExpenseItemOut[] = itemsQuery.data?.status === 200 ? itemsQuery.data.data : []
 

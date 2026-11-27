@@ -11,6 +11,7 @@ import type { TransferOutDestKind } from './transferOutDestKind';
 import type { TransferOutDestPersonId } from './transferOutDestPersonId';
 import type { TransferOutNote } from './transferOutNote';
 import type { TransferOutSaleId } from './transferOutSaleId';
+import type { TransferOutBalanceEntryId } from './transferOutBalanceEntryId';
 
 export interface TransferOut {
   id: string;
@@ -25,5 +26,6 @@ export interface TransferOut {
   method: string;
   note: TransferOutNote;
   sale_id?: TransferOutSaleId;
+  balance_entry_id?: TransferOutBalanceEntryId;
   created_at: string;
 }
