@@ -99,23 +99,13 @@ export function ReportsPage() {
             key: 'received',
             header: 'Received (B)',
             numeric: true,
-            render: (r) => (
-              <span>
-                {r.received as number}{' '}
-                <span className="text-[10.5px] text-muted">{r.condition === 'full' ? 'ac4' : 'sales'}</span>
-              </span>
-            ),
+            render: (r) => r.received as number,
           },
           {
             key: 'issue',
             header: 'Issue (C)',
             numeric: true,
-            render: (r) => (
-              <span>
-                {r.issue as number}{' '}
-                <span className="text-[10.5px] text-muted">{r.condition === 'full' ? 'sales' : 'erv'}</span>
-              </span>
-            ),
+            render: (r) => r.issue as number,
           },
           ...((rows as StockReportRow[]).some((x) => x.other !== 0)
             ? [
@@ -207,7 +197,11 @@ export function ReportsPage() {
       <Card className="overflow-hidden">
         <CardHeader
           title="Report"
-          hint="Pick a type and a date range"
+          hint={
+            tab === 'stock'
+              ? 'Full: received = ac4, issue = sales · Empty: received = from sales, issue = erv'
+              : 'Pick a type and a date range'
+          }
           right={
             <div className="flex items-center gap-3">
               <Input type="date" value={start} onChange={(e) => setStart(e.target.value)} className="h-9 w-[150px]" />
