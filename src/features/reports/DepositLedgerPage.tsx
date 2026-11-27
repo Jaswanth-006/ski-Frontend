@@ -153,6 +153,15 @@ export function DepositLedgerPage() {
           }
         />
 
+        {kind === 'cashier_box' ? (
+          <p className="px-[18px] pt-2 text-[12.5px] text-muted">
+            Only deposits are listed here — sales, repayments and expenses are on the{' '}
+            <Link to="/cashier-box" className="font-medium text-navy hover:text-orange">
+              Cashier Box
+            </Link>{' '}
+            page.
+          </p>
+        ) : null}
         {tiles.length ? (
           <div className="grid grid-cols-2 gap-3 px-[18px] pb-4 pt-3 lg:grid-cols-4">
             {tiles.map((t) => (

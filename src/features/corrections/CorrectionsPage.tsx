@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { Check, Loader2 } from 'lucide-react'
 import { useState } from 'react'
-import { useLocation, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import {
   deleteCustomerBalanceV1CustomerBalancesEntryIdDeletePost,
   deleteDeliveryBalanceV1DeliveryBalancesEntryIdDeletePost,
@@ -481,7 +481,18 @@ function DepositsTab({ date }: { date: string }) {
     {
       key: 'actions',
       header: '',
-      render: (t) => <RowActions onEdit={() => setEditing(t)} onDelete={() => setDeleting(t)} />,
+      render: (t) =>
+        t.sale_id ? (
+          <Link
+            to={`/corrections?tab=invoices&date=${t.business_date}`}
+            className="text-[12px] font-medium text-navy hover:text-orange whitespace-nowrap"
+            title="Made by a sale — edit that invoice"
+          >
+            From {t.note?.match(/invoice (.+)$/)?.[1] ? `invoice ${t.note.match(/invoice (.+)$/)![1]}` : 'a sale'}
+          </Link>
+        ) : (
+          <RowActions onEdit={() => setEditing(t)} onDelete={() => setDeleting(t)} />
+        ),
     },
   ]
 

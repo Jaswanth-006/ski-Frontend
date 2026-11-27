@@ -101,3 +101,49 @@ describe('CorrectionsPage · expenses', () => {
     expect(await within(dialog).findByRole('alert')).toHaveTextContent('only the owner can change it')
   })
 })
+
+describe('CorrectionsPage · deposits', () => {
+  beforeEach(() => {
+    const dep = (id: string, saleId: string | null, note: string | null) => ({
+      id,
+      business_date: '2026-11-13',
+      amount: '3000',
+      source_kind: 'cashier_box',
+      source_label: 'Cashier box',
+      dest_kind: 'bank_account',
+      dest_label: 'SBI · Current',
+      method: 'upi',
+      note,
+      sale_id: saleId,
+      created_at: '2026-11-13T10:00:00Z',
+    })
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string) =>
+        url.includes('/v1/transfers')
+          ? new Response(
+              JSON.stringify([dep('t1', 's1', 'UPI · invoice SL00002'), dep('t2', null, 'own deposit')]),
+              { status: 200 },
+            )
+          : new Response('[]', { status: 200 }),
+      ),
+    )
+  })
+  afterEach(() => vi.unstubAllGlobals())
+
+  it("sends a sale's deposits to their invoice instead of editing them", async () => {
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <MemoryRouter initialEntries={['/corrections?tab=deposits&date=2026-11-13']}>
+          <Routes>
+            <Route path="/corrections" element={<CorrectionsPage />} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>,
+    )
+    const link = await screen.findByRole('link', { name: 'From invoice SL00002' })
+    expect(link).toHaveAttribute('href', '/corrections?tab=invoices&date=2026-11-13')
+    // Only the deposit you recorded yourself can be edited here.
+    expect(screen.getAllByRole('button', { name: 'Edit' })).toHaveLength(1)
+  })
+})

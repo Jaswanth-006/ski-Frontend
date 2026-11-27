@@ -19,4 +19,5 @@ export interface DaySheetTotals {
   net: string;
   balance: string;
   handed: string;
+  route_expense?: string;
 }

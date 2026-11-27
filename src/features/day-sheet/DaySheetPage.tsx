@@ -97,6 +97,12 @@ export function DaySheetPage() {
     { key: 'cash', header: 'Cash ₹', numeric: true, render: (r) => amount(r.cash) },
     { key: 'online', header: 'Online ₹', numeric: true, render: (r) => amount(r.online) },
     {
+      key: 'route',
+      header: 'Route exp. ₹',
+      numeric: true,
+      render: (r) => amount(String(r.route_expense ?? 0)),
+    },
+    {
       key: 'balance',
       header: 'Balance ₹',
       numeric: true,
@@ -159,6 +165,7 @@ export function DaySheetPage() {
                     <Money key="u" value={Number(sheet.totals.upi)} bare />,
                     <Money key="c" value={Number(sheet.totals.cash)} bare />,
                     <Money key="o" value={Number(sheet.totals.online)} bare />,
+                    <Money key="r" value={Number(sheet.totals.route_expense ?? 0)} bare />,
                     <Money
                       key="b"
                       value={Number(sheet.totals.balance)}

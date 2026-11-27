@@ -14,6 +14,7 @@ import {
   useEodV1AnalyticsEodGet,
 } from '@/api/generated/analytics/analytics'
 import { useGetDaySheetV1DaySheetOnDateGet } from '@/api/generated/day-sheet/day-sheet'
+import { useGetCashierBoxV1CashierBoxOnDateGet } from '@/api/generated/cashier-box/cashier-box'
 import type { DaySheetRow } from '@/api/generated/model'
 import { useAuth } from '@/auth/useAuth'
 import { AppShell } from '@/components/app/AppShell'
@@ -70,6 +71,8 @@ export function DashboardPage() {
   const trendQuery = useCollectionsV1AnalyticsCollectionsGet({ days: 7 })
   const movementQuery = useCylinderMovementV1AnalyticsCylinderMovementGet()
   const daySheetQuery = useGetDaySheetV1DaySheetOnDateGet(date)
+  const boxQuery = useGetCashierBoxV1CashierBoxOnDateGet(date)
+  const box = boxQuery.data?.status === 200 ? boxQuery.data.data : null
 
   const eod = eodQuery.data?.status === 200 ? eodQuery.data.data : null
   const trend = trendQuery.data?.status === 200 ? trendQuery.data.data.points : []
@@ -79,6 +82,8 @@ export function DashboardPage() {
   const deliveryRows = rows.filter((r) => r.party_kind === 'delivery')
 
   const grossCash = Number(eod?.gross_cash ?? 0)
+  // Physical notes on hand now (carried over, collected, repaid, paid out, deposited).
+  const handCash = Number(box?.hand_cash_closing ?? 0)
   const upi = Number(eod?.upi_total ?? 0)
   const netProfit = eod?.net_profit != null ? Number(eod.net_profit) : null
   const salesTotal = Number(eod?.sales_total ?? 0)
@@ -171,11 +176,11 @@ export function DashboardPage() {
           <KpiCard
             icon={<Banknote size={17} />}
             label="Cash in hand"
-            value={grossCash}
+            value={handCash}
             prefix="₹"
             sub={
               <StatusPill variant="ok" size="sm">
-                Cash sales
+                <Money value={grossCash} /> cash sales today
               </StatusPill>
             }
           />
