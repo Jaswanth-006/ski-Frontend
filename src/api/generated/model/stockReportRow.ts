@@ -5,11 +5,22 @@
  * System of record for an LPG distributorship. See 01-BACKEND-PRD.
  * OpenAPI spec version: 0.1.0
  */
+import type { StockReportRowCondition } from './stockReportRowCondition';
 
+/**
+ * One cylinder type, full or empty, over the range: closing = A + B − C (+ other).
+
+Full:  received = ac4 from the plant, issue = sold.
+Empty: received = empties back from customers through sales, issue = erv to the plant.
+ */
 export interface StockReportRow {
   cylinder_type_id: string;
   code: string;
   label: string;
-  ac4: number;
-  erv: number;
+  condition: StockReportRowCondition;
+  opening: number;
+  received: number;
+  issue: number;
+  other: number;
+  closing: number;
 }
