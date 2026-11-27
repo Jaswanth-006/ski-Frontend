@@ -12,12 +12,18 @@ import { useListDeliveryOtherSalesV1DeliveryOtherSalesGet } from '@/api/generate
 import { useListExpenseItemsV1ExpenseItemsGet } from '@/api/generated/catalog/catalog'
 import { useListCustomersV1CustomersGet } from '@/api/generated/customers/customers'
 import { useListUsersV1UsersGet } from '@/api/generated/users/users'
+import {
+  useListBankAccountsV1BankAccountsGet,
+  useListVendorsV1VendorsGet,
+} from '@/api/generated/banking/banking'
 import type {
+  BankAccountOut,
   CustomerOut,
   ExpenseItemOut,
   PriceOut,
   SaleLineOut,
   UserOut,
+  VendorOut,
 } from '@/api/generated/model'
 import { AppShell } from '@/components/app/AppShell'
 import { Money } from '@/components/app/Money'
@@ -64,6 +70,10 @@ export function SalesEntryPage() {
   const [damaged, setDamaged] = useState<Record<string, string>>({})
   const [notes, setNotes] = useState<Record<number, string>>({})
   const [upi, setUpi] = useState('')
+  // Where the money went: the UPI's bank account ('box' = it stays in the cashier box) and the
+  // vendor the online payment went to. Empty = the default below.
+  const [upiAccount, setUpiAccount] = useState('')
+  const [onlineVendor, setOnlineVendor] = useState('')
   const [onlineQty, setOnlineQty] = useState<Record<string, string>>({})
   const [expenseRows, setExpenseRows] = useState<ExpenseRow[]>([])
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null)
@@ -75,6 +85,13 @@ export function SalesEntryPage() {
   const customersQuery = useListCustomersV1CustomersGet()
   const otherSalesQuery = useListDeliveryOtherSalesV1DeliveryOtherSalesGet()
   const itemsQuery = useListExpenseItemsV1ExpenseItemsGet({ active: 'true' })
+  const accountsQuery = useListBankAccountsV1BankAccountsGet({ active: 'true' })
+  const vendorsQuery = useListVendorsV1VendorsGet({ active: 'true' })
+  const accounts: BankAccountOut[] = accountsQuery.data?.status === 200 ? accountsQuery.data.data : []
+  const vendors: VendorOut[] = vendorsQuery.data?.status === 200 ? vendorsQuery.data.data : []
+  const upiTo = upiAccount || accounts[0]?.id || 'box'
+  const onlineTo =
+    onlineVendor || (vendors.find((v) => /\bioc\b|indian oil/i.test(v.name)) ?? vendors[0])?.id || ''
 
   const saleQuery = useGetSaleV1SalesSaleIdGet(editId, { query: { enabled: isEdit } })
   const editSale = saleQuery.data?.status === 200 ? saleQuery.data.data : null
@@ -173,6 +190,8 @@ export function SalesEntryPage() {
       ),
     )
     setUpi(Number(editSale.upi_total) ? String(Number(editSale.upi_total)) : '')
+    setUpiAccount(editSale.upi_account_id ?? (Number(editSale.upi_total) ? 'box' : ''))
+    setOnlineVendor(editSale.online_vendor_id ?? '')
     setOnlineQty({})
     setPendingOnline(Number(editSale.online_total))
     setExpenseRows(
@@ -262,6 +281,9 @@ export function SalesEntryPage() {
       online_total: paise(onlineAmount),
       balance_total: balance, // backend charges this to the boy's / customer's balance
       expenses: routeExpenses.map((r) => ({ item_id: r.itemId, amount: num(r.amount) })),
+      // Recorded as deposits with the sale: UPI → bank account, online → vendor (IOC).
+      upi_account_id: num(upi) > 0 && upiTo !== 'box' ? upiTo : null,
+      online_vendor_id: onlineAmount > 0 && onlineTo ? onlineTo : null,
     }
     const res = isEdit
       ? await saveEdit.mutateAsync({ reason: editReason.trim(), sale: body })
@@ -669,14 +691,53 @@ export function SalesEntryPage() {
             </div>
             <div className="flex items-center justify-between gap-3 mt-2">
               <label className="text-[13px] font-medium text-ink">UPI / digital</label>
-              <Input type="number" min={0} className="h-9 w-[120px] num text-right" placeholder="0" value={upi} onChange={(e) => setUpi(e.target.value)} />
+              <Input type="number" min={0} className="h-9 w-[120px] num text-right" placeholder="0" aria-label="UPI amount" value={upi} onChange={(e) => setUpi(e.target.value)} />
             </div>
+            {num(upi) > 0 ? (
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-[11.5px] text-muted">→ went into</span>
+                <Select
+                  value={upiTo}
+                  onChange={(e) => setUpiAccount(e.target.value)}
+                  className="h-8 max-w-[240px] text-[12.5px]"
+                  aria-label="UPI went into"
+                >
+                  {accounts.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.bank_name} · {a.account_type}{a.label ? ` (${a.label})` : ''}
+                    </option>
+                  ))}
+                  <option value="box">Keep in cashier box</option>
+                </Select>
+              </div>
+            ) : null}
             <div className="flex items-center justify-between gap-3 mt-1">
               <span className="text-[13px] font-medium text-ink">
                 Online <span className="text-[11px] text-muted font-normal">→ company</span>
               </span>
               <Money value={onlineAmount} className="font-display font-bold text-ink" />
             </div>
+            {onlineAmount > 0 ? (
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-[11.5px] text-muted">→ paid to</span>
+                <Select
+                  value={onlineTo}
+                  onChange={(e) => setOnlineVendor(e.target.value)}
+                  className="h-8 max-w-[240px] text-[12.5px]"
+                  aria-label="Online paid to"
+                >
+                  {vendors.length === 0 ? <option value="">No vendors — add one in Banking</option> : null}
+                  {vendors.map((v) => (
+                    <option key={v.id} value={v.id}>{v.name}</option>
+                  ))}
+                </Select>
+              </div>
+            ) : null}
+            <p className="text-[11px] text-muted">
+              Cash stays in the cashier box
+              {num(upi) > 0 && upiTo !== 'box' ? ' · UPI goes to the bank account' : ''}
+              {onlineAmount > 0 && onlineTo ? ' · online is recorded as paid to the vendor' : ''}.
+            </p>
             {expensesTotal > 0 ? (
               <div className="flex items-center justify-between gap-3 mt-1">
                 <span className="text-[13px] font-medium text-ink">

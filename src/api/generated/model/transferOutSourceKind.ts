@@ -14,4 +14,5 @@ export const TransferOutSourceKind = {
   cashier_box: 'cashier_box',
   bank_account: 'bank_account',
   person: 'person',
+  online: 'online',
 } as const;

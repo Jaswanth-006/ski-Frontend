@@ -13,6 +13,8 @@ import type { SaleCreateUpiTotal } from './saleCreateUpiTotal';
 import type { SaleCreateOnlineTotal } from './saleCreateOnlineTotal';
 import type { SaleCreateBalanceTotal } from './saleCreateBalanceTotal';
 import type { SaleExpenseIn } from './saleExpenseIn';
+import type { SaleCreateUpiAccountId } from './saleCreateUpiAccountId';
+import type { SaleCreateOnlineVendorId } from './saleCreateOnlineVendorId';
 
 export interface SaleCreate {
   /**
@@ -30,4 +32,6 @@ export interface SaleCreate {
   online_total?: SaleCreateOnlineTotal;
   balance_total?: SaleCreateBalanceTotal;
   expenses?: SaleExpenseIn[];
+  upi_account_id?: SaleCreateUpiAccountId;
+  online_vendor_id?: SaleCreateOnlineVendorId;
 }
