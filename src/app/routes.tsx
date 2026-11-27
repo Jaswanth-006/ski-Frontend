@@ -15,6 +15,7 @@ import { MonthSheetPage } from '@/features/month-sheet/MonthSheetPage'
 import { PeoplePage } from '@/features/people/PeoplePage'
 import { PurchasePage } from '@/features/purchase/PurchasePage'
 import { DeliveryStatementPage } from '@/features/reports/DeliveryStatementPage'
+import { ExpenseItemPage } from '@/features/reports/ExpenseItemPage'
 import { ReportsPage } from '@/features/reports/ReportsPage'
 import { SalesEntryPage } from '@/features/sales/SalesEntryPage'
 import { UsersPage } from '@/features/users/UsersPage'
@@ -145,6 +146,14 @@ export function AppRoutes() {
         element={
           <RoleGuard allow={OFFICE_AND_OWNER}>
             <DeliveryStatementPage />
+          </RoleGuard>
+        }
+      />
+      <Route
+        path="/reports/expenses/:itemId"
+        element={
+          <RoleGuard allow={OFFICE_AND_OWNER}>
+            <ExpenseItemPage />
           </RoleGuard>
         }
       />

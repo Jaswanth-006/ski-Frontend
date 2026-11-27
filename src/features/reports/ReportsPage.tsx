@@ -155,7 +155,19 @@ export function ReportsPage() {
           ]
         : tab === 'expenses'
           ? [
-              { key: 'item', header: 'Expense item', render: (r) => r.item_name as string },
+              {
+                key: 'item',
+                header: 'Expense item',
+                render: (r) => (
+                  <Link
+                    to={`/reports/expenses/${r.item_id as string}?start=${start}&end=${end}`}
+                    className="group inline-flex items-center gap-1 font-medium text-navy hover:text-orange"
+                  >
+                    {r.item_name as string}
+                    <ChevronRight size={14} className="text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-orange" />
+                  </Link>
+                ),
+              },
               { key: 'total', header: 'Total ₹', numeric: true, render: (r) => <Money value={Number(r.total)} bare /> },
               { key: 'count', header: 'Count', numeric: true, render: (r) => r.count as number },
             ]
