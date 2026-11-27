@@ -249,6 +249,7 @@ export * from './stockLoadUpsert';
 export * from './stockOverview';
 export * from './stockOverviewV1StockOverviewGetParams';
 export * from './stockReportRow';
+export * from './stockReportRowCondition';
 export * from './stockReportV1ReportsStockGetParams';
 export * from './stockSummary';
 export * from './tokenPair';

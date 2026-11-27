@@ -6,6 +6,7 @@ import {
   useExpenseReportV1ReportsExpensesGet,
   useStockReportV1ReportsStockGet,
 } from '@/api/generated/reports/reports'
+import type { StockReportRow } from '@/api/generated/model'
 import { AppShell } from '@/components/app/AppShell'
 import { DataTable, type Column } from '@/components/app/DataTable'
 import { Money } from '@/components/app/Money'
@@ -56,9 +57,12 @@ export function ReportsPage() {
 
   const exportCsv = () => {
     if (tab === 'stock') {
-      const r = rows as { code: string; label: string; ac4: number; erv: number }[]
-      downloadCsv(`stock_${start}_${end}`, ['Code', 'Variety', 'ac4 (received)', 'erv (returned)'],
-        r.map((x) => [x.code, x.label, x.ac4, x.erv]))
+      const r = rows as StockReportRow[]
+      downloadCsv(
+        `stock_${start}_${end}`,
+        ['Cylinder', 'Full / Empty', 'Opening (A)', 'Received (B)', 'Issue (C)', 'Damaged / other', 'Closing (A+B-C)'],
+        r.map((x) => [x.label, x.condition, x.opening, x.received, x.issue, x.other, x.closing]),
+      )
     } else if (tab === 'delivery') {
       const r = rows as { delivery_name: string; sales: string; full_cylinders: number; empty_cylinders: number }[]
       downloadCsv(`delivery_${start}_${end}`, ['Delivery staff', 'Sales', 'Full cylinders', 'Empty cylinders'],
@@ -77,9 +81,58 @@ export function ReportsPage() {
   const columns: Column<Record<string, unknown>>[] =
     tab === 'stock'
       ? [
-          { key: 'label', header: 'Variety', render: (r) => <span>{r.label as string} <span className="text-muted num text-[11.5px]">{r.code as string}</span></span> },
-          { key: 'ac4', header: 'ac4 · received', numeric: true, render: (r) => r.ac4 as number },
-          { key: 'erv', header: 'erv · returned', numeric: true, render: (r) => r.erv as number },
+          {
+            key: 'label',
+            header: 'Cylinder',
+            render: (r) =>
+              r.condition === 'full' ? (
+                <span className="font-medium text-ink">
+                  {r.label as string} <span className="text-[11.5px] font-semibold text-orange">Full</span>
+                </span>
+              ) : (
+                <span className="pl-4 text-[11.5px] font-semibold text-navy">Empty</span>
+              ),
+          },
+          { key: 'opening', header: 'Opening (A)', numeric: true, render: (r) => r.opening as number },
+          {
+            key: 'received',
+            header: 'Received (B)',
+            numeric: true,
+            render: (r) => (
+              <span>
+                {r.received as number}{' '}
+                <span className="text-[10.5px] text-muted">{r.condition === 'full' ? 'ac4' : 'sales'}</span>
+              </span>
+            ),
+          },
+          {
+            key: 'issue',
+            header: 'Issue (C)',
+            numeric: true,
+            render: (r) => (
+              <span>
+                {r.issue as number}{' '}
+                <span className="text-[10.5px] text-muted">{r.condition === 'full' ? 'sales' : 'erv'}</span>
+              </span>
+            ),
+          },
+          ...((rows as StockReportRow[]).some((x) => x.other !== 0)
+            ? [
+                {
+                  key: 'other',
+                  header: 'Damaged / other',
+                  numeric: true,
+                  render: (r: Record<string, unknown>) =>
+                    r.other ? <span className="text-warn">{r.other as number}</span> : <span className="text-muted">—</span>,
+                },
+              ]
+            : []),
+          {
+            key: 'closing',
+            header: 'Closing (A+B−C)',
+            numeric: true,
+            render: (r) => <span className="font-display font-bold text-ink">{r.closing as number}</span>,
+          },
         ]
       : tab === 'delivery'
         ? [
