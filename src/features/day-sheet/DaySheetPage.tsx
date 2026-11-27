@@ -170,6 +170,9 @@ export function DaySheetPage() {
             }
           />
         )}
+        {!sheetQuery.isLoading && sheet && rows.length === 0 ? (
+          <div className="py-8 text-center text-[13px] text-muted">No sales on this day.</div>
+        ) : null}
       </Card>
     </AppShell>
   )
