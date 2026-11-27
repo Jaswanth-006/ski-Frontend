@@ -63,7 +63,7 @@ export function DeliveryStatementPage() {
           </span>
         ),
     },
-    { key: 'qty', header: 'Sold', numeric: true, render: (r) => (isSale(r) ? r.qty : null) },
+    { key: 'qty', header: 'Qty', numeric: true, render: (r) => (isSale(r) ? r.qty : null) },
     { key: 'empty', header: 'Empty', numeric: true, render: (r) => (isSale(r) ? r.empty_qty : null) },
     {
       key: 'amount',
@@ -117,7 +117,7 @@ export function DeliveryStatementPage() {
       r.kind === 'sale' ? (r.invoice_no ?? '') : `${r.kind === 'repayment' ? 'Repaid' : 'Charge'}${r.note ? ` - ${r.note}` : ''}`
     downloadCsv(
       `${data.delivery_name.replace(/\s+/g, '_')}_${start}_${end}`,
-      ['Date', 'Invoice', 'Sold', 'Empty', 'Amount', 'Cash', 'UPI', 'Online', 'Route expenses', 'Repaid', 'Balance'],
+      ['Date', 'Invoice', 'Qty', 'Empty', 'Amount', 'Cash', 'UPI', 'Online', 'Route expenses', 'Repaid', 'Balance'],
       [
         ...data.rows.map((r) => [
           ddmmyyyy(r.entry_date),
