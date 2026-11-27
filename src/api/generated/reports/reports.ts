@@ -27,6 +27,8 @@ import type {
   DeliveryReportV1ReportsDeliveryGetParams,
   DepositReportRow,
   DepositReportV1ReportsDepositsGetParams,
+  ExpenseItemLedgerOut,
+  ExpenseItemLedgerV1ReportsExpensesItemIdGetParams,
   ExpenseReportRow,
   ExpenseReportV1ReportsExpensesGetParams,
   HTTPValidationError,
@@ -539,6 +541,140 @@ export function useExpenseReportV1ReportsExpensesGet<TData = Awaited<ReturnType<
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getExpenseReportV1ReportsExpensesGetQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+/**
+ * One expense item: each entry in the range with its day, who and how much.
+ * @summary Expense Item Ledger
+ */
+export type expenseItemLedgerV1ReportsExpensesItemIdGetResponse200 = {
+  data: ExpenseItemLedgerOut
+  status: 200
+}
+
+export type expenseItemLedgerV1ReportsExpensesItemIdGetResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+    
+export type expenseItemLedgerV1ReportsExpensesItemIdGetResponseSuccess = (expenseItemLedgerV1ReportsExpensesItemIdGetResponse200) & {
+  headers: Headers;
+};
+export type expenseItemLedgerV1ReportsExpensesItemIdGetResponseError = (expenseItemLedgerV1ReportsExpensesItemIdGetResponse422) & {
+  headers: Headers;
+};
+
+export type expenseItemLedgerV1ReportsExpensesItemIdGetResponse = (expenseItemLedgerV1ReportsExpensesItemIdGetResponseSuccess | expenseItemLedgerV1ReportsExpensesItemIdGetResponseError)
+
+export const getExpenseItemLedgerV1ReportsExpensesItemIdGetUrl = (itemId: string,
+    params: ExpenseItemLedgerV1ReportsExpensesItemIdGetParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/v1/reports/expenses/${itemId}?${stringifiedParams}` : `/v1/reports/expenses/${itemId}`
+}
+
+export const expenseItemLedgerV1ReportsExpensesItemIdGet = async (itemId: string,
+    params: ExpenseItemLedgerV1ReportsExpensesItemIdGetParams, options?: RequestInit): Promise<expenseItemLedgerV1ReportsExpensesItemIdGetResponse> => {
+  
+  return customFetch<expenseItemLedgerV1ReportsExpensesItemIdGetResponse>(getExpenseItemLedgerV1ReportsExpensesItemIdGetUrl(itemId,params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getExpenseItemLedgerV1ReportsExpensesItemIdGetQueryKey = (itemId?: string,
+    params?: ExpenseItemLedgerV1ReportsExpensesItemIdGetParams,) => {
+    return [
+    `/v1/reports/expenses/${itemId}`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getExpenseItemLedgerV1ReportsExpensesItemIdGetQueryOptions = <TData = Awaited<ReturnType<typeof expenseItemLedgerV1ReportsExpensesItemIdGet>>, TError = HTTPValidationError>(itemId: string,
+    params: ExpenseItemLedgerV1ReportsExpensesItemIdGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof expenseItemLedgerV1ReportsExpensesItemIdGet>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getExpenseItemLedgerV1ReportsExpensesItemIdGetQueryKey(itemId,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof expenseItemLedgerV1ReportsExpensesItemIdGet>>> = ({ signal }) => expenseItemLedgerV1ReportsExpensesItemIdGet(itemId,params, { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(itemId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof expenseItemLedgerV1ReportsExpensesItemIdGet>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ExpenseItemLedgerV1ReportsExpensesItemIdGetQueryResult = NonNullable<Awaited<ReturnType<typeof expenseItemLedgerV1ReportsExpensesItemIdGet>>>
+export type ExpenseItemLedgerV1ReportsExpensesItemIdGetQueryError = HTTPValidationError
+
+
+export function useExpenseItemLedgerV1ReportsExpensesItemIdGet<TData = Awaited<ReturnType<typeof expenseItemLedgerV1ReportsExpensesItemIdGet>>, TError = HTTPValidationError>(
+ itemId: string,
+    params: ExpenseItemLedgerV1ReportsExpensesItemIdGetParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof expenseItemLedgerV1ReportsExpensesItemIdGet>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof expenseItemLedgerV1ReportsExpensesItemIdGet>>,
+          TError,
+          Awaited<ReturnType<typeof expenseItemLedgerV1ReportsExpensesItemIdGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useExpenseItemLedgerV1ReportsExpensesItemIdGet<TData = Awaited<ReturnType<typeof expenseItemLedgerV1ReportsExpensesItemIdGet>>, TError = HTTPValidationError>(
+ itemId: string,
+    params: ExpenseItemLedgerV1ReportsExpensesItemIdGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof expenseItemLedgerV1ReportsExpensesItemIdGet>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof expenseItemLedgerV1ReportsExpensesItemIdGet>>,
+          TError,
+          Awaited<ReturnType<typeof expenseItemLedgerV1ReportsExpensesItemIdGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useExpenseItemLedgerV1ReportsExpensesItemIdGet<TData = Awaited<ReturnType<typeof expenseItemLedgerV1ReportsExpensesItemIdGet>>, TError = HTTPValidationError>(
+ itemId: string,
+    params: ExpenseItemLedgerV1ReportsExpensesItemIdGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof expenseItemLedgerV1ReportsExpensesItemIdGet>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Expense Item Ledger
+ */
+
+export function useExpenseItemLedgerV1ReportsExpensesItemIdGet<TData = Awaited<ReturnType<typeof expenseItemLedgerV1ReportsExpensesItemIdGet>>, TError = HTTPValidationError>(
+ itemId: string,
+    params: ExpenseItemLedgerV1ReportsExpensesItemIdGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof expenseItemLedgerV1ReportsExpensesItemIdGet>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getExpenseItemLedgerV1ReportsExpensesItemIdGetQueryOptions(itemId,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
