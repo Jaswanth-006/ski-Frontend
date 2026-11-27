@@ -8,6 +8,7 @@
 import type { DeliveryBalanceCreateAmount } from './deliveryBalanceCreateAmount';
 import type { DeliveryBalanceCreateNote } from './deliveryBalanceCreateNote';
 import type { DeliveryBalanceCreateMethod } from './deliveryBalanceCreateMethod';
+import type { DeliveryBalanceCreateUpiAccountId } from './deliveryBalanceCreateUpiAccountId';
 
 export interface DeliveryBalanceCreate {
   delivery_id: string;
@@ -16,4 +17,5 @@ export interface DeliveryBalanceCreate {
   kind: string;
   note?: DeliveryBalanceCreateNote;
   method?: DeliveryBalanceCreateMethod;
+  upi_account_id?: DeliveryBalanceCreateUpiAccountId;
 }

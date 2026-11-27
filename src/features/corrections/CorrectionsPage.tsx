@@ -490,6 +490,14 @@ function DepositsTab({ date }: { date: string }) {
           >
             From {t.note?.match(/invoice (.+)$/)?.[1] ? `invoice ${t.note.match(/invoice (.+)$/)![1]}` : 'a sale'}
           </Link>
+        ) : t.balance_entry_id ? (
+          <Link
+            to={`/corrections?tab=balance&date=${t.business_date}`}
+            className="text-[12px] font-medium text-navy hover:text-orange whitespace-nowrap"
+            title="A UPI repayment sent to the bank — edit the repayment"
+          >
+            From a repayment
+          </Link>
         ) : (
           <RowActions onEdit={() => setEditing(t)} onDelete={() => setDeleting(t)} />
         ),
