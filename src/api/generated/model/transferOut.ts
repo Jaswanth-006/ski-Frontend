@@ -10,6 +10,7 @@ import type { TransferOutSourcePersonId } from './transferOutSourcePersonId';
 import type { TransferOutDestKind } from './transferOutDestKind';
 import type { TransferOutDestPersonId } from './transferOutDestPersonId';
 import type { TransferOutNote } from './transferOutNote';
+import type { TransferOutSaleId } from './transferOutSaleId';
 
 export interface TransferOut {
   id: string;
@@ -23,5 +24,6 @@ export interface TransferOut {
   dest_person_id?: TransferOutDestPersonId;
   method: string;
   note: TransferOutNote;
+  sale_id?: TransferOutSaleId;
   created_at: string;
 }

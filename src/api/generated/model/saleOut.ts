@@ -11,6 +11,8 @@ import type { SaleOutCustomerId } from './saleOutCustomerId';
 import type { SaleLineOut } from './saleLineOut';
 import type { SaleExpenseOut } from './saleExpenseOut';
 import type { DenominationIn } from './denominationIn';
+import type { SaleOutUpiAccountId } from './saleOutUpiAccountId';
+import type { SaleOutOnlineVendorId } from './saleOutOnlineVendorId';
 import type { SaleOutCancelledAt } from './saleOutCancelledAt';
 import type { SaleOutCancelReason } from './saleOutCancelReason';
 
@@ -35,6 +37,8 @@ export interface SaleOut {
   expenses?: SaleExpenseOut[];
   expenses_total?: string;
   denominations?: DenominationIn[];
+  upi_account_id?: SaleOutUpiAccountId;
+  online_vendor_id?: SaleOutOnlineVendorId;
   cancelled_at?: SaleOutCancelledAt;
   cancel_reason?: SaleOutCancelReason;
 }
