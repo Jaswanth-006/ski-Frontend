@@ -6,7 +6,8 @@ import {
   useExpenseReportV1ReportsExpensesGet,
   useStockReportV1ReportsStockGet,
 } from '@/api/generated/reports/reports'
-import type { StockReportRow } from '@/api/generated/model'
+import type { DepositReportRow, StockReportRow } from '@/api/generated/model'
+import { PLACE_KIND } from './DepositLedgerPage'
 import { AppShell } from '@/components/app/AppShell'
 import { DataTable, type Column } from '@/components/app/DataTable'
 import { Money } from '@/components/app/Money'
@@ -72,9 +73,9 @@ export function ReportsPage() {
       downloadCsv(`expenses_${start}_${end}`, ['Item', 'Total', 'Count'],
         r.map((x) => [x.item_name, x.total, x.count]))
     } else {
-      const r = rows as { recipient: string; kind: string; total: string; count: number }[]
-      downloadCsv(`deposits_${start}_${end}`, ['Recipient', 'Type', 'Total', 'Count'],
-        r.map((x) => [x.recipient, x.kind, x.total, x.count]))
+      const r = rows as DepositReportRow[]
+      downloadCsv(`deposits_${start}_${end}`, ['Place', 'Type', 'Money in', 'Money out', 'Count'],
+        r.map((x) => [x.name, PLACE_KIND[x.kind], x.money_in, x.money_out, x.count]))
     }
   }
 
@@ -172,10 +173,33 @@ export function ReportsPage() {
               { key: 'count', header: 'Count', numeric: true, render: (r) => r.count as number },
             ]
           : [
-              { key: 'recipient', header: 'Recipient', render: (r) => r.recipient as string },
-              { key: 'kind', header: 'Type', render: (r) => r.kind as string },
-              { key: 'total', header: 'Total ₹', numeric: true, render: (r) => <Money value={Number(r.total)} bare /> },
-              { key: 'count', header: 'Count', numeric: true, render: (r) => r.count as number },
+              {
+                key: 'name',
+                header: 'Place',
+                render: (r) => (
+                  <Link
+                    to={`/reports/deposits/${r.kind as string}/${(r.ref_id as string | null) ?? 'box'}?start=${start}&end=${end}`}
+                    className="group inline-flex items-center gap-1 font-medium text-navy hover:text-orange"
+                  >
+                    {r.name as string}
+                    <ChevronRight size={14} className="text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-orange" />
+                  </Link>
+                ),
+              },
+              { key: 'kind', header: 'Type', render: (r) => <span className="text-muted">{PLACE_KIND[r.kind as DepositReportRow['kind']]}</span> },
+              {
+                key: 'in',
+                header: 'Money in ₹',
+                numeric: true,
+                render: (r) => (Number(r.money_in) ? <Money value={Number(r.money_in)} bare className="text-ok" /> : <span className="text-muted">—</span>),
+              },
+              {
+                key: 'out',
+                header: 'Money out ₹',
+                numeric: true,
+                render: (r) => (Number(r.money_out) ? <Money value={Number(r.money_out)} bare className="text-bad" /> : <span className="text-muted">—</span>),
+              },
+              { key: 'count', header: 'Entries', numeric: true, render: (r) => r.count as number },
             ]
 
   return (

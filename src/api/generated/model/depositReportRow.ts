@@ -5,10 +5,17 @@
  * System of record for an LPG distributorship. See 01-BACKEND-PRD.
  * OpenAPI spec version: 0.1.0
  */
+import type { DepositReportRowKind } from './depositReportRowKind';
+import type { DepositReportRowRefId } from './depositReportRowRefId';
 
+/**
+ * One place money moved through in the range: cashier box, bank account, vendor, person.
+ */
 export interface DepositReportRow {
-  kind: string;
-  recipient: string;
-  total: string;
+  kind: DepositReportRowKind;
+  ref_id: DepositReportRowRefId;
+  name: string;
+  money_in: string;
+  money_out: string;
   count: number;
 }

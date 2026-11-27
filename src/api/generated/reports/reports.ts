@@ -25,6 +25,8 @@ import type {
   DeliveryLedgerV1ReportsDeliveryDeliveryIdGetParams,
   DeliveryReportRow,
   DeliveryReportV1ReportsDeliveryGetParams,
+  DepositLedgerOut,
+  DepositLedgerV1ReportsDepositsKindRefGetParams,
   DepositReportRow,
   DepositReportV1ReportsDepositsGetParams,
   ExpenseItemLedgerOut,
@@ -800,6 +802,149 @@ export function useDepositReportV1ReportsDepositsGet<TData = Awaited<ReturnType<
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getDepositReportV1ReportsDepositsGetQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+/**
+ * Every deposit into / out of one place: the cashier box (``ref`` = "box"), a bank account,
+a vendor or a person — when, how much, from where to where.
+ * @summary Deposit Ledger
+ */
+export type depositLedgerV1ReportsDepositsKindRefGetResponse200 = {
+  data: DepositLedgerOut
+  status: 200
+}
+
+export type depositLedgerV1ReportsDepositsKindRefGetResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+    
+export type depositLedgerV1ReportsDepositsKindRefGetResponseSuccess = (depositLedgerV1ReportsDepositsKindRefGetResponse200) & {
+  headers: Headers;
+};
+export type depositLedgerV1ReportsDepositsKindRefGetResponseError = (depositLedgerV1ReportsDepositsKindRefGetResponse422) & {
+  headers: Headers;
+};
+
+export type depositLedgerV1ReportsDepositsKindRefGetResponse = (depositLedgerV1ReportsDepositsKindRefGetResponseSuccess | depositLedgerV1ReportsDepositsKindRefGetResponseError)
+
+export const getDepositLedgerV1ReportsDepositsKindRefGetUrl = (kind: 'cashier_box' | 'bank_account' | 'vendor' | 'person',
+    ref: string,
+    params: DepositLedgerV1ReportsDepositsKindRefGetParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/v1/reports/deposits/${kind}/${ref}?${stringifiedParams}` : `/v1/reports/deposits/${kind}/${ref}`
+}
+
+export const depositLedgerV1ReportsDepositsKindRefGet = async (kind: 'cashier_box' | 'bank_account' | 'vendor' | 'person',
+    ref: string,
+    params: DepositLedgerV1ReportsDepositsKindRefGetParams, options?: RequestInit): Promise<depositLedgerV1ReportsDepositsKindRefGetResponse> => {
+  
+  return customFetch<depositLedgerV1ReportsDepositsKindRefGetResponse>(getDepositLedgerV1ReportsDepositsKindRefGetUrl(kind,ref,params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getDepositLedgerV1ReportsDepositsKindRefGetQueryKey = (kind?: 'cashier_box' | 'bank_account' | 'vendor' | 'person',
+    ref?: string,
+    params?: DepositLedgerV1ReportsDepositsKindRefGetParams,) => {
+    return [
+    `/v1/reports/deposits/${kind}/${ref}`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getDepositLedgerV1ReportsDepositsKindRefGetQueryOptions = <TData = Awaited<ReturnType<typeof depositLedgerV1ReportsDepositsKindRefGet>>, TError = HTTPValidationError>(kind: 'cashier_box' | 'bank_account' | 'vendor' | 'person',
+    ref: string,
+    params: DepositLedgerV1ReportsDepositsKindRefGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof depositLedgerV1ReportsDepositsKindRefGet>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDepositLedgerV1ReportsDepositsKindRefGetQueryKey(kind,ref,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof depositLedgerV1ReportsDepositsKindRefGet>>> = ({ signal }) => depositLedgerV1ReportsDepositsKindRefGet(kind,ref,params, { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(kind && ref), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof depositLedgerV1ReportsDepositsKindRefGet>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DepositLedgerV1ReportsDepositsKindRefGetQueryResult = NonNullable<Awaited<ReturnType<typeof depositLedgerV1ReportsDepositsKindRefGet>>>
+export type DepositLedgerV1ReportsDepositsKindRefGetQueryError = HTTPValidationError
+
+
+export function useDepositLedgerV1ReportsDepositsKindRefGet<TData = Awaited<ReturnType<typeof depositLedgerV1ReportsDepositsKindRefGet>>, TError = HTTPValidationError>(
+ kind: 'cashier_box' | 'bank_account' | 'vendor' | 'person',
+    ref: string,
+    params: DepositLedgerV1ReportsDepositsKindRefGetParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof depositLedgerV1ReportsDepositsKindRefGet>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof depositLedgerV1ReportsDepositsKindRefGet>>,
+          TError,
+          Awaited<ReturnType<typeof depositLedgerV1ReportsDepositsKindRefGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDepositLedgerV1ReportsDepositsKindRefGet<TData = Awaited<ReturnType<typeof depositLedgerV1ReportsDepositsKindRefGet>>, TError = HTTPValidationError>(
+ kind: 'cashier_box' | 'bank_account' | 'vendor' | 'person',
+    ref: string,
+    params: DepositLedgerV1ReportsDepositsKindRefGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof depositLedgerV1ReportsDepositsKindRefGet>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof depositLedgerV1ReportsDepositsKindRefGet>>,
+          TError,
+          Awaited<ReturnType<typeof depositLedgerV1ReportsDepositsKindRefGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDepositLedgerV1ReportsDepositsKindRefGet<TData = Awaited<ReturnType<typeof depositLedgerV1ReportsDepositsKindRefGet>>, TError = HTTPValidationError>(
+ kind: 'cashier_box' | 'bank_account' | 'vendor' | 'person',
+    ref: string,
+    params: DepositLedgerV1ReportsDepositsKindRefGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof depositLedgerV1ReportsDepositsKindRefGet>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Deposit Ledger
+ */
+
+export function useDepositLedgerV1ReportsDepositsKindRefGet<TData = Awaited<ReturnType<typeof depositLedgerV1ReportsDepositsKindRefGet>>, TError = HTTPValidationError>(
+ kind: 'cashier_box' | 'bank_account' | 'vendor' | 'person',
+    ref: string,
+    params: DepositLedgerV1ReportsDepositsKindRefGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof depositLedgerV1ReportsDepositsKindRefGet>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDepositLedgerV1ReportsDepositsKindRefGetQueryOptions(kind,ref,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
