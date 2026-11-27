@@ -15,6 +15,7 @@ export interface MonthSheetDay {
   upi: string;
   cash: string;
   online: string;
+  route_expense?: string;
   balance: string;
   is_closed: boolean;
 }

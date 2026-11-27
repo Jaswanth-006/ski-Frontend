@@ -14,5 +14,6 @@ export interface MonthSheetTotals {
   upi: string;
   cash: string;
   online: string;
+  route_expense?: string;
   balance: string;
 }

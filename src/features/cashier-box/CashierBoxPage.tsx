@@ -54,6 +54,9 @@ export function CashierBoxPage() {
               <Line label="Put in (debtors, creditors, bank)" value={Number(box.received ?? 0)} sign="+" />
               <Line label="Expenses" value={Number(box.expenses)} sign="−" />
               <Line label="Deposited out" value={Number(box.deposited)} sign="−" />
+              {Number(box.upi_to_bank ?? 0) ? (
+                <Line label="Sales' UPI sent to bank" value={Number(box.upi_to_bank)} sign="−" />
+              ) : null}
               <div className="flex items-center justify-between pt-3.5 mt-1.5 border-t-2 border-line">
                 <span className="inline-flex items-center gap-2 text-[14px] font-semibold text-ink">
                   <Wallet size={16} className="text-orange" /> Closing balance
@@ -72,6 +75,21 @@ export function CashierBoxPage() {
               <Line label="Opening hand cash" value={Number(box.hand_cash_opening)} />
               <Line label="Cash collected" value={Number(box.hand_cash_collected)} sign="+" />
               <Line label="Cash repaid" value={Number(box.hand_cash_repaid)} sign="+" />
+              {(() => {
+                // Everything else that moved notes: cash expenses, cash deposits, cash put in.
+                const other =
+                  Number(box.hand_cash_closing) -
+                  Number(box.hand_cash_opening) -
+                  Number(box.hand_cash_collected) -
+                  Number(box.hand_cash_repaid)
+                return other ? (
+                  <Line
+                    label={other < 0 ? 'Cash paid out & deposited' : 'Cash put in'}
+                    value={Math.abs(other)}
+                    sign={other < 0 ? '−' : '+'}
+                  />
+                ) : null
+              })()}
               <div className="flex items-center justify-between pt-3.5 mt-1.5 border-t-2 border-line">
                 <span className="inline-flex items-center gap-2 text-[14px] font-semibold text-ink">
                   <Banknote size={16} className="text-orange" /> Hand cash now

@@ -25,5 +25,6 @@ export interface DaySheetRow {
   net: string;
   balance: string;
   handed: string;
+  route_expense?: string;
   denominations: Denomination[];
 }
