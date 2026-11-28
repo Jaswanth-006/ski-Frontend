@@ -83,7 +83,7 @@ export function SalesEntryPage() {
   const pricesQuery = useGetPricesV1PricesGet({ date })
   const driversQuery = useListUsersV1UsersGet({ role: 'delivery', active: true })
   const customersQuery = useListCustomersV1CustomersGet()
-  const otherSalesQuery = useListDeliveryOtherSalesV1DeliveryOtherSalesGet()
+  const otherSalesQuery = useListDeliveryOtherSalesV1DeliveryOtherSalesGet({ on_date: date, include_inactive: true })
   const itemsQuery = useListExpenseItemsV1ExpenseItemsGet({ active: 'true' })
   const accountsQuery = useListBankAccountsV1BankAccountsGet({ active: 'true' })
   const vendorsQuery = useListVendorsV1VendorsGet({ active: 'true' })

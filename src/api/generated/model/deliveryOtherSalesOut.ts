@@ -5,9 +5,11 @@
  * System of record for an LPG distributorship. See 01-BACKEND-PRD.
  * OpenAPI spec version: 0.1.0
  */
+import type { DeliveryOtherSalesOutEffectiveDate } from './deliveryOtherSalesOutEffectiveDate';
 
 export interface DeliveryOtherSalesOut {
   delivery_id: string;
   delivery_name: string;
   amount_per_cylinder: string;
+  effective_date?: DeliveryOtherSalesOutEffectiveDate;
 }

@@ -27,6 +27,7 @@ import { Select } from '@/components/ui/select'
 import { cn } from '@/lib/cn'
 import { detailOf } from '@/lib/apiError'
 import { todayISO } from '@/lib/date'
+import { useSaveKey } from '@/lib/saveKey'
 
 const today = todayISO
 
@@ -95,7 +96,8 @@ function DeliveryBalances() {
     { delivery_id: partyId },
     { query: { enabled: !!partyId } },
   )
-  const create = useCreateBalanceEntryV1DeliveryBalancesPost()
+  const saveKey = useSaveKey()
+  const create = useCreateBalanceEntryV1DeliveryBalancesPost({ request: saveKey.request })
 
   const summary: PartyBalance[] = (summaryQuery.data?.status === 200 ? summaryQuery.data.data : []).map(
     (s) => ({
@@ -129,6 +131,7 @@ function DeliveryBalances() {
           },
         })
         if (res.status !== 201) return detailOf(res.data, 'Could not record the repayment.')
+        saveKey.renew()
         await queryClient.invalidateQueries({
           queryKey: getBalanceSummaryV1DeliveryBalancesSummaryGetQueryKey(),
         })
@@ -149,7 +152,8 @@ function CustomerBalances() {
     { customer_id: partyId },
     { query: { enabled: !!partyId } },
   )
-  const create = useCreateCustomerBalanceEntryV1CustomerBalancesPost()
+  const saveKey = useSaveKey()
+  const create = useCreateCustomerBalanceEntryV1CustomerBalancesPost({ request: saveKey.request })
 
   const summary: PartyBalance[] = (summaryQuery.data?.status === 200 ? summaryQuery.data.data : []).map(
     (s) => ({
@@ -183,6 +187,7 @@ function CustomerBalances() {
           },
         })
         if (res.status !== 201) return detailOf(res.data, 'Could not record the repayment.')
+        saveKey.renew()
         await queryClient.invalidateQueries({
           queryKey: getCustomerBalanceSummaryV1CustomerBalancesSummaryGetQueryKey(),
         })

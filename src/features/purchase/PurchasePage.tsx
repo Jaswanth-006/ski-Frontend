@@ -27,6 +27,7 @@ import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { cn } from '@/lib/cn'
 import { todayISO } from '@/lib/date'
+import { useSaveKey } from '@/lib/saveKey'
 
 const today = todayISO
 const num = (v: string | undefined) => Number(v) || 0
@@ -72,8 +73,10 @@ export function PurchasePage() {
   const overviewQuery = useStockOverviewV1StockOverviewGet({ date })
   const accessoriesQuery = useListAccessoriesV1AccessoriesGet()
   const ac4Mutation = useStockAc4V1StockAc4Post()
-  const ervMutation = useStockErvV1StockErvPost()
-  const returnMutation = useStockReturnV1StockReturnPost()
+  const ervKey = useSaveKey()
+  const returnKey = useSaveKey()
+  const ervMutation = useStockErvV1StockErvPost({ request: ervKey.request })
+  const returnMutation = useStockReturnV1StockReturnPost({ request: returnKey.request })
 
   const overview = overviewQuery.data?.status === 200 ? overviewQuery.data.data : null
   const cylinders: CylinderStockRow[] = overview?.cylinders ?? []
@@ -186,6 +189,7 @@ export function PurchasePage() {
       },
     })
     if (res.status !== 201) return errorOf(res.data)
+    ervKey.renew()
     await invalidate()
     return null
   }
@@ -204,6 +208,7 @@ export function PurchasePage() {
       },
     })
     if (res.status !== 201) return errorOf(res.data)
+    returnKey.renew()
     await invalidate()
     return null
   }

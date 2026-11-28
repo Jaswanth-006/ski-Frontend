@@ -20,6 +20,7 @@ import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { detailOf } from '@/lib/apiError'
 import { todayISO } from '@/lib/date'
+import { useSaveKey } from '@/lib/saveKey'
 
 const today = todayISO
 const acctLabel = (a: BankAccountOut) =>
@@ -49,7 +50,8 @@ export function DepositsPage() {
   const vendorsQuery = useListVendorsV1VendorsGet({ active: 'true' })
   const peopleQuery = useListPeopleV1PeopleGet({ active: 'true' })
   const listQuery = useListTransfersV1TransfersGet()
-  const createMutation = useCreateTransferV1TransfersPost()
+  const saveKey = useSaveKey()
+  const createMutation = useCreateTransferV1TransfersPost({ request: saveKey.request })
 
   const accounts: BankAccountOut[] =
     accountsQuery.data?.status === 200 ? accountsQuery.data.data : []
@@ -109,6 +111,7 @@ export function DepositsPage() {
     }
     const res = await createMutation.mutateAsync({ data: body as never })
     if (res.status === 201) {
+      saveKey.renew()
       await qc.invalidateQueries({ queryKey: getListTransfersV1TransfersGetQueryKey() })
       await accountsQuery.refetch()
       await peopleQuery.refetch()

@@ -53,7 +53,7 @@ export function OtherSalesSection() {
     <Card>
       <CardHeader
         title="Other sales per delivery boy"
-        hint="Extra ₹/cylinder charged on top of the fixed price — added to each sale's total"
+        hint="Extra ₹/cylinder on top of the fixed price. A change applies from today — earlier sales keep the extra they had."
       />
       {listQuery.isLoading ? (
         <div className="grid place-items-center py-10 text-muted">
@@ -70,7 +70,12 @@ export function OtherSalesSection() {
               key={r.delivery_id}
               className="flex items-center justify-between gap-4 py-2.5 border-b border-line last:border-0"
             >
-              <div className="text-[13.5px] font-medium text-ink">{r.delivery_name}</div>
+              <div>
+                <div className="text-[13.5px] font-medium text-ink">{r.delivery_name}</div>
+                {r.effective_date && r.effective_date > '2000-01-01' ? (
+                  <div className="text-[11.5px] text-muted">since {r.effective_date}</div>
+                ) : null}
+              </div>
               <div className="flex items-center gap-2">
                 <span className="text-muted text-[12px]">₹</span>
                 <Input

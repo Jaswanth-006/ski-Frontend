@@ -6,7 +6,9 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { DeliveryOtherSalesSetAmountPerCylinder } from './deliveryOtherSalesSetAmountPerCylinder';
+import type { DeliveryOtherSalesSetEffectiveDate } from './deliveryOtherSalesSetEffectiveDate';
 
 export interface DeliveryOtherSalesSet {
   amount_per_cylinder: DeliveryOtherSalesSetAmountPerCylinder;
+  effective_date?: DeliveryOtherSalesSetEffectiveDate;
 }

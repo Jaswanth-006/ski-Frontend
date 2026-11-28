@@ -1,4 +1,5 @@
 import { useMeV1MeGet } from '@/api/generated/auth/auth'
+import { signOut } from '@/api/fetcher'
 import type { UserOut } from '@/api/generated/model'
 import { useAuthStore } from '@/state/auth'
 
@@ -17,7 +18,6 @@ export interface AuthInfo {
  */
 export function useAuth(): AuthInfo {
   const accessToken = useAuthStore((s) => s.accessToken)
-  const clear = useAuthStore((s) => s.clear)
 
   const me = useMeV1MeGet({ query: { enabled: !!accessToken, retry: false } })
   const envelope = me.data
@@ -28,6 +28,6 @@ export function useAuth(): AuthInfo {
     role: user?.role ?? null,
     isAuthenticated: !!user,
     isLoading: !!accessToken && me.isLoading,
-    logout: clear,
+    logout: () => void signOut(),
   }
 }

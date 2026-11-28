@@ -19,6 +19,8 @@ import { Card, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Modal } from '@/components/ui/modal'
 import { Select } from '@/components/ui/select'
+import { useAuth } from '@/auth/useAuth'
+import { detailOf } from '@/lib/apiError'
 import { cn } from '@/lib/cn'
 
 const ROLE_LABEL: Record<string, string> = {
@@ -45,6 +47,8 @@ function RoleBadge({ role }: { role: string }) {
 export function UsersPage() {
   const queryClient = useQueryClient()
   const [addOpen, setAddOpen] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const { user: me } = useAuth()
 
   const usersQuery = useListUsersV1UsersGet()
   const patchMutation = useUpdateUserV1UsersUserIdPatch()
@@ -56,7 +60,9 @@ export function UsersPage() {
     queryClient.invalidateQueries({ queryKey: getListUsersV1UsersGetQueryKey() })
 
   const toggleActive = async (user: UserOut) => {
-    await patchMutation.mutateAsync({ userId: user.id, data: { is_active: !user.is_active } })
+    setError(null)
+    const res = await patchMutation.mutateAsync({ userId: user.id, data: { is_active: !user.is_active } })
+    if (res.status !== 200) setError(detailOf(res.data, 'Could not change this user.'))
     await invalidate()
   }
 
@@ -81,7 +87,10 @@ export function UsersPage() {
     {
       key: 'actions',
       header: '',
-      render: (u) => (
+      render: (u) =>
+        u.id === me?.id ? (
+          <span className="text-[12px] text-muted px-3">You</span>
+        ) : (
         <Button
           variant="ghost"
           className="h-8 px-3 text-[12px]"
@@ -90,7 +99,7 @@ export function UsersPage() {
         >
           {u.is_active ? 'Deactivate' : 'Reactivate'}
         </Button>
-      ),
+        ),
     },
   ]
 
@@ -107,6 +116,7 @@ export function UsersPage() {
             </Button>
           }
         />
+        {error ? <div className="px-[18px] pb-2 text-[12.5px] text-bad">{error}</div> : null}
 
         {usersQuery.isLoading ? (
           <div className="grid place-items-center py-14 text-muted">
