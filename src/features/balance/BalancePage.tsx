@@ -15,6 +15,8 @@ import {
   useCustomerBalanceSummaryV1CustomerBalancesSummaryGet,
   useListCustomerBalanceEntriesV1CustomerBalancesGet,
 } from '@/api/generated/customer-balances/customer-balances'
+import { useListBankAccountsV1BankAccountsGet } from '@/api/generated/banking/banking'
+import type { BankAccountOut } from '@/api/generated/model'
 import { AppShell } from '@/components/app/AppShell'
 import { DataTable, type Column } from '@/components/app/DataTable'
 import { Money } from '@/components/app/Money'
@@ -25,6 +27,7 @@ import { Select } from '@/components/ui/select'
 import { cn } from '@/lib/cn'
 import { detailOf } from '@/lib/apiError'
 import { todayISO } from '@/lib/date'
+import { useSaveKey } from '@/lib/saveKey'
 
 const today = todayISO
 
@@ -93,7 +96,8 @@ function DeliveryBalances() {
     { delivery_id: partyId },
     { query: { enabled: !!partyId } },
   )
-  const create = useCreateBalanceEntryV1DeliveryBalancesPost()
+  const saveKey = useSaveKey()
+  const create = useCreateBalanceEntryV1DeliveryBalancesPost({ request: saveKey.request })
 
   const summary: PartyBalance[] = (summaryQuery.data?.status === 200 ? summaryQuery.data.data : []).map(
     (s) => ({
@@ -115,11 +119,19 @@ function DeliveryBalances() {
       entries={entriesQuery.data?.status === 200 ? entriesQuery.data.data : []}
       entriesLoading={entriesQuery.isLoading}
       pending={create.isPending}
-      onRepay={async (amount, date, method) => {
+      onRepay={async (amount, date, method, accountId) => {
         const res = await create.mutateAsync({
-          data: { delivery_id: partyId, amount, entry_date: date, kind: 'repayment', method },
+          data: {
+            delivery_id: partyId,
+            amount,
+            entry_date: date,
+            kind: 'repayment',
+            method,
+            upi_account_id: accountId,
+          },
         })
         if (res.status !== 201) return detailOf(res.data, 'Could not record the repayment.')
+        saveKey.renew()
         await queryClient.invalidateQueries({
           queryKey: getBalanceSummaryV1DeliveryBalancesSummaryGetQueryKey(),
         })
@@ -140,7 +152,8 @@ function CustomerBalances() {
     { customer_id: partyId },
     { query: { enabled: !!partyId } },
   )
-  const create = useCreateCustomerBalanceEntryV1CustomerBalancesPost()
+  const saveKey = useSaveKey()
+  const create = useCreateCustomerBalanceEntryV1CustomerBalancesPost({ request: saveKey.request })
 
   const summary: PartyBalance[] = (summaryQuery.data?.status === 200 ? summaryQuery.data.data : []).map(
     (s) => ({
@@ -162,11 +175,19 @@ function CustomerBalances() {
       entries={entriesQuery.data?.status === 200 ? entriesQuery.data.data : []}
       entriesLoading={entriesQuery.isLoading}
       pending={create.isPending}
-      onRepay={async (amount, date, method) => {
+      onRepay={async (amount, date, method, accountId) => {
         const res = await create.mutateAsync({
-          data: { customer_id: partyId, amount, entry_date: date, kind: 'repayment', method },
+          data: {
+            customer_id: partyId,
+            amount,
+            entry_date: date,
+            kind: 'repayment',
+            method,
+            upi_account_id: accountId,
+          },
         })
         if (res.status !== 201) return detailOf(res.data, 'Could not record the repayment.')
+        saveKey.renew()
         await queryClient.invalidateQueries({
           queryKey: getCustomerBalanceSummaryV1CustomerBalancesSummaryGetQueryKey(),
         })
@@ -199,11 +220,17 @@ function BalancePanel({
   entries: Entry[]
   entriesLoading: boolean
   pending: boolean
-  onRepay: (amount: number, date: string, method: Method) => Promise<string | null>
+  /** accountId: the bank a UPI repayment went into, or null to keep it in the cashier box. */
+  onRepay: (amount: number, date: string, method: Method, accountId: string | null) => Promise<string | null>
 }) {
   const [repayAmount, setRepayAmount] = useState('')
   const [repayDate, setRepayDate] = useState(today())
   const [repayMethod, setRepayMethod] = useState<Method>('cash')
+  // UPI repayments go on to this bank account ('box' = stay in the cashier box).
+  const [upiAccount, setUpiAccount] = useState('')
+  const accountsQuery = useListBankAccountsV1BankAccountsGet({ active: 'true' })
+  const accounts: BankAccountOut[] = accountsQuery.data?.status === 200 ? accountsQuery.data.data : []
+  const upiTo = upiAccount || accounts[0]?.id || 'box'
   const [repayError, setRepayError] = useState<string | null>(null)
   const selected = summary.find((s) => s.id === partyId)
   const totalOutstanding = summary.reduce((s, r) => s + r.balance, 0)
@@ -230,7 +257,12 @@ function BalancePanel({
   const recordRepayment = async () => {
     if (!partyId || Number(repayAmount) <= 0) return
     setRepayError(null)
-    const error = await onRepay(Number(repayAmount), repayDate, repayMethod)
+    const error = await onRepay(
+      Number(repayAmount),
+      repayDate,
+      repayMethod,
+      repayMethod === 'upi' && upiTo !== 'box' ? upiTo : null,
+    )
     if (error) return setRepayError(error)
     setRepayAmount('')
   }
@@ -346,6 +378,7 @@ function BalancePanel({
                 <Input
                   type="number"
                   min={0}
+                  aria-label="Money given back"
                   value={repayAmount}
                   onChange={(e) => setRepayAmount(e.target.value)}
                   className="h-9 w-[140px] num text-right"
@@ -366,6 +399,24 @@ function BalancePanel({
                   <option value="upi">UPI</option>
                 </Select>
               </div>
+              {repayMethod === 'upi' ? (
+                <div>
+                  <label className="block text-[12px] text-muted mb-1">Went into</label>
+                  <Select
+                    value={upiTo}
+                    onChange={(e) => setUpiAccount(e.target.value)}
+                    className="h-9 w-[200px]"
+                    aria-label="UPI went into"
+                  >
+                    {accounts.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.bank_name} · {a.account_type}{a.label ? ` (${a.label})` : ''}
+                      </option>
+                    ))}
+                    <option value="box">Keep in cashier box</option>
+                  </Select>
+                </div>
+              ) : null}
               <Button variant="primary" className="h-9" onClick={recordRepayment} disabled={pending}>
                 <Plus size={16} /> Record repayment
               </Button>

@@ -27,7 +27,8 @@ import type {
 import type {
   DeliveryOtherSalesOut,
   DeliveryOtherSalesSet,
-  HTTPValidationError
+  HTTPValidationError,
+  ListDeliveryOtherSalesV1DeliveryOtherSalesGetParams
 } from '.././model';
 
 import { customFetch } from '../../fetcher';
@@ -38,31 +39,46 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 /**
+ * Each boy's extra as it applied on ``on_date`` (default today).
  * @summary List Delivery Other Sales
  */
 export type listDeliveryOtherSalesV1DeliveryOtherSalesGetResponse200 = {
   data: DeliveryOtherSalesOut[]
   status: 200
 }
+
+export type listDeliveryOtherSalesV1DeliveryOtherSalesGetResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
     
 export type listDeliveryOtherSalesV1DeliveryOtherSalesGetResponseSuccess = (listDeliveryOtherSalesV1DeliveryOtherSalesGetResponse200) & {
   headers: Headers;
 };
-;
+export type listDeliveryOtherSalesV1DeliveryOtherSalesGetResponseError = (listDeliveryOtherSalesV1DeliveryOtherSalesGetResponse422) & {
+  headers: Headers;
+};
 
-export type listDeliveryOtherSalesV1DeliveryOtherSalesGetResponse = (listDeliveryOtherSalesV1DeliveryOtherSalesGetResponseSuccess)
+export type listDeliveryOtherSalesV1DeliveryOtherSalesGetResponse = (listDeliveryOtherSalesV1DeliveryOtherSalesGetResponseSuccess | listDeliveryOtherSalesV1DeliveryOtherSalesGetResponseError)
 
-export const getListDeliveryOtherSalesV1DeliveryOtherSalesGetUrl = () => {
+export const getListDeliveryOtherSalesV1DeliveryOtherSalesGetUrl = (params?: ListDeliveryOtherSalesV1DeliveryOtherSalesGetParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
 
-  
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/v1/delivery-other-sales`
+  return stringifiedParams.length > 0 ? `/v1/delivery-other-sales?${stringifiedParams}` : `/v1/delivery-other-sales`
 }
 
-export const listDeliveryOtherSalesV1DeliveryOtherSalesGet = async ( options?: RequestInit): Promise<listDeliveryOtherSalesV1DeliveryOtherSalesGetResponse> => {
+export const listDeliveryOtherSalesV1DeliveryOtherSalesGet = async (params?: ListDeliveryOtherSalesV1DeliveryOtherSalesGetParams, options?: RequestInit): Promise<listDeliveryOtherSalesV1DeliveryOtherSalesGetResponse> => {
   
-  return customFetch<listDeliveryOtherSalesV1DeliveryOtherSalesGetResponse>(getListDeliveryOtherSalesV1DeliveryOtherSalesGetUrl(),
+  return customFetch<listDeliveryOtherSalesV1DeliveryOtherSalesGetResponse>(getListDeliveryOtherSalesV1DeliveryOtherSalesGetUrl(params),
   {      
     ...options,
     method: 'GET'
@@ -75,23 +91,23 @@ export const listDeliveryOtherSalesV1DeliveryOtherSalesGet = async ( options?: R
 
 
 
-export const getListDeliveryOtherSalesV1DeliveryOtherSalesGetQueryKey = () => {
+export const getListDeliveryOtherSalesV1DeliveryOtherSalesGetQueryKey = (params?: ListDeliveryOtherSalesV1DeliveryOtherSalesGetParams,) => {
     return [
-    `/v1/delivery-other-sales`
+    `/v1/delivery-other-sales`, ...(params ? [params]: [])
     ] as const;
     }
 
     
-export const getListDeliveryOtherSalesV1DeliveryOtherSalesGetQueryOptions = <TData = Awaited<ReturnType<typeof listDeliveryOtherSalesV1DeliveryOtherSalesGet>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDeliveryOtherSalesV1DeliveryOtherSalesGet>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export const getListDeliveryOtherSalesV1DeliveryOtherSalesGetQueryOptions = <TData = Awaited<ReturnType<typeof listDeliveryOtherSalesV1DeliveryOtherSalesGet>>, TError = HTTPValidationError>(params?: ListDeliveryOtherSalesV1DeliveryOtherSalesGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDeliveryOtherSalesV1DeliveryOtherSalesGet>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListDeliveryOtherSalesV1DeliveryOtherSalesGetQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getListDeliveryOtherSalesV1DeliveryOtherSalesGetQueryKey(params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listDeliveryOtherSalesV1DeliveryOtherSalesGet>>> = ({ signal }) => listDeliveryOtherSalesV1DeliveryOtherSalesGet({ signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listDeliveryOtherSalesV1DeliveryOtherSalesGet>>> = ({ signal }) => listDeliveryOtherSalesV1DeliveryOtherSalesGet(params, { signal, ...requestOptions });
 
       
 
@@ -101,11 +117,11 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type ListDeliveryOtherSalesV1DeliveryOtherSalesGetQueryResult = NonNullable<Awaited<ReturnType<typeof listDeliveryOtherSalesV1DeliveryOtherSalesGet>>>
-export type ListDeliveryOtherSalesV1DeliveryOtherSalesGetQueryError = unknown
+export type ListDeliveryOtherSalesV1DeliveryOtherSalesGetQueryError = HTTPValidationError
 
 
-export function useListDeliveryOtherSalesV1DeliveryOtherSalesGet<TData = Awaited<ReturnType<typeof listDeliveryOtherSalesV1DeliveryOtherSalesGet>>, TError = unknown>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDeliveryOtherSalesV1DeliveryOtherSalesGet>>, TError, TData>> & Pick<
+export function useListDeliveryOtherSalesV1DeliveryOtherSalesGet<TData = Awaited<ReturnType<typeof listDeliveryOtherSalesV1DeliveryOtherSalesGet>>, TError = HTTPValidationError>(
+ params: undefined |  ListDeliveryOtherSalesV1DeliveryOtherSalesGetParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDeliveryOtherSalesV1DeliveryOtherSalesGet>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listDeliveryOtherSalesV1DeliveryOtherSalesGet>>,
           TError,
@@ -114,8 +130,8 @@ export function useListDeliveryOtherSalesV1DeliveryOtherSalesGet<TData = Awaited
       >, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListDeliveryOtherSalesV1DeliveryOtherSalesGet<TData = Awaited<ReturnType<typeof listDeliveryOtherSalesV1DeliveryOtherSalesGet>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDeliveryOtherSalesV1DeliveryOtherSalesGet>>, TError, TData>> & Pick<
+export function useListDeliveryOtherSalesV1DeliveryOtherSalesGet<TData = Awaited<ReturnType<typeof listDeliveryOtherSalesV1DeliveryOtherSalesGet>>, TError = HTTPValidationError>(
+ params?: ListDeliveryOtherSalesV1DeliveryOtherSalesGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDeliveryOtherSalesV1DeliveryOtherSalesGet>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listDeliveryOtherSalesV1DeliveryOtherSalesGet>>,
           TError,
@@ -124,20 +140,20 @@ export function useListDeliveryOtherSalesV1DeliveryOtherSalesGet<TData = Awaited
       >, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListDeliveryOtherSalesV1DeliveryOtherSalesGet<TData = Awaited<ReturnType<typeof listDeliveryOtherSalesV1DeliveryOtherSalesGet>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDeliveryOtherSalesV1DeliveryOtherSalesGet>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export function useListDeliveryOtherSalesV1DeliveryOtherSalesGet<TData = Awaited<ReturnType<typeof listDeliveryOtherSalesV1DeliveryOtherSalesGet>>, TError = HTTPValidationError>(
+ params?: ListDeliveryOtherSalesV1DeliveryOtherSalesGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDeliveryOtherSalesV1DeliveryOtherSalesGet>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary List Delivery Other Sales
  */
 
-export function useListDeliveryOtherSalesV1DeliveryOtherSalesGet<TData = Awaited<ReturnType<typeof listDeliveryOtherSalesV1DeliveryOtherSalesGet>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDeliveryOtherSalesV1DeliveryOtherSalesGet>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export function useListDeliveryOtherSalesV1DeliveryOtherSalesGet<TData = Awaited<ReturnType<typeof listDeliveryOtherSalesV1DeliveryOtherSalesGet>>, TError = HTTPValidationError>(
+ params?: ListDeliveryOtherSalesV1DeliveryOtherSalesGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDeliveryOtherSalesV1DeliveryOtherSalesGet>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getListDeliveryOtherSalesV1DeliveryOtherSalesGetQueryOptions(options)
+  const queryOptions = getListDeliveryOtherSalesV1DeliveryOtherSalesGetQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

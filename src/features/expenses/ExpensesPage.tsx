@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { detailOf } from '@/lib/apiError'
 import { todayISO } from '@/lib/date'
+import { useSaveKey } from '@/lib/saveKey'
 
 const today = todayISO
 
@@ -33,7 +34,8 @@ export function ExpensesPage() {
   const itemsQuery = useListExpenseItemsV1ExpenseItemsGet({ active: 'true' })
   const listQuery = useListExpensesV1ExpensesGet({ date })
   const driversQuery = useListUsersV1UsersGet({ role: 'delivery', active: true })
-  const createMutation = useCreateExpenseV1ExpensesPost()
+  const saveKey = useSaveKey()
+  const createMutation = useCreateExpenseV1ExpensesPost({ request: saveKey.request })
 
   const items: ExpenseItemOut[] =
     itemsQuery.data?.status === 200 ? itemsQuery.data.data : []
@@ -54,6 +56,7 @@ export function ExpensesPage() {
       },
     })
     if (res.status === 201) {
+      saveKey.renew()
       await queryClient.invalidateQueries({ queryKey: getListExpensesV1ExpensesGetQueryKey({ date }) })
       setAmount('')
       setNote('')
